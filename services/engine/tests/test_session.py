@@ -79,7 +79,7 @@ def _signed(claims: object) -> str:
 GOOD_EXP = int(NOW.timestamp()) + 3600
 
 
-# Found by the M1 adversarial review (DEFECT_LOG #9): these crashed or were accepted.
+# Found by the M1 adversarial review (DEFECT_LOG #11): these crashed or were accepted.
 @pytest.mark.parametrize(
     "claims",
     [
