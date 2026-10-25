@@ -27,7 +27,10 @@ Git, Node 24 LTS, pnpm, [uv](https://docs.astral.sh/uv/) (it installs Python 3.1
 
 ## Commands
 
-Every command works as `make <name>` or `pnpm <name>`. Both call `scripts/tasks.mjs`, so they behave the same in any shell.
+Every command works as `make <name>` or `pnpm run <name>`. Both call `scripts/tasks.mjs`, so they behave the same in
+PowerShell, Git Bash, and CI. (Use `pnpm run`, not bare `pnpm`: `pnpm setup` is a built-in pnpm command.)
+
+First run: `make setup` then `make gate`.
 
 | Command | What it does |
 |---|---|
@@ -35,7 +38,7 @@ Every command works as `make <name>` or `pnpm <name>`. Both call `scripts/tasks.
 | `dev` | Run database, engine (port 8000) and web (port 3000) |
 | `gate` | The quality gate: types, lint, format, unit tests, engine tests, browser test |
 | `test` | Unit tests only (web and engine) |
-| `gate-selftest` | Proves the gate fails: plants five deliberate errors in a throwaway copy |
+| `gate-selftest` | Proves the gate fails: plants deliberate errors in a throwaway copy and checks each is caught at the right step. Refuses to run on a dirty git tree |
 | `eval` | Run all evaluations (from M2) |
 | `bench` | Scheduler benchmark against baselines (from M3) |
 
