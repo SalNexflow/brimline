@@ -28,7 +28,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
-      - uses: astral-sh/setup-uv@v10
+      # setup-uv publishes only full version tags (no floating v10), so pin the release's commit.
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
           enable-cache: true
           cache-dependency-glob: services/engine/uv.lock
