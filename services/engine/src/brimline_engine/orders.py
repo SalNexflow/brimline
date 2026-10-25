@@ -181,6 +181,34 @@ def get_history(conn: psycopg.Connection, actor: Actor, order_number: str) -> li
 # --- Write ------------------------------------------------------------------------------------
 
 
+def insert_order(
+    conn: psycopg.Connection,
+    *,
+    customer_id: int,
+    due_date: date,
+    rush: bool,
+    notes: str,
+    created_by: int,
+    jobs: list[tuple[str, int, int]],
+) -> tuple[int, str]:
+    """Insert an order and one job per (part name, quantity, material id). No checks: callers
+    have already checked permissions and inputs, inside their own transaction."""
+    order = conn.execute(
+        "INSERT INTO orders (customer_id, due_date, rush, notes, created_by)"
+        " VALUES (%s, %s, %s, %s, %s) RETURNING id, order_number",
+        (customer_id, due_date, rush, notes, created_by),
+    ).fetchone()
+    assert order is not None
+    order_id, order_number = int(order[0]), str(order[1])
+    for line_no, (part_name, quantity, material_id) in enumerate(jobs, start=1):
+        conn.execute(
+            "INSERT INTO jobs (order_id, line_no, part_name, quantity, material_id)"
+            " VALUES (%s, %s, %s, %s, %s)",
+            (order_id, line_no, part_name, quantity, material_id),
+        )
+    return order_id, order_number
+
+
 def create_order(
     conn: psycopg.Connection, actor: Actor, body: OrderCreate, key: str, today: date
 ) -> tuple[idempotency.StoredResponse, bool]:
@@ -223,19 +251,18 @@ def create_order(
         if missing:
             raise InvalidOrderError(f"unknown material(s): {', '.join(missing)}")
 
-        order = conn.execute(
-            "INSERT INTO orders (customer_id, due_date, rush, notes, created_by)"
-            " VALUES (%s, %s, %s, %s, %s) RETURNING id, order_number",
-            (customer_id, body.due_date, body.rush, body.notes, actor.user_id),
-        ).fetchone()
-        assert order is not None
-        order_id, order_number = int(order[0]), str(order[1])
-        for line_no, line in enumerate(body.lines, start=1):
-            conn.execute(
-                "INSERT INTO jobs (order_id, line_no, part_name, quantity, material_id)"
-                " VALUES (%s, %s, %s, %s, %s)",
-                (order_id, line_no, line.part_name, line.quantity, materials[line.material_code]),
-            )
+        _, order_number = insert_order(
+            conn,
+            customer_id=customer_id,
+            due_date=body.due_date,
+            rush=body.rush,
+            notes=body.notes,
+            created_by=actor.user_id,
+            jobs=[
+                (line.part_name, line.quantity, materials[line.material_code])
+                for line in body.lines
+            ],
+        )
 
         detail = get_order(conn, actor, order_number)
         audit.record(

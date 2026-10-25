@@ -56,6 +56,7 @@ def client(test_database: str, app_url: str) -> Iterator[TestClient]:
     patch = pytest.MonkeyPatch()
     patch.setenv("DATABASE_URL", app_url)
     patch.setenv("DEMO_LOGIN", "true")
+    patch.setenv("AI_MODE", "fake")  # prepared replies: the gate never calls a real model
     get_settings.cache_clear()
     app.dependency_overrides[utc_now] = lambda: FIXED_NOW
     with TestClient(app) as test_client:

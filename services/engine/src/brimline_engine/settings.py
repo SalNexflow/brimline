@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,6 +23,8 @@ class Settings(BaseSettings):
     session_ttl_minutes: int = Field(default=480, gt=0, le=7 * 24 * 60)
     # Off unless explicitly enabled, so a deployment cannot ship demo login by accident.
     demo_login: bool = False
+    # Which model client to use: live, fake (tests), or off (staff fill quotes by hand).
+    ai_mode: Literal["live", "fake", "off"] = "off"
 
     @field_validator("session_secret")
     @classmethod

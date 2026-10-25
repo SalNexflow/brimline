@@ -203,10 +203,95 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/quote-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Quote Request */
+        post: operations["submit_quote_request_quote_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/quotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Quotes */
+        get: operations["list_quotes_quotes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/quotes/{quote_number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Quote */
+        get: operations["get_quote_quotes__quote_number__get"];
+        /** Edit Quote */
+        put: operations["edit_quote_quotes__quote_number__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/quotes/{quote_number}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide Quote
+         * @description Approve (creates the order) or reject. A human decision, enforced here (hard rule 7).
+         */
+        post: operations["decide_quote_quotes__quote_number__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AiInfo */
+        AiInfo: {
+            /** Cost Micro Usd */
+            cost_micro_usd: number;
+            /** Latency Ms */
+            latency_ms: number;
+            /** Model */
+            model: string | null;
+            /** Outcome */
+            outcome: string;
+            /** Prompt Version */
+            prompt_version: string;
+        };
         /** CustomerOut */
         CustomerOut: {
             /** Code */
@@ -283,6 +368,19 @@ export interface components {
             } | null;
             /** Idempotency Key */
             idempotency_key: string | null;
+        };
+        /** LinePriceOut */
+        LinePriceOut: {
+            /** Machine Cents */
+            machine_cents: number;
+            /** Material Cents */
+            material_cents: number;
+            /** Post Process Cents */
+            post_process_cents: number;
+            /** Setup Cents */
+            setup_cents: number;
+            /** Total Cents */
+            total_cents: number;
         };
         /** MaterialOut */
         MaterialOut: {
@@ -419,6 +517,19 @@ export interface components {
              */
             status: "open" | "in_production" | "done" | "cancelled";
         };
+        /** PriceOut */
+        PriceOut: {
+            /** Lines */
+            lines: components["schemas"]["LinePriceOut"][];
+            /** Rule Set Id */
+            rule_set_id: number;
+            /** Rush Surcharge Cents */
+            rush_surcharge_cents: number;
+            /** Subtotal Cents */
+            subtotal_cents: number;
+            /** Total Cents */
+            total_cents: number;
+        };
         /** PriceRulesIn */
         PriceRulesIn: {
             /**
@@ -485,6 +596,153 @@ export interface components {
             rush_multiplier_percent: number;
             /** Setup Cents */
             setup_cents: number;
+        };
+        /** QuoteDecision */
+        QuoteDecision: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "reject";
+        };
+        /** QuoteDetail */
+        QuoteDetail: {
+            ai: components["schemas"]["AiInfo"] | null;
+            /** Can Decide */
+            can_decide: boolean;
+            /** Can Edit */
+            can_edit: boolean;
+            /** Customer Code */
+            customer_code: string;
+            /** Customer Name */
+            customer_name: string;
+            /** Due Date */
+            due_date: string | null;
+            /** Due Rule */
+            due_rule: {
+                [key: string]: unknown;
+            } | null;
+            /** Lines */
+            lines: components["schemas"]["QuoteLineOut"][];
+            /** Message */
+            message: string;
+            /** Missing */
+            missing: string[];
+            /** Notes */
+            notes: string;
+            /** Order Number */
+            order_number: string | null;
+            price: components["schemas"]["PriceOut"] | null;
+            /** Price Pending */
+            price_pending: string[];
+            /** Questions For Customer */
+            questions_for_customer: string[];
+            /** Quote Number */
+            quote_number: string;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /** Requests For Staff */
+            requests_for_staff: string[] | null;
+            /** Rush */
+            rush: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "rejected";
+            /** Submitted By Name */
+            submitted_by_name: string;
+        };
+        /** QuoteEdit */
+        QuoteEdit: {
+            /** Due Date */
+            due_date: string | null;
+            /** Lines */
+            lines: components["schemas"]["QuoteLineEdit"][];
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /** Rush */
+            rush: boolean;
+        };
+        /** QuoteLineEdit */
+        QuoteLineEdit: {
+            /** Grams Per Part */
+            grams_per_part?: number | null;
+            /** Material Code */
+            material_code?: string | null;
+            /** Minutes Per Part */
+            minutes_per_part?: number | null;
+            /** Part Name */
+            part_name: string;
+            /** Post Processing */
+            post_processing?: ("sanding" | "painting" | "assembly")[];
+            /** Quantity */
+            quantity?: number | null;
+        };
+        /** QuoteLineOut */
+        QuoteLineOut: {
+            /** Grams Per Part */
+            grams_per_part: number | null;
+            /** Line No */
+            line_no: number;
+            /** Material As Written */
+            material_as_written: string | null;
+            /** Material Code */
+            material_code: string | null;
+            /** Material Name */
+            material_name: string | null;
+            /** Minutes Per Part */
+            minutes_per_part: number | null;
+            /** Part Name */
+            part_name: string;
+            /** Post Processing */
+            post_processing: string[];
+            /** Quantity */
+            quantity: number | null;
+            /** Sources */
+            sources: {
+                [key: string]: "ai" | "staff" | "missing";
+            };
+            /** Uncertain */
+            uncertain: string[];
+        };
+        /** QuoteRequestIn */
+        QuoteRequestIn: {
+            /** Customer Code */
+            customer_code: string;
+            /** Message */
+            message: string;
+        };
+        /** QuoteSummary */
+        QuoteSummary: {
+            /** Customer Code */
+            customer_code: string;
+            /** Customer Name */
+            customer_name: string;
+            /** Line Count */
+            line_count: number;
+            /** Missing Count */
+            missing_count: number;
+            /** Quote Number */
+            quote_number: string;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "rejected";
+            /** Total Cents */
+            total_cents: number | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -897,6 +1155,182 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PriceRulesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_quote_request_quote_requests_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteRequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_quotes_quotes_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_quote_quotes__quote_number__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                quote_number: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_quote_quotes__quote_number__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                quote_number: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_quote_quotes__quote_number__decision_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                quote_number: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteDetail"];
                 };
             };
             /** @description Validation Error */
