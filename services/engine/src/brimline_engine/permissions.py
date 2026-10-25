@@ -69,6 +69,13 @@ def can(actor: Actor, action: Action, target: OrderTarget | None = None) -> bool
     return target is not None and target.customer_id == actor.customer_id
 
 
+def capabilities(actor: Actor) -> list[str]:
+    """Actions this actor may take at least on their own things. For showing or hiding UI only:
+    every request is still checked with can()."""
+    own = _OWN_TARGET.get(actor.role, frozenset()) if actor.customer_id is not None else frozenset()
+    return sorted(_ANY_TARGET.get(actor.role, frozenset()) | own)
+
+
 def order_scope(actor: Actor) -> int | None:
     """The only customer whose orders this actor may see, or None for all customers."""
     if actor.role != "customer":

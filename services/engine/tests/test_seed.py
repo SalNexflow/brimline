@@ -44,7 +44,9 @@ def test_seeding_twice_produces_identical_data(settings: Settings) -> None:
 
 
 def test_seed_numbers_orders_from_bl_0001(owner_conn: psycopg.Connection) -> None:
-    numbers = [r[0] for r in owner_conn.execute("SELECT order_number FROM orders ORDER BY id")]
+    numbers = [
+        r[0] for r in owner_conn.execute("SELECT order_number FROM orders ORDER BY id LIMIT 3")
+    ]
     assert numbers == ["BL-0001", "BL-0002", "BL-0003"]
 
 

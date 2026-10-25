@@ -9,6 +9,7 @@ dependencies = [
     "psycopg-pool>=3.3.3",
     "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.16.1",
+    "tzdata>=2026.5",
     "uvicorn>=0.54.0",
 ]
 
@@ -34,6 +35,10 @@ target-version = "py312"
 select = ["E", "F", "I", "B", "UP", "N", "SIM", "RUF", "ANN"]
 # Line length is the formatter's job; the lines it cannot wrap are SQL strings, kept readable whole.
 ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Test clients return untyped responses and monkeypatch wrappers forward any arguments.
+"tests/**" = ["ANN401"]
 
 [tool.mypy]
 strict = true

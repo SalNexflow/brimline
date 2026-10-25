@@ -6,7 +6,7 @@ Customer 1 and customer 2 are two different fictional customers.
 
 import pytest
 
-from brimline_engine.permissions import Action, Actor, OrderTarget, can, order_scope
+from brimline_engine.permissions import Action, Actor, OrderTarget, can, capabilities, order_scope
 
 STAFF = Actor(user_id=1, role="staff", customer_id=None)
 PLANNER = Actor(user_id=2, role="planner", customer_id=None)
@@ -90,3 +90,23 @@ def test_order_scope_limits_customers_to_their_own_orders() -> None:
     assert order_scope(PLANNER) is None
     assert order_scope(OPERATOR) is None
     assert order_scope(CUSTOMER_1) == 1
+
+
+def test_capabilities_per_role() -> None:
+    assert capabilities(STAFF) == [
+        "customer.list",
+        "material.list",
+        "order.create",
+        "order.history.read",
+        "order.list",
+        "order.read",
+    ]
+    assert capabilities(PLANNER) == [
+        "material.list",
+        "order.history.read",
+        "order.list",
+        "order.read",
+    ]
+    assert capabilities(OPERATOR) == ["material.list", "order.list", "order.read"]
+    assert capabilities(CUSTOMER_1) == ["material.list", "order.create", "order.list", "order.read"]
+    assert capabilities(Actor(user_id=9, role="customer", customer_id=None)) == []

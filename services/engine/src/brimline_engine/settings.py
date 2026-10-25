@@ -3,7 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # src/brimline_engine/settings.py -> repo root is four folders up.
@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     session_ttl_minutes: int = Field(default=480, gt=0, le=7 * 24 * 60)
     # Off unless explicitly enabled, so a deployment cannot ship demo login by accident.
     demo_login: bool = False
+
+    @field_validator("session_secret")
+    @classmethod
+    def secret_is_not_the_placeholder(cls, value: SecretStr) -> SecretStr:
+        if value.get_secret_value().startswith("replace-me"):
+            raise ValueError("SESSION_SECRET is still the .env.example placeholder; run make setup")
+        return value
 
 
 @lru_cache
