@@ -1,16 +1,15 @@
 """Order routes. Permission checks live in brimline_engine.orders; these only translate."""
 
-import re
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Header, HTTPException, Path, Response
+from fastapi import APIRouter, HTTPException, Path, Response
 
 from brimline_engine import orders
-from brimline_engine.api.deps import Conn, CurrentUser, Now
+from brimline_engine.api.deps import Conn, CurrentUser, IdempotencyKey, Now
 from brimline_engine.dates import shop_today
 from brimline_engine.idempotency import IdempotencyConflictError
 from brimline_engine.shop_config import load_shop_config
-from brimline_engine.text import IDEMPOTENCY_KEY_PATTERN, ORDER_NUMBER_PATTERN
+from brimline_engine.text import ORDER_NUMBER_PATTERN
 
 router = APIRouter(tags=["orders"])
 
@@ -74,12 +73,8 @@ def create_order(
     conn: Conn,
     user: CurrentUser,
     now: Now,
-    idempotency_key: Annotated[str | None, Header()] = None,
+    idempotency_key: IdempotencyKey,
 ) -> dict[str, Any]:
-    if idempotency_key is None or not re.fullmatch(IDEMPOTENCY_KEY_PATTERN, idempotency_key):
-        raise HTTPException(
-            400, "an Idempotency-Key header of 8 to 200 letters, digits, or . _ : - is required"
-        )
     today = shop_today(now, load_shop_config().shop.time_zone)
     try:
         stored, replayed = orders.create_order(conn, user.actor, body, idempotency_key, today)

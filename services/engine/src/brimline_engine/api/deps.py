@@ -1,5 +1,6 @@
 """Request dependencies: a database connection, and the signed-in user."""
 
+import re
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -12,6 +13,7 @@ from psycopg_pool import ConnectionPool
 from brimline_engine.permissions import Actor, Role
 from brimline_engine.session import InvalidSessionError, verify_token
 from brimline_engine.settings import Settings, get_settings
+from brimline_engine.text import IDEMPOTENCY_KEY_PATTERN
 
 
 def utc_now() -> datetime:
@@ -73,7 +75,17 @@ def current_user(
     )
 
 
+def idempotency_key(idempotency_key: Annotated[str | None, Header()] = None) -> str:
+    """Every write needs a client key; see brimline_engine.idempotency."""
+    if idempotency_key is None or not re.fullmatch(IDEMPOTENCY_KEY_PATTERN, idempotency_key):
+        raise HTTPException(
+            400, "an Idempotency-Key header of 8 to 200 letters, digits, or . _ : - is required"
+        )
+    return idempotency_key
+
+
 Conn = Annotated[psycopg.Connection, Depends(get_conn)]
+IdempotencyKey = Annotated[str, Depends(idempotency_key)]
 CurrentUser = Annotated[SessionUser, Depends(current_user)]
 CurrentSettings = Annotated[Settings, Depends(get_settings)]
 Now = Annotated[datetime, Depends(utc_now)]

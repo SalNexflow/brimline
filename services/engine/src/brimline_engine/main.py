@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from psycopg_pool import ConnectionPool
 from pydantic import BaseModel
 
-from brimline_engine.api import auth, orders, reference
+from brimline_engine.api import auth, orders, price_rules, reference
 from brimline_engine.settings import get_settings
 
 
@@ -30,6 +30,7 @@ app = FastAPI(title="Brimline engine", version="0.0.0", lifespan=lifespan)
 app.include_router(auth.router)
 app.include_router(orders.router)
 app.include_router(reference.router)
+app.include_router(price_rules.router)
 
 
 class Health(BaseModel):

@@ -13,6 +13,7 @@ from brimline_engine.settings import REPO_ROOT
 SHOP_CONFIG_PATH = REPO_ROOT / "config" / "shop.toml"
 
 Process = Literal["fdm", "resin", "cnc"]
+PostProcess = Literal["sanding", "painting", "assembly"]
 
 
 class _Strict(BaseModel):
@@ -65,7 +66,8 @@ class PriceRules(_Strict):
     setup_cents: int = Field(ge=0)
     machine_minute_cents: dict[Process, int]
     material_cents_per_gram: dict[str, int]
-    rush_multiplier_percent: int = Field(ge=100)
+    rush_multiplier_percent: int = Field(ge=100, le=500)
+    post_process_cents_per_part: dict[PostProcess, int]
 
 
 class OrderLine(_Strict):
@@ -118,6 +120,9 @@ class ShopConfig(_Strict):
         for code in [*self.stock, *self.price_rules.material_cents_per_gram]:
             if code not in materials:
                 problems.append(f"unknown material {code}")
+        unpriced = set(materials) - set(self.price_rules.material_cents_per_gram)
+        if unpriced:
+            problems.append(f"materials without a price: {sorted(unpriced)}")
         for i, o in enumerate(self.orders, start=1):
             if o.customer not in customers:
                 problems.append(f"order {i}: unknown customer {o.customer}")

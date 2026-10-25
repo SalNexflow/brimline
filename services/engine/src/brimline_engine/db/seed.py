@@ -82,6 +82,37 @@ def seed(owner_url: str, config: ShopConfig | None = None) -> None:
                     (weekday, s.starts, s.ends),
                 )
 
+        # The first dated version of the price rules (created_by null: it comes from the seed).
+        pr = cfg.price_rules
+        row = conn.execute(
+            "INSERT INTO price_rule_sets (effective_from, setup_cents, rush_multiplier_percent, note, created_at)"
+            " VALUES (%s, %s, %s, %s, %s) RETURNING id",
+            (
+                pr.effective_from,
+                pr.setup_cents,
+                pr.rush_multiplier_percent,
+                "Seeded from config/shop.toml",
+                at,
+            ),
+        ).fetchone()
+        assert row is not None
+        rule_set_id = row[0]
+        for code, cents in pr.material_cents_per_gram.items():
+            conn.execute(
+                "INSERT INTO price_material_rates (rule_set_id, material_id, cents_per_gram) VALUES (%s, %s, %s)",
+                (rule_set_id, material_ids[code], cents),
+            )
+        for process, cents in pr.machine_minute_cents.items():
+            conn.execute(
+                "INSERT INTO price_machine_rates (rule_set_id, process, cents_per_minute) VALUES (%s, %s, %s)",
+                (rule_set_id, process, cents),
+            )
+        for kind, cents in pr.post_process_cents_per_part.items():
+            conn.execute(
+                "INSERT INTO price_post_process_rates (rule_set_id, kind, cents_per_part) VALUES (%s, %s, %s)",
+                (rule_set_id, kind, cents),
+            )
+
         for o in cfg.orders:
             row = conn.execute(
                 "INSERT INTO orders (customer_id, due_date, rush, notes, created_by, created_at, updated_at)"

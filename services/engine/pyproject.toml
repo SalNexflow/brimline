@@ -5,6 +5,7 @@ description = "Brimline engine: scheduler, independent checker, file checker (Fa
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "anthropic>=2.3.0",
     "fastapi>=0.162.0",
     "psycopg-pool>=3.3.3",
     "psycopg[binary]>=3.3.6",

@@ -15,6 +15,13 @@ Action = Literal[
     "order.history.read",
     "customer.list",
     "material.list",
+    "quote.list",
+    "quote.read",
+    "quote.submit",
+    "quote.edit",
+    "quote.approve",
+    "price_rules.read",
+    "price_rules.write",
 ]
 
 
@@ -27,7 +34,8 @@ class Actor:
 
 @dataclass(frozen=True)
 class OrderTarget:
-    """The order being read, or the order about to be created, identified by its customer."""
+    """A record that belongs to one customer (an order or a quote, existing or about to be
+    created), identified by that customer."""
 
     customer_id: int
 
@@ -42,19 +50,55 @@ _ANY_TARGET: dict[str, frozenset[str]] = {
             "order.history.read",
             "customer.list",
             "material.list",
+            "quote.list",
+            "quote.read",
+            "quote.submit",
+            "quote.edit",
+            "quote.approve",
+            "price_rules.read",
+            "price_rules.write",
         }
     ),
-    "planner": frozenset({"order.list", "order.read", "order.history.read", "material.list"}),
+    "planner": frozenset(
+        {
+            "order.list",
+            "order.read",
+            "order.history.read",
+            "material.list",
+            "quote.list",
+            "quote.read",
+            "price_rules.read",
+        }
+    ),
     "operator": frozenset({"order.list", "order.read", "material.list"}),
 }
 
 # Actions a role may take only on targets that belong to its own customer.
 _OWN_TARGET: dict[str, frozenset[str]] = {
-    "customer": frozenset({"order.list", "order.read", "order.create", "material.list"}),
+    "customer": frozenset(
+        {
+            "order.list",
+            "order.read",
+            "order.create",
+            "material.list",
+            "quote.list",
+            "quote.read",
+            "quote.submit",
+        }
+    ),
 }
 
 # Actions with no single target. For customers, order.list is narrowed by order_scope().
-_TARGETLESS = frozenset({"order.list", "customer.list", "material.list"})
+_TARGETLESS = frozenset(
+    {
+        "order.list",
+        "quote.list",
+        "customer.list",
+        "material.list",
+        "price_rules.read",
+        "price_rules.write",
+    }
+)
 
 
 def can(actor: Actor, action: Action, target: OrderTarget | None = None) -> bool:

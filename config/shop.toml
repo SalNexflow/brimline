@@ -173,14 +173,15 @@ weekdays = [6]
 starts = "09:00"
 ends = "13:00"
 
-# Price rules. Invented numbers, in cents. Stored here from M1; loaded into the dated
-# price_rules table and used by the pricing functions in M2.
+# Price rules. Invented numbers, in cents. The seed loads them as the first dated version of the
+# price rules (price_rule_sets); staff add later versions in the app.
 [price_rules]
 effective_from = 2026-10-25
 setup_cents = 1500
 machine_minute_cents = { fdm = 6, resin = 9, cnc = 45 }
 material_cents_per_gram = { PLA-BLACK = 3, PLA-WHITE = 3, PETG-BLACK = 4, PETG-ORANGE = 4, TPU-BLACK = 7, RESIN-GREY = 12, RESIN-CLEAR = 16, AL-6061 = 2 }
 rush_multiplier_percent = 150
+post_process_cents_per_part = { sanding = 200, painting = 350, assembly = 500 }
 
 # A few existing orders so the lists are not empty and customer separation can be tested.
 [[orders]]

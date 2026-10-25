@@ -52,6 +52,41 @@ TABLE: list[tuple[Actor, Action, OrderTarget | None, bool]] = [
     # Targeted actions without a target are refused rather than guessed.
     (CUSTOMER_1, "order.read", None, False),
     (CUSTOMER_1, "order.create", None, False),
+    # --- M2: quotes and price rules (written before the policy change) ---
+    # Staff run the front desk: submit on behalf of anyone, edit, approve, and set prices.
+    (STAFF, "quote.list", None, True),
+    (STAFF, "quote.read", OTHER, True),
+    (STAFF, "quote.submit", OTHER, True),
+    (STAFF, "quote.edit", OTHER, True),
+    (STAFF, "quote.approve", OTHER, True),
+    (STAFF, "price_rules.read", None, True),
+    (STAFF, "price_rules.write", None, True),
+    # Planner: may look at quotes and prices (to see what is coming), never change them.
+    (PLANNER, "quote.list", None, True),
+    (PLANNER, "quote.read", OTHER, True),
+    (PLANNER, "quote.submit", OTHER, False),
+    (PLANNER, "quote.edit", OTHER, False),
+    (PLANNER, "quote.approve", OTHER, False),
+    (PLANNER, "price_rules.read", None, True),
+    (PLANNER, "price_rules.write", None, False),
+    # Operator: works on orders only; quotes and prices are not their concern.
+    (OPERATOR, "quote.list", None, False),
+    (OPERATOR, "quote.read", OTHER, False),
+    (OPERATOR, "quote.submit", OTHER, False),
+    (OPERATOR, "quote.edit", OTHER, False),
+    (OPERATOR, "quote.approve", OTHER, False),
+    (OPERATOR, "price_rules.read", None, False),
+    (OPERATOR, "price_rules.write", None, False),
+    # Customer: submits and reads their own requests; can never edit or approve, not even their own.
+    (CUSTOMER_1, "quote.list", None, True),  # scoped to customer 1 by order_scope()
+    (CUSTOMER_1, "quote.read", OWN, True),
+    (CUSTOMER_1, "quote.read", OTHER, False),
+    (CUSTOMER_1, "quote.submit", OWN, True),
+    (CUSTOMER_1, "quote.submit", OTHER, False),
+    (CUSTOMER_1, "quote.edit", OWN, False),
+    (CUSTOMER_1, "quote.approve", OWN, False),
+    (CUSTOMER_1, "price_rules.read", None, False),
+    (CUSTOMER_1, "price_rules.write", None, False),
 ]
 
 
@@ -100,13 +135,31 @@ def test_capabilities_per_role() -> None:
         "order.history.read",
         "order.list",
         "order.read",
+        "price_rules.read",
+        "price_rules.write",
+        "quote.approve",
+        "quote.edit",
+        "quote.list",
+        "quote.read",
+        "quote.submit",
     ]
     assert capabilities(PLANNER) == [
         "material.list",
         "order.history.read",
         "order.list",
         "order.read",
+        "price_rules.read",
+        "quote.list",
+        "quote.read",
     ]
     assert capabilities(OPERATOR) == ["material.list", "order.list", "order.read"]
-    assert capabilities(CUSTOMER_1) == ["material.list", "order.create", "order.list", "order.read"]
+    assert capabilities(CUSTOMER_1) == [
+        "material.list",
+        "order.create",
+        "order.list",
+        "order.read",
+        "quote.list",
+        "quote.read",
+        "quote.submit",
+    ]
     assert capabilities(Actor(user_id=9, role="customer", customer_id=None)) == []

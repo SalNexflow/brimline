@@ -18,6 +18,9 @@ TABLES = [
     "shifts",
     "orders",
     "jobs",
+    "price_material_rates",
+    "price_machine_rates",
+    "price_post_process_rates",
 ]
 
 
@@ -33,6 +36,11 @@ def _fresh_seed_and_dump(settings: Settings) -> dict[str, list[tuple[object, ...
         for table in TABLES:
             query = f"SELECT * FROM {table} ORDER BY 1, 2"
             dump[table] = conn.execute(query.encode()).fetchall()
+        # created_txid differs on every run by design, so compare every other column.
+        dump["price_rule_sets"] = conn.execute(
+            "SELECT id, effective_from, setup_cents, rush_multiplier_percent, note, created_by,"
+            " created_at FROM price_rule_sets ORDER BY id"
+        ).fetchall()
         return dump
 
 

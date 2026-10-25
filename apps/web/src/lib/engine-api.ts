@@ -182,6 +182,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/price-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Price Rules
+         * @description All versions, newest effective date first.
+         */
+        get: operations["list_price_rules_price_rules_get"];
+        put?: never;
+        /** Create Price Rules */
+        post: operations["create_price_rules_price_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -397,6 +418,73 @@ export interface components {
              * @enum {string}
              */
             status: "open" | "in_production" | "done" | "cancelled";
+        };
+        /** PriceRulesIn */
+        PriceRulesIn: {
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /** Machine Cents Per Minute */
+            machine_cents_per_minute: {
+                [key: string]: number;
+            };
+            /** Material Cents Per Gram */
+            material_cents_per_gram: {
+                [key: string]: number;
+            };
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Post Process Cents Per Part */
+            post_process_cents_per_part: {
+                [key: string]: number;
+            };
+            /** Rush Multiplier Percent */
+            rush_multiplier_percent: number;
+            /** Setup Cents */
+            setup_cents: number;
+        };
+        /** PriceRulesOut */
+        PriceRulesOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By Name */
+            created_by_name: string | null;
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /** Id */
+            id: number;
+            /** Machine Cents Per Minute */
+            machine_cents_per_minute: {
+                [key: string]: number;
+            };
+            /** Material Cents Per Gram */
+            material_cents_per_gram: {
+                [key: string]: number;
+            };
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Post Process Cents Per Part */
+            post_process_cents_per_part: {
+                [key: string]: number;
+            };
+            /** Rush Multiplier Percent */
+            rush_multiplier_percent: number;
+            /** Setup Cents */
+            setup_cents: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -650,8 +738,8 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
-                "idempotency-key"?: string | null;
                 authorization?: string | null;
+                "idempotency-key"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -742,6 +830,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HistoryEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_price_rules_price_rules_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceRulesOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_price_rules_price_rules_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PriceRulesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceRulesOut"];
                 };
             };
             /** @description Validation Error */
