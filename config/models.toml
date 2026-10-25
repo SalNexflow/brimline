@@ -1,0 +1,26 @@
+# Model names, prices and per-task settings for every model call (hard rule 8: config, not memory).
+# Code reads model names and prices only from here. Update `checked` whenever a value changes.
+
+checked = 2026-10-26
+source = "Anthropic Claude API docs: models overview and pricing pages, read 2026-10-26"
+
+# USD per million tokens. input = uncached input; cache_write = 5-minute cache writes (1.25x input).
+[prices."claude-opus-5-5"]
+input_usd_per_mtok = "4.00"
+output_usd_per_mtok = "20.00"
+cache_read_usd_per_mtok = "0.20"
+cache_write_usd_per_mtok = "5.00"
+
+[prices."claude-haiku-5-5"]
+# Rates for prompts up to 100K tokens; our prompts are far below that.
+input_usd_per_mtok = "0.10"
+output_usd_per_mtok = "0.50"
+cache_read_usd_per_mtok = "0.01"
+cache_write_usd_per_mtok = "0.125"
+
+# Reading a customer's quote request into a structured draft.
+[tasks.quote_extract]
+model = "claude-opus-5-5"
+effort = "low"          # extraction is not hard reasoning; measured in eval/results/RESULTS.md
+max_tokens = 8000       # room for adaptive thinking plus the JSON; a cut-off reply is rejected
+prompt_version = "quote-extract-v1"
