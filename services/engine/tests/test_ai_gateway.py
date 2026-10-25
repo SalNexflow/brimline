@@ -10,7 +10,9 @@ from pydantic import BaseModel, ValidationInfo, field_validator
 
 from brimline_engine.ai.config import ModelPrice, TaskConfig, load_models_config
 from brimline_engine.ai.gateway import (
+    AnthropicClient,
     ModelReply,
+    ModelUnavailableError,
     ScriptedClient,
     TokenUsage,
     Turn,
@@ -160,3 +162,51 @@ def test_the_models_config_is_complete_and_dated() -> None:
     assert cfg.task("quote_extract", model_override="claude-haiku-5-5").model == "claude-haiku-5-5"
     with pytest.raises(ValueError, match="no price configured"):
         cfg.task("quote_extract", model_override="some-unpriced-model")
+
+
+def _live_run(client: AnthropicClient) -> Any:
+    return run_structured(
+        client,
+        purpose="test",
+        mode="live",
+        task=TASK,
+        price=PRICE,
+        schema=Part,
+        json_schema={"type": "object"},
+        system="x",
+        user="y",
+    )
+
+
+def test_a_missing_credentials_file_is_an_error_outcome(monkeypatch: pytest.MonkeyPatch) -> None:
+    # DEFECT_LOG #13: the app must fall back to manual entry, not answer 500.
+    for name in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_PROFILE"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("ANTHROPIC_CONFIG_DIR", "/nonexistent-brimline-test")
+    result = _live_run(AnthropicClient())
+    assert (result.value, result.record.outcome) == (None, "error")
+    assert "CredentialsError" in (result.record.error or "")
+
+
+class _NoAuthSdk:
+    """Stands in for the SDK when no credential exists at all: it raises a plain TypeError."""
+
+    class messages:  # noqa: N801  (mirrors the SDK attribute name)
+        @staticmethod
+        def create(**kwargs: Any) -> Any:
+            raise TypeError('"Could not resolve authentication method. Expected one of api_key"')
+
+
+def test_no_credential_at_all_is_an_error_outcome() -> None:
+    result = _live_run(AnthropicClient(sdk=_NoAuthSdk()))  # type: ignore[arg-type]
+    assert (result.value, result.record.outcome) == (None, "error")
+    assert "ModelUnavailableError" in (result.record.error or "")
+
+
+def test_other_type_errors_still_crash() -> None:
+    def broken(turns: list[Turn]) -> ModelReply:
+        raise TypeError("a real bug in our code")
+
+    with pytest.raises(TypeError, match="a real bug"):
+        run(ScriptedClient(broken))
+    assert issubclass(ModelUnavailableError, Exception)

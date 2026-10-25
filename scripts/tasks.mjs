@@ -196,7 +196,15 @@ const TASKS = {
   "db-reset": () =>
     runSteps("db-reset", [step("reset the dev database", ENGINE, "uv run --locked python -m brimline_engine.db reset")]),
   "api-types": () => apiTypes(process.argv.includes("--check")),
-  eval: () => notYet("eval", "M2"),
+  // Extra arguments pass through, e.g. node scripts/tasks.mjs eval --models claude-haiku-5-5 --split dev
+  eval: () =>
+    runSteps("eval", [
+      step(
+        "quote extraction eval",
+        ENGINE,
+        ["uv run --locked python -m brimline_engine.evals.quote_extract", ...process.argv.slice(3)].join(" "),
+      ),
+    ]),
   bench: () => notYet("bench", "M3"),
   "gate-selftest": () =>
     spawnSync(`node "${join(ROOT, "scripts", "gate_selftest.mjs")}"`, { cwd: ROOT, env: ENV, shell: true, stdio: "inherit" })

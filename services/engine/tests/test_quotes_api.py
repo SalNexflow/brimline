@@ -377,3 +377,24 @@ def test_the_app_role_cannot_rewrite_requests_drafts_or_calls(
 ) -> None:
     with pytest.raises(psycopg.errors.InsufficientPrivilege):
         app_conn.execute(statement)
+
+
+def test_live_mode_without_credentials_falls_back_to_manual_entry(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # DEFECT_LOG #13: this used to be a 500.
+    from brimline_engine.settings import get_settings
+
+    for name in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_PROFILE"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("ANTHROPIC_CONFIG_DIR", "/nonexistent-brimline-test")
+    monkeypatch.setenv("AI_MODE", "live")
+    get_settings.cache_clear()
+    try:
+        response = submit(client, "U-STAFF")
+    finally:
+        monkeypatch.setenv("AI_MODE", "fake")
+        get_settings.cache_clear()
+    assert response.status_code == 201, response.text
+    q = response.json()
+    assert (q["ai"]["outcome"], q["lines"]) == ("error", [])

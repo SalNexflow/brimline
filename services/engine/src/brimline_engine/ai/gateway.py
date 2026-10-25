@@ -31,6 +31,10 @@ from brimline_engine.ai.config import Effort, ModelPrice, TaskConfig
 Outcome = Literal["valid", "repaired", "invalid", "refused", "error", "skipped"]
 
 
+class ModelUnavailableError(Exception):
+    """The model cannot be called at all (for example, no credentials are configured)."""
+
+
 @dataclass(frozen=True)
 class TokenUsage:
     input_tokens: int = 0
@@ -166,7 +170,8 @@ def run_structured[T: BaseModel](
                 max_tokens=task.max_tokens,
                 effort=task.effort,
             )
-        except anthropic.APIError as exc:
+        # AnthropicError covers API, connection and credential errors (DEFECT_LOG #13).
+        except (anthropic.AnthropicError, ModelUnavailableError) as exc:
             # The SDK already retried rate limits, overloads and connection errors.
             return GatewayResult(None, record("error", f"{type(exc).__name__}: {exc}"[:500]))
         usage = usage + reply.usage
@@ -199,7 +204,9 @@ class AnthropicClient:
     resolves them; nothing secret passes through our code."""
 
     def __init__(self, sdk: anthropic.Anthropic | None = None) -> None:
-        self._sdk = sdk or anthropic.Anthropic()
+        # Created on first use, inside the gateway's error handling: building the SDK client
+        # can itself fail when credentials are missing (DEFECT_LOG #13).
+        self._sdk = sdk
 
     def call(
         self,
@@ -225,13 +232,23 @@ class AnthropicClient:
             "effort": effort,
             "format": {"type": "json_schema", "schema": json_schema},
         }
-        response = self._sdk.messages.create(
-            model=model,
-            max_tokens=max_tokens,
-            system=system_blocks,
-            messages=messages,
-            output_config=output_config,
-        )
+        if self._sdk is None:
+            self._sdk = anthropic.Anthropic()
+        try:
+            response = self._sdk.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                system=system_blocks,
+                messages=messages,
+                output_config=output_config,
+            )
+        except TypeError as exc:
+            # With no credential at all, the SDK raises a plain TypeError while building the
+            # request (DEFECT_LOG #13). Matching its message is the only way to tell it apart
+            # from a real bug, which must still crash loudly.
+            if "authentication method" in str(exc):
+                raise ModelUnavailableError(f"no model credentials: {exc}") from exc
+            raise
         text = next((b.text for b in response.content if b.type == "text"), None)
         u = response.usage
         return ModelReply(
