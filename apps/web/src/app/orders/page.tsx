@@ -1,0 +1,62 @@
+import Link from "next/link";
+import { Suspense } from "react";
+
+import { can, signedInEngine } from "@/lib/engine";
+
+export default function OrdersPage() {
+  return (
+    <main className="page">
+      <Suspense fallback={<p>Loading orders…</p>}>
+        <Orders />
+      </Suspense>
+    </main>
+  );
+}
+
+async function Orders() {
+  const { client, me } = await signedInEngine();
+  const { data: orders } = await client.GET("/orders");
+
+  return (
+    <>
+      <div className="page-title">
+        <h1>Orders</h1>
+        {can(me, "order.create") ? (
+          <Link href="/orders/new" className="button">
+            New order
+          </Link>
+        ) : null}
+      </div>
+      {!orders || orders.length === 0 ? (
+        <p>No orders yet.</p>
+      ) : (
+        <table>
+          <caption className="visually-hidden">Orders you can see</caption>
+          <thead>
+            <tr>
+              <th scope="col">Order</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Due</th>
+              <th scope="col">Lines</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order) => (
+              <tr key={order.order_number}>
+                <td>
+                  <Link href={`/orders/${order.order_number}`}>{order.order_number}</Link>
+                  {order.rush ? <span className="badge badge-rush">rush</span> : null}
+                </td>
+                <td>{order.customer_name}</td>
+                <td>{order.due_date}</td>
+                <td>{order.line_count}</td>
+                <td>{order.status.replace("_", " ")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </>
+  );
+}

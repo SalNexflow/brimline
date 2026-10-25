@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
+
+import { AccountBar } from "./account-bar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,7 +13,21 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <header className="site-header">
+          <Link href="/" className="brand">
+            Brimline
+          </Link>
+          <nav aria-label="Main">
+            <Link href="/orders">Orders</Link>
+          </nav>
+          {/* Reads the session cookie, so it streams in behind its own boundary. */}
+          <Suspense fallback={<span className="muted">…</span>}>
+            <AccountBar />
+          </Suspense>
+        </header>
+        {children}
+      </body>
     </html>
   );
 }

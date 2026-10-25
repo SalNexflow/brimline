@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HomePage() {
   return (
     <main style={{ padding: "var(--space-page)" }}>
@@ -5,6 +7,9 @@ export default function HomePage() {
       <p style={{ color: "var(--color-muted)" }}>
         Production planning for a fictional made-to-order 3D-print and CNC shop. All data is
         synthetic.
+      </p>
+      <p>
+        <Link href="/login">Sign in with a demo account</Link>
       </p>
     </main>
   );
