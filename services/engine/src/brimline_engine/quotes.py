@@ -23,6 +23,7 @@ from brimline_engine.permissions import Actor, OrderTarget, can, order_scope
 from brimline_engine.price_rules import load_rules
 from brimline_engine.pricing import LineInput, PricingPending, price_quote
 from brimline_engine.quote_extract import PostProcess, QuoteDraft
+from brimline_engine.shop_config import load_shop_config
 from brimline_engine.text import SafeText
 
 SUBMIT_ENDPOINT = "POST /quote-requests"
@@ -124,6 +125,7 @@ class QuoteSummary(BaseModel):
     line_count: int
     total_cents: int | None  # only for staff, or once approved
     missing_count: int
+    currency: str
 
 
 class QuoteDetail(BaseModel):
@@ -143,6 +145,7 @@ class QuoteDetail(BaseModel):
     questions_for_customer: list[str]
     requests_for_staff: list[str] | None  # staff only
     price: PriceOut | None  # staff, or the customer once approved
+    currency: str  # ISO 4217, from config/shop.toml; amounts are in its minor unit (cents)
     price_pending: list[str]
     ai: AiInfo | None  # staff only
     order_number: str | None
@@ -406,6 +409,7 @@ def get_quote(conn: psycopg.Connection, actor: Actor, quote_number: str) -> Quot
         questions_for_customer=questions,
         requests_for_staff=requests if staff_view else None,
         price=PriceOut.model_validate(price) if show_price else None,
+        currency=load_shop_config().shop.currency,
         price_pending=(price or {}).get("pending", []) if staff_view else [],
         ai=AiInfo(
             outcome=ai_outcome,
@@ -427,6 +431,7 @@ def list_quotes(conn: psycopg.Connection, actor: Actor) -> list[QuoteSummary]:
         raise ForbiddenError("quote.list")
     scope = order_scope(actor)
     staff_view = can(actor, "price_rules.read")
+    currency = load_shop_config().shop.currency
     rows = conn.execute(
         "SELECT q.quote_number, q.status, c.code, c.name, r.received_at,"
         "       (SELECT count(*) FROM quote_lines l WHERE l.quote_id = q.id)::int,"
@@ -446,6 +451,7 @@ def list_quotes(conn: psycopg.Connection, actor: Actor) -> list[QuoteSummary]:
             line_count=r[5],
             total_cents=r[6] if staff_view or r[1] == "approved" else None,
             missing_count=r[7],
+            currency=currency,
         )
         for r in rows
     ]

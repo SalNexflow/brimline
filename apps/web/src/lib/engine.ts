@@ -13,6 +13,10 @@ export type HistoryEntry = components["schemas"]["HistoryEntry"];
 export type Material = components["schemas"]["MaterialOut"];
 export type Customer = components["schemas"]["CustomerOut"];
 export type DemoUser = components["schemas"]["DemoUser"];
+export type QuoteSummary = components["schemas"]["QuoteSummary"];
+export type QuoteDetail = components["schemas"]["QuoteDetail"];
+export type QuoteLine = components["schemas"]["QuoteLineOut"];
+export type PriceRules = components["schemas"]["PriceRulesOut"];
 
 function baseUrl(): string {
   const url = process.env.ENGINE_URL;
@@ -54,4 +58,12 @@ export async function currentUser(): Promise<Me | null> {
 export function can(me: Me, capability: string): boolean {
   // For showing or hiding controls only. The engine checks every request itself.
   return me.capabilities.includes(capability);
+}
+
+/** The engine's error message, or a plain fallback. Used to show why a write was refused. */
+export function errorMessage(status: number, error: unknown, fallback: string): string {
+  if (status === 403) return "You are not allowed to do this.";
+  if (status === 409) return "This form was already sent with different details. Reload the page and try again.";
+  const detail = (error as { detail?: unknown } | undefined)?.detail;
+  return typeof detail === "string" ? detail : fallback;
 }

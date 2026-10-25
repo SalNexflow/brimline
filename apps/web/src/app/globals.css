@@ -68,6 +68,8 @@ a {
 
 .site-header nav {
   flex: 1;
+  display: flex;
+  gap: 1rem;
 }
 
 .brand {
@@ -268,4 +270,79 @@ button:disabled {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* Quote review: where each value came from, and what still needs attention. */
+.source {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0 0.3rem;
+  border-radius: 0.2rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-border);
+}
+
+.source-missing,
+.field-missing input,
+.field-missing select {
+  border-color: var(--color-error-fg);
+}
+
+.source-missing {
+  color: var(--color-error-fg);
+}
+
+.source-uncertain {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.notice {
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--color-accent);
+  background: var(--color-surface);
+}
+
+.notice ul,
+.notice p {
+  margin: 0.25rem 0;
+}
+
+.quote-line {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  align-items: end;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.button-secondary {
+  background: none;
+  color: var(--color-accent);
+}
+
+blockquote.message {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--color-border);
+  white-space: pre-wrap;
+}
+
+.rates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem;
 }

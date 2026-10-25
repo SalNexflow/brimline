@@ -612,6 +612,8 @@ export interface components {
             can_decide: boolean;
             /** Can Edit */
             can_edit: boolean;
+            /** Currency */
+            currency: string;
             /** Customer Code */
             customer_code: string;
             /** Customer Name */
@@ -721,6 +723,8 @@ export interface components {
         };
         /** QuoteSummary */
         QuoteSummary: {
+            /** Currency */
+            currency: string;
             /** Customer Code */
             customer_code: string;
             /** Customer Name */
