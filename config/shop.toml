@@ -1,0 +1,207 @@
+# The fictional shop. Everything in this file is invented for the demo: no real customers,
+# people, brands, or machine models. Emails use the reserved .example domain (RFC 2606).
+#
+# Loaded by `python -m brimline_engine.db seed` into a freshly migrated database.
+# Every seeded row gets `seed_time` as its timestamp, so two seeds produce identical data.
+
+checked = 2026-10-25           # date this file was last reviewed
+seed_time = 2026-10-19T08:00:00Z
+
+[shop]
+name = "Brimline Demo Shop"
+time_zone = "Europe/Berlin"    # shifts and due dates are in this zone
+currency = "EUR"
+
+[[customers]]
+code = "C-HARBOR"
+name = "Harbor Lane Robotics Club"
+email = "orders@harborlane.example"
+
+[[customers]]
+code = "C-WILLOW"
+name = "Willow Street Dental Lab"
+email = "lab@willowstreet.example"
+
+[[customers]]
+code = "C-COPPER"
+name = "Copperleaf Cosplay Workshop"
+email = "hello@copperleaf.example"
+
+[[customers]]
+code = "C-TALLOW"
+name = "Tallowmere Bicycle Repairs"
+email = "shop@tallowmere.example"
+
+# One demo user per role, plus two customer logins for testing that customers are kept apart.
+[[users]]
+code = "U-STAFF"
+display_name = "Sam Ortega"
+role = "staff"
+
+[[users]]
+code = "U-PLANNER"
+display_name = "Priya Nandakumar"
+role = "planner"
+
+[[users]]
+code = "U-OPERATOR"
+display_name = "Jonas Weber"
+role = "operator"
+
+[[users]]
+code = "U-HARBOR"
+display_name = "Mia Chen"
+role = "customer"
+customer = "C-HARBOR"
+
+[[users]]
+code = "U-WILLOW"
+display_name = "Leo Martins"
+role = "customer"
+customer = "C-WILLOW"
+
+[[materials]]
+code = "PLA-BLACK"
+name = "PLA, black"
+process = "fdm"
+color = "black"
+
+[[materials]]
+code = "PLA-WHITE"
+name = "PLA, white"
+process = "fdm"
+color = "white"
+
+[[materials]]
+code = "PETG-BLACK"
+name = "PETG, black"
+process = "fdm"
+color = "black"
+
+[[materials]]
+code = "PETG-ORANGE"
+name = "PETG, orange"
+process = "fdm"
+color = "orange"
+
+[[materials]]
+code = "TPU-BLACK"
+name = "TPU 95A, black"
+process = "fdm"
+color = "black"
+
+[[materials]]
+code = "RESIN-GREY"
+name = "Standard resin, grey"
+process = "resin"
+color = "grey"
+
+[[materials]]
+code = "RESIN-CLEAR"
+name = "Tough resin, clear"
+process = "resin"
+color = "clear"
+
+[[materials]]
+code = "AL-6061"
+name = "Aluminium 6061 bar stock"
+process = "cnc"
+color = "silver"
+
+# Generic machines. Build volumes are plausible for each class, not copied from any product.
+[[machines]]
+code = "FDM-1"
+name = "FDM printer 1"
+process = "fdm"
+build_mm = [256, 256, 256]
+materials = ["PLA-BLACK", "PLA-WHITE", "PETG-BLACK", "PETG-ORANGE", "TPU-BLACK"]
+
+[[machines]]
+code = "FDM-2"
+name = "FDM printer 2"
+process = "fdm"
+build_mm = [256, 256, 256]
+materials = ["PLA-BLACK", "PLA-WHITE", "PETG-BLACK", "PETG-ORANGE", "TPU-BLACK"]
+
+[[machines]]
+code = "FDM-3"
+name = "FDM printer 3"
+process = "fdm"
+build_mm = [256, 256, 256]
+materials = ["PLA-BLACK", "PLA-WHITE", "PETG-BLACK", "PETG-ORANGE"]
+
+[[machines]]
+code = "FDM-4"
+name = "FDM printer 4 (large)"
+process = "fdm"
+build_mm = [350, 350, 400]
+materials = ["PLA-BLACK", "PLA-WHITE", "PETG-BLACK"]
+
+[[machines]]
+code = "RESIN-1"
+name = "Resin printer 1"
+process = "resin"
+build_mm = [218, 123, 235]
+materials = ["RESIN-GREY", "RESIN-CLEAR"]
+
+[[machines]]
+code = "CNC-1"
+name = "CNC mill 1"
+process = "cnc"
+build_mm = [400, 300, 150]
+materials = ["AL-6061"]
+
+# Grams on hand at seed time.
+[stock]
+PLA-BLACK = 4000
+PLA-WHITE = 2500
+PETG-BLACK = 3000
+PETG-ORANGE = 800
+TPU-BLACK = 500
+RESIN-GREY = 2000
+RESIN-CLEAR = 1000
+AL-6061 = 12000
+
+# Staffed hours. weekday is ISO (1 = Monday). Times are shop-local.
+[[shifts]]
+weekdays = [1, 2, 3, 4, 5]
+starts = "08:00"
+ends = "17:00"
+
+[[shifts]]
+weekdays = [6]
+starts = "09:00"
+ends = "13:00"
+
+# Price rules. Invented numbers, in cents. Stored here from M1; loaded into the dated
+# price_rules table and used by the pricing functions in M2.
+[price_rules]
+effective_from = 2026-10-25
+setup_cents = 1500
+machine_minute_cents = { fdm = 6, resin = 9, cnc = 45 }
+material_cents_per_gram = { PLA-BLACK = 3, PLA-WHITE = 3, PETG-BLACK = 4, PETG-ORANGE = 4, TPU-BLACK = 7, RESIN-GREY = 12, RESIN-CLEAR = 16, AL-6061 = 2 }
+rush_multiplier_percent = 150
+
+# A few existing orders so the lists are not empty and customer separation can be tested.
+[[orders]]
+customer = "C-HARBOR"
+created_by = "U-STAFF"
+due_date = 2026-10-30
+lines = [
+    { part = "Robot chassis plate", quantity = 4, material = "PETG-BLACK" },
+    { part = "Wheel hub", quantity = 8, material = "PLA-BLACK" },
+]
+
+[[orders]]
+customer = "C-HARBOR"
+created_by = "U-STAFF"
+due_date = 2026-10-27
+rush = true
+notes = "Competition on Saturday."
+lines = [{ part = "Sensor bracket", quantity = 10, material = "PLA-WHITE" }]
+
+[[orders]]
+customer = "C-WILLOW"
+created_by = "U-STAFF"
+due_date = 2026-11-03
+lines = [{ part = "Model tray", quantity = 6, material = "RESIN-GREY" }]

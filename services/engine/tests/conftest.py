@@ -7,6 +7,7 @@ import psycopg
 import pytest
 
 from brimline_engine.db.migrate import drop_database, ensure_database, migrate, with_database
+from brimline_engine.db.seed import seed
 from brimline_engine.settings import Settings, get_settings
 
 TEST_DB = "brimline_test"
@@ -32,11 +33,12 @@ def app_url(settings: Settings) -> str:
 
 @pytest.fixture(scope="session")
 def test_database(settings: Settings, owner_url: str, app_url: str) -> str:
-    """A freshly migrated test database. Returns its name."""
+    """A freshly migrated and seeded test database. Returns its name."""
     assert settings.database_owner_url
     drop_database(settings.database_owner_url, TEST_DB)
     ensure_database(settings.database_owner_url, TEST_DB)
     migrate(owner_url, app_url)
+    seed(owner_url)
     return TEST_DB
 
 
