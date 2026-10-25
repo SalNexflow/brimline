@@ -1,0 +1,42 @@
+[project]
+name = "brimline-engine"
+version = "0.0.0"
+description = "Brimline engine: scheduler, independent checker, file checker (FastAPI)."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.162.0",
+    "uvicorn>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.16.0",  # needed by FastAPI's TestClient (Starlette deprecated plain httpx)
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "ruff>=0.17.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.5,<0.14"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# E/F: pyflakes and pycodestyle; I: import order; B: likely bugs; UP: modern syntax;
+# N: naming; SIM: simpler code; RUF: ruff's own checks; ANN: type annotations everywhere.
+select = ["E", "F", "I", "B", "UP", "N", "SIM", "RUF", "ANN"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+# Deprecations fail the gate instead of scrolling past unnoticed.
+filterwarnings = ["error"]
