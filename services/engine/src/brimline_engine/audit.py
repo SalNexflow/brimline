@@ -1,5 +1,6 @@
 """Writes to the append-only audit log. Call inside the same transaction as the change it
-records, so the change and its audit row are committed together or not at all."""
+records, so the change and its audit row are committed together or not at all. The table name is
+schema-qualified so nothing on the search path can shadow it."""
 
 from typing import Any
 
@@ -19,7 +20,7 @@ def record(
     idempotency_key: str | None,
 ) -> None:
     conn.execute(
-        "INSERT INTO audit_log (actor_user_id, action, entity_type, entity_id, before, after, idempotency_key)"
+        "INSERT INTO public.audit_log (actor_user_id, action, entity_type, entity_id, before, after, idempotency_key)"
         " VALUES (%s, %s, %s, %s, %s, %s, %s)",
         (
             actor_user_id,

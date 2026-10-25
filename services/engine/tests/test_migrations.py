@@ -11,7 +11,12 @@ def test_all_migrations_are_recorded(owner_conn: psycopg.Connection) -> None:
         r[0] for r in owner_conn.execute("SELECT version FROM schema_migrations ORDER BY 1")
     ]
     assert versions == [m.version for m in load_migrations()]
-    assert versions[:3] == ["0001_core", "0002_audit_log", "0003_idempotency_keys"]
+    assert versions[:4] == [
+        "0001_core",
+        "0002_audit_log",
+        "0003_idempotency_keys",
+        "0004_tighten_app_role",
+    ]
 
 
 def test_running_again_applies_nothing(test_database: str, owner_url: str, app_url: str) -> None:

@@ -66,6 +66,15 @@ APP_ROLE_FORBIDDEN: list[LiteralString] = [
     "DELETE FROM orders",
     "UPDATE customers SET name = 'renamed'",
     "DELETE FROM schema_migrations",
+    # Found by the M1 adversarial review (DEFECT_LOG #6): forging the id or the timestamp.
+    "INSERT INTO audit_log (id, action, entity_type, entity_id) OVERRIDING SYSTEM VALUE"
+    " VALUES (999999, 'forged', 'order', 'BL-0001')",
+    "INSERT INTO audit_log (at, action, entity_type, entity_id)"
+    " VALUES ('2000-01-01', 'forged', 'order', 'BL-0001')",
+    # A temp table named audit_log would shadow the real one on this connection.
+    "CREATE TEMP TABLE audit_log (id int)",
+    # The app may change only users.session_version, never a role.
+    "UPDATE users SET role = 'staff'",
 ]
 
 
@@ -80,7 +89,38 @@ OWNER_ALLOWED: list[LiteralString] = [
     "ALTER TABLE orders ADD COLUMN discount_percent int",
     "CREATE SCHEMA sneaky",
     "ALTER TABLE audit_log DISABLE TRIGGER ALL",
+    "INSERT INTO audit_log (id, at, action, entity_type, entity_id) OVERRIDING SYSTEM VALUE"
+    " VALUES (999999, '2000-01-01', 'owner', 'order', 'BL-0001')",
+    "CREATE TEMP TABLE audit_log (id int)",
+    "UPDATE users SET role = role",
 ]
+
+
+def test_app_role_cannot_use_temp_tables_and_public_cannot_connect(
+    owner_conn: psycopg.Connection,
+) -> None:
+    # grantee 0 is PUBLIC: after 0004 it holds no privileges on the database at all.
+    public_privileges = owner_conn.execute(
+        "SELECT a.privilege_type FROM pg_database d, aclexplode(d.datacl) a"
+        " WHERE d.datname = current_database() AND a.grantee = 0"
+    ).fetchall()
+    assert public_privileges == []
+    row = owner_conn.execute(
+        "SELECT has_database_privilege('brimline_app', current_database(), 'CONNECT'),"
+        "       has_database_privilege('brimline_app', current_database(), 'TEMPORARY')"
+    ).fetchone()
+    assert row == (True, False)
+
+
+def test_app_role_searches_public_before_temp(app_conn: psycopg.Connection) -> None:
+    row = app_conn.execute("SHOW search_path").fetchone()
+    assert row == ("public, pg_temp",)
+
+
+def test_app_role_may_bump_its_session_version(app_conn: psycopg.Connection) -> None:
+    app_conn.execute(
+        "UPDATE users SET session_version = session_version + 1 WHERE code = 'U-STAFF'"
+    )
 
 
 @pytest.mark.parametrize("statement", OWNER_ALLOWED)

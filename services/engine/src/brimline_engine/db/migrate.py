@@ -79,6 +79,11 @@ def ensure_app_role(conn: psycopg.Connection, app_url: str) -> None:
             verb, sql.Identifier(APP_ROLE), password
         )
     )
+    # Search public before pg_temp, so a temporary table can never shadow a real one. (Temp tables
+    # are also revoked in 0004; this guards the name lookup itself.)
+    conn.execute(
+        sql.SQL("ALTER ROLE {} SET search_path = public, pg_temp").format(sql.Identifier(APP_ROLE))
+    )
 
 
 def migrate(owner_url: str, app_url: str, migrations: list[Migration] | None = None) -> list[str]:
