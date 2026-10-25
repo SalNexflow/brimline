@@ -260,3 +260,53 @@ def test_a_write_without_a_usable_key_is_refused(client: TestClient, key: str | 
     if key is not None:
         headers["Idempotency-Key"] = key
     assert client.post("/orders", json=VALID_ORDER, headers=headers).status_code == 400
+
+
+# --- Replays use today's permissions (found by the M1 adversarial review, DEFECT_LOG #8) -------
+
+
+def _temp_user(owner_url: str, role: str, customer_code: str | None) -> str:
+    code = f"U-TMP-{uuid.uuid4().hex[:8]}"
+    with psycopg.connect(owner_url) as conn:
+        conn.execute(
+            "INSERT INTO users (code, display_name, role, customer_id)"
+            " VALUES (%s, 'Temporary tester', %s, (SELECT id FROM customers WHERE code = %s))",
+            (code, role, customer_code),
+        )
+    return code
+
+
+def _set_user(owner_url: str, code: str, role: str, customer_code: str | None) -> None:
+    with psycopg.connect(owner_url) as conn:
+        conn.execute(
+            "UPDATE users SET role = %s, customer_id = (SELECT id FROM customers WHERE code = %s)"
+            " WHERE code = %s",
+            (role, customer_code, code),
+        )
+
+
+def test_a_replay_after_losing_access_is_not_found(client: TestClient, owner_url: str) -> None:
+    user = _temp_user(owner_url, "customer", "C-HARBOR")
+    key = new_key()
+    created = post_order(client, user, VALID_ORDER, key)
+    assert created.status_code == 201
+
+    _set_user(owner_url, user, "customer", "C-COPPER")  # moved to another customer
+    number = created.json()["order_number"]
+    assert client.get(f"/orders/{number}", headers=login(client, user)).status_code == 404
+    replay = post_order(client, user, VALID_ORDER, key)
+    assert replay.status_code == 404
+    assert replay.json() == {"detail": "order not found"}
+
+
+def test_a_replay_reflects_current_permissions(client: TestClient, owner_url: str) -> None:
+    user = _temp_user(owner_url, "staff", None)
+    key = new_key()
+    first = post_order(client, user, VALID_ORDER, key)
+    assert first.json()["can_view_history"] is True
+
+    _set_user(owner_url, user, "operator", None)  # demoted: may read orders, not their history
+    replay = post_order(client, user, VALID_ORDER, key)
+    assert replay.status_code == 201
+    assert replay.json()["order_number"] == first.json()["order_number"]
+    assert replay.json()["can_view_history"] is False

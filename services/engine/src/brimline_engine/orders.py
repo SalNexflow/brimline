@@ -190,7 +190,11 @@ def create_order(
             conn, user_id=actor.user_id, endpoint=CREATE_ENDPOINT, key=key, req_hash=req_hash
         )
         if stored is not None:
-            return stored, True
+            # Re-read with today's permissions instead of returning the stored snapshot: a replay
+            # must never show what a fresh read would not (DEFECT_LOG #8). Raises NotFoundError
+            # if the user has lost access to the order since.
+            detail = get_order(conn, actor, str(stored.body["order_number"]))
+            return idempotency.StoredResponse(stored.status, detail.model_dump(mode="json")), True
 
         row = conn.execute(
             "SELECT id FROM customers WHERE code = %s", (body.customer_code,)
