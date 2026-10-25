@@ -1,0 +1,22 @@
+# Local PostgreSQL for development. Values come from .env (see .env.example).
+services:
+  db:
+    image: postgres:18.6-alpine
+    container_name: brimline-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-brimline}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-brimline_dev_only}
+      POSTGRES_DB: ${POSTGRES_DB:-brimline}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      # Postgres 18 images keep data under /var/lib/postgresql/<major>/, so mount the parent folder.
+      - brimline-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  brimline-pgdata:
