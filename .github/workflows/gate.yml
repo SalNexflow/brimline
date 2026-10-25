@@ -1,0 +1,49 @@
+# Runs the same quality gate as `make gate` on every push and pull request.
+name: gate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the older run.
+concurrency:
+  group: gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      # Reads the pnpm version from "packageManager" in package.json.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/engine/uv.lock
+
+      # Same entry points as on a laptop, so CI cannot drift from local runs.
+      - name: Setup
+        run: node scripts/tasks.mjs setup
+
+      - name: Gate
+        run: node scripts/tasks.mjs gate
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7
