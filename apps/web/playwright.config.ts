@@ -43,6 +43,7 @@ export default defineConfig({
       env: {
         DATABASE_URL: withDatabase(process.env.DATABASE_URL, E2E_DATABASE),
         DEMO_LOGIN: "true",
+        AI_MODE: "fake", // prepared replies: browser tests never call a real model
       },
       reuseExistingServer: false,
       timeout: 120_000,
