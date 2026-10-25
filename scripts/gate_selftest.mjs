@@ -81,6 +81,14 @@ const MUTATIONS = [
     expect: "engine: tests",
   },
   {
+    // An off-by-one-cent rounding change: only the hand-worked pricing tests notice.
+    name: "pricing rounds the rush surcharge wrongly",
+    file: "services/engine/src/brimline_engine/pricing.py",
+    find: "return (subtotal_cents * percent + 50) // 100",
+    replace: "return (subtotal_cents * percent + 49) // 100",
+    expect: "engine: tests",
+  },
+  {
     name: "page change only a browser test sees (title)",
     file: "apps/web/src/app/layout.tsx",
     find: '  title: "Brimline",',

@@ -5,7 +5,8 @@ the work is planned across machines by a constraint solver, every plan is proven
 and the day is re-planned when something breaks. AI reads language and explains; code decides prices, dates,
 permissions, and schedules.
 
-> Status: **M1 (base app, database, demo roles).** Demo login for four roles, orders by hand, append-only audit log.
+> Status: **M2 (pricing rules and AI quote builder).** A customer message becomes an AI-drafted quote that code prices
+> and staff approve into an order. Earlier: demo login for four roles, orders by hand, append-only audit log.
 > All data is synthetic.
 > Results tables will appear here only once `make eval` and `make bench` produce them.
 
@@ -42,7 +43,7 @@ First run: `make setup` then `make gate`.
 | `db-reset` | Drop, migrate, and re-seed the dev database from `config/shop.toml` |
 | `api-types` | Regenerate the web's TypeScript types from the engine's OpenAPI schema |
 | `gate-selftest` | Proves the gate fails: plants deliberate errors in a throwaway copy and checks each is caught at the right step. Refuses to run on a dirty git tree |
-| `eval` | Run all evaluations (from M2) |
+| `eval` | Run the evaluations and write `eval/results/RESULTS.md` (needs model access; see `eval/README.md`) |
 | `bench` | Scheduler benchmark against baselines (from M3) |
 
 ## Demo login
