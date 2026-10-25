@@ -65,10 +65,19 @@ const MUTATIONS = [
     expect: "engine: typecheck",
   },
   {
-    name: "engine behaviour change caught by a test",
+    // Renaming a route changes the OpenAPI schema, so the web's generated types go stale first.
+    name: "engine route renamed without regenerating web types",
     file: "services/engine/src/brimline_engine/main.py",
     find: '@app.get("/health")',
     replace: '@app.get("/healthz")',
+    expect: "api types: up to date",
+  },
+  {
+    // A permission widening changes no types at all; only the hand-written permission table sees it.
+    name: "permission widened (operators may create orders)",
+    file: "services/engine/src/brimline_engine/permissions.py",
+    find: '"operator": frozenset({"order.list", "order.read", "material.list"}),',
+    replace: '"operator": frozenset({"order.list", "order.read", "order.create", "material.list"}),',
     expect: "engine: tests",
   },
   {
