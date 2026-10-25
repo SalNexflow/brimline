@@ -1,6 +1,6 @@
 """Print the engine's OpenAPI schema as stable JSON (sorted keys), for generating web types.
 
-    uv run python -m brimline_engine.openapi
+uv run python -m brimline_engine.openapi
 """
 
 import json

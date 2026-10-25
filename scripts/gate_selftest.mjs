@@ -53,8 +53,8 @@ const MUTATIONS = [
   {
     name: "Python formatting drift",
     file: "services/engine/src/brimline_engine/main.py",
-    find: 'app = FastAPI(title="Brimline engine", version="0.0.0")',
-    replace: 'app = FastAPI( title = "Brimline engine",version="0.0.0" )',
+    find: 'app = FastAPI(title="Brimline engine", version="0.0.0", lifespan=lifespan)',
+    replace: 'app = FastAPI( title = "Brimline engine",version="0.0.0",lifespan=lifespan )',
     expect: "engine: format",
   },
   {
