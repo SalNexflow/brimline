@@ -310,3 +310,41 @@ def test_a_replay_reflects_current_permissions(client: TestClient, owner_url: st
     assert replay.status_code == 201
     assert replay.json()["order_number"] == first.json()["order_number"]
     assert replay.json()["can_view_history"] is False
+
+
+# --- Input boundary (found by the M1 adversarial review, DEFECT_LOG #7) ---------------------------
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"customer_code": "C-HARBOR\x00"},
+        {"notes": "a\x00b"},
+        {"lines": [{"part_name": "x\x00", "quantity": 1, "material_code": "PLA-BLACK"}]},
+        {"lines": [{"part_name": "x", "quantity": 1, "material_code": "PLA\x00"}]},
+    ],
+)
+def test_nul_bytes_in_an_order_are_a_422_not_a_500(
+    client: TestClient, change: dict[str, Any]
+) -> None:
+    assert post_order(client, "U-STAFF", {**VALID_ORDER, **change}).status_code == 422
+
+
+def test_nul_byte_in_demo_login_is_a_422(client: TestClient) -> None:
+    response = client.post("/auth/demo-login", json={"user_code": "U-STAFF\x00"})
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "path", ["/orders/BL-%00", "/orders/%00/history", "/orders/bl-0001", "/orders/x"]
+)
+def test_impossible_order_numbers_never_reach_the_database(client: TestClient, path: str) -> None:
+    assert client.get(path, headers=login(client, "U-STAFF")).status_code == 422
+
+
+@pytest.mark.parametrize("key", ["has space-123", "tab\tkey-1234", "émoji-key-1234", "x" * 201])
+def test_idempotency_keys_must_use_safe_characters(client: TestClient, key: str) -> None:
+    # Sent as raw UTF-8 bytes: the test client refuses non-ASCII text headers, an attacker would not.
+    headers = {k.encode(): v.encode() for k, v in login(client, "U-STAFF").items()}
+    headers[b"Idempotency-Key"] = key.encode()
+    assert client.post("/orders", json=VALID_ORDER, headers=headers).status_code == 400

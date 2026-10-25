@@ -1,16 +1,21 @@
 """Order routes. Permission checks live in brimline_engine.orders; these only translate."""
 
+import re
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Header, HTTPException, Response
+from fastapi import APIRouter, Header, HTTPException, Path, Response
 
 from brimline_engine import orders
 from brimline_engine.api.deps import Conn, CurrentUser, Now
 from brimline_engine.dates import shop_today
 from brimline_engine.idempotency import IdempotencyConflictError
 from brimline_engine.shop_config import load_shop_config
+from brimline_engine.text import IDEMPOTENCY_KEY_PATTERN, ORDER_NUMBER_PATTERN
 
 router = APIRouter(tags=["orders"])
+
+# Anything that cannot be an order number is rejected (422) before it reaches SQL.
+OrderNumber = Annotated[str, Path(pattern=ORDER_NUMBER_PATTERN)]
 
 # Mapped here so every route answers the same way: 404 hides orders you may not see.
 ERRORS: dict[type[Exception], int] = {
@@ -40,7 +45,7 @@ def list_orders(conn: Conn, user: CurrentUser) -> list[orders.OrderSummary]:
 
 
 @router.get("/orders/{order_number}")
-def get_order(order_number: str, conn: Conn, user: CurrentUser) -> orders.OrderDetail:
+def get_order(order_number: OrderNumber, conn: Conn, user: CurrentUser) -> orders.OrderDetail:
     try:
         return orders.get_order(conn, user.actor, order_number)
     except tuple(ERRORS) as exc:
@@ -48,7 +53,9 @@ def get_order(order_number: str, conn: Conn, user: CurrentUser) -> orders.OrderD
 
 
 @router.get("/orders/{order_number}/history")
-def get_history(order_number: str, conn: Conn, user: CurrentUser) -> list[orders.HistoryEntry]:
+def get_history(
+    order_number: OrderNumber, conn: Conn, user: CurrentUser
+) -> list[orders.HistoryEntry]:
     try:
         return orders.get_history(conn, user.actor, order_number)
     except tuple(ERRORS) as exc:
@@ -69,8 +76,10 @@ def create_order(
     now: Now,
     idempotency_key: Annotated[str | None, Header()] = None,
 ) -> dict[str, Any]:
-    if idempotency_key is None or not 8 <= len(idempotency_key) <= 200:
-        raise HTTPException(400, "an Idempotency-Key header of 8 to 200 characters is required")
+    if idempotency_key is None or not re.fullmatch(IDEMPOTENCY_KEY_PATTERN, idempotency_key):
+        raise HTTPException(
+            400, "an Idempotency-Key header of 8 to 200 letters, digits, or . _ : - is required"
+        )
     today = shop_today(now, load_shop_config().shop.time_zone)
     try:
         stored, replayed = orders.create_order(conn, user.actor, body, idempotency_key, today)

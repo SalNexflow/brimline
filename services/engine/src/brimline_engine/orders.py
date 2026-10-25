@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from brimline_engine import audit, idempotency
 from brimline_engine.permissions import Actor, OrderTarget, can, order_scope
+from brimline_engine.text import SafeText
 
 CREATE_ENDPOINT = "POST /orders"
 
@@ -31,17 +32,17 @@ class InvalidOrderError(Exception):
 
 class OrderLineIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    part_name: str = Field(min_length=1, max_length=200)
+    part_name: SafeText = Field(min_length=1, max_length=200)
     quantity: int = Field(gt=0, le=10_000)
-    material_code: str = Field(min_length=1, max_length=50)
+    material_code: SafeText = Field(min_length=1, max_length=50)
 
 
 class OrderCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    customer_code: str = Field(min_length=1, max_length=50)
+    customer_code: SafeText = Field(min_length=1, max_length=50)
     due_date: date
     rush: bool = False
-    notes: str = Field(default="", max_length=2000)
+    notes: SafeText = Field(default="", max_length=2000)
     lines: list[OrderLineIn] = Field(min_length=1, max_length=50)
 
 

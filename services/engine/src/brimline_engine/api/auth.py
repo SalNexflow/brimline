@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from brimline_engine.api.deps import (
     Conn,
@@ -15,6 +15,7 @@ from brimline_engine.api.deps import (
 )
 from brimline_engine.permissions import Role, capabilities
 from brimline_engine.session import issue_token
+from brimline_engine.text import SafeText
 
 router = APIRouter(tags=["auth"])
 
@@ -27,7 +28,7 @@ class DemoUser(BaseModel):
 
 
 class DemoLoginRequest(BaseModel):
-    user_code: str
+    user_code: SafeText = Field(max_length=50)
 
 
 class Me(BaseModel):
