@@ -10,6 +10,8 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 .pnpm-store/
+coverage/
+*.pem
 
 # Playwright
 test-results/

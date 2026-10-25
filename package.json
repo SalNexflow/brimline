@@ -1,0 +1,18 @@
+{
+  "name": "brimline",
+  "private": true,
+  "description": "Production planning for a fictional made-to-order 3D-print and CNC shop.",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "setup": "node scripts/tasks.mjs setup",
+    "dev": "node scripts/tasks.mjs dev",
+    "gate": "node scripts/tasks.mjs gate",
+    "test": "node scripts/tasks.mjs test",
+    "eval": "node scripts/tasks.mjs eval",
+    "bench": "node scripts/tasks.mjs bench",
+    "gate-selftest": "node scripts/tasks.mjs gate-selftest"
+  }
+}
