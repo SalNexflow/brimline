@@ -2,9 +2,10 @@
 
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
+from brimline_engine import audit
 from brimline_engine.api.deps import (
     Conn,
     CurrentSettings,
@@ -78,11 +79,14 @@ def demo_login(
     body: DemoLoginRequest, conn: Conn, settings: CurrentSettings, now: Now
 ) -> DemoLoginResponse:
     _require_demo_login(settings)
-    row = conn.execute("SELECT id FROM users WHERE code = %s", (body.user_code,)).fetchone()
+    row = conn.execute(
+        "SELECT id, session_version FROM users WHERE code = %s", (body.user_code,)
+    ).fetchone()
     if row is None:
         raise HTTPException(400, "unknown demo user")
     token, expires_at = issue_token(
         int(row[0]),
+        int(row[1]),
         settings.session_secret.get_secret_value().encode(),
         timedelta(minutes=settings.session_ttl_minutes),
         now,
@@ -90,6 +94,31 @@ def demo_login(
     # Resolve the profile the same way every later request will.
     user = current_user(conn, settings, now, authorization=f"Bearer {token}")
     return DemoLoginResponse(token=token, expires_at=expires_at, user=_me(user))
+
+
+@router.post("/auth/logout", status_code=204)
+def logout(conn: Conn, user: CurrentUser) -> Response:
+    """Sign out everywhere: bumping the session version invalidates every token issued so far.
+
+    Naturally idempotent without a key: after the first call the token is invalid, so a retry
+    gets 401 and changes nothing.
+    """
+    with conn.transaction():
+        conn.execute(
+            "UPDATE users SET session_version = session_version + 1 WHERE id = %s",
+            (user.actor.user_id,),
+        )
+        audit.record(
+            conn,
+            actor_user_id=user.actor.user_id,
+            action="session.logout",
+            entity_type="user",
+            entity_id=user.code,
+            before={"session_version": user.session_version},
+            after={"session_version": user.session_version + 1},
+            idempotency_key=None,
+        )
+    return Response(status_code=204)
 
 
 @router.get("/me")

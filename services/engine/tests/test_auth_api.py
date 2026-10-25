@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
@@ -21,13 +22,13 @@ def test_bad_tokens_are_refused(client: TestClient, header: str) -> None:
 
 def test_an_expired_token_is_refused(client: TestClient) -> None:
     secret = get_settings().session_secret.get_secret_value().encode()
-    token, _ = issue_token(1, secret, timedelta(minutes=10), FIXED_NOW - timedelta(minutes=11))
+    token, _ = issue_token(1, 1, secret, timedelta(minutes=10), FIXED_NOW - timedelta(minutes=11))
     assert client.get("/me", headers={"Authorization": f"Bearer {token}"}).status_code == 401
 
 
 def test_a_token_for_a_user_that_does_not_exist_is_refused(client: TestClient) -> None:
     secret = get_settings().session_secret.get_secret_value().encode()
-    token, _ = issue_token(999_999, secret, timedelta(minutes=10), FIXED_NOW)
+    token, _ = issue_token(999_999, 1, secret, timedelta(minutes=10), FIXED_NOW)
     assert client.get("/me", headers={"Authorization": f"Bearer {token}"}).status_code == 401
 
 
@@ -78,3 +79,32 @@ def test_demo_login_is_off_unless_enabled(monkeypatch: pytest.MonkeyPatch) -> No
         session_secret="x" * 32,  # type: ignore[arg-type]
     )
     assert settings.demo_login is False
+
+
+# --- Sign-out revokes tokens (found by the M1 adversarial review, DEFECT_LOG #10) -----------------
+
+
+def test_sign_out_revokes_the_token_and_is_audited(client: TestClient, owner_url: str) -> None:
+    headers = login(client, "U-PLANNER")
+    other_device = login(client, "U-PLANNER")
+    assert client.get("/me", headers=headers).status_code == 200
+
+    assert client.post("/auth/logout", headers=headers).status_code == 204
+    assert client.get("/me", headers=headers).status_code == 401
+    assert client.get("/me", headers=other_device).status_code == 401  # signs out everywhere
+    assert client.post("/auth/logout", headers=headers).status_code == 401  # retry changes nothing
+    assert client.get("/me", headers=login(client, "U-PLANNER")).status_code == 200
+
+    with psycopg.connect(owner_url) as conn:
+        row = conn.execute(
+            "SELECT a.before, a.after FROM audit_log a JOIN users u ON u.id = a.actor_user_id"
+            " WHERE u.code = 'U-PLANNER' AND a.action = 'session.logout'"
+            " ORDER BY a.id DESC LIMIT 1"
+        ).fetchone()
+    assert row is not None
+    before, after = row
+    assert after["session_version"] == before["session_version"] + 1
+
+
+def test_sign_out_requires_a_session(client: TestClient) -> None:
+    assert client.post("/auth/logout").status_code == 401

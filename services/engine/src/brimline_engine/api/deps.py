@@ -27,6 +27,7 @@ def get_conn(request: Request) -> Iterator[psycopg.Connection]:
 @dataclass(frozen=True)
 class SessionUser:
     actor: Actor
+    session_version: int
     code: str
     display_name: str
     customer_code: str | None
@@ -47,20 +48,24 @@ def current_user(
         raise _unauthorized()
     secret = settings.session_secret.get_secret_value().encode()
     try:
-        user_id = verify_token(authorization.removeprefix("Bearer "), secret, now)
+        claims = verify_token(authorization.removeprefix("Bearer "), secret, now)
     except InvalidSessionError:
         raise _unauthorized() from None
     row = conn.execute(
-        "SELECT u.id, u.role, u.customer_id, u.code, u.display_name, c.code, c.name"
+        "SELECT u.id, u.role, u.customer_id, u.code, u.display_name, c.code, c.name,"
+        "       u.session_version"
         " FROM users u LEFT JOIN customers c ON c.id = u.customer_id WHERE u.id = %s",
-        (user_id,),
+        (claims.user_id,),
     ).fetchone()
     if row is None:
         raise _unauthorized()  # a valid token for a user that no longer exists
-    uid, role, customer_id, code, display_name, customer_code, customer_name = row
+    uid, role, customer_id, code, display_name, customer_code, customer_name, version = row
+    if version != claims.session_version:
+        raise _unauthorized()  # the user signed out after this token was issued
     role_value: Role = role
     return SessionUser(
         actor=Actor(user_id=uid, role=role_value, customer_id=customer_id),
+        session_version=version,
         code=code,
         display_name=display_name,
         customer_code=customer_code,

@@ -132,3 +132,17 @@ test("signed-out visitors are sent to the login page", async ({ page }) => {
   await page.goto("/orders");
   await expect(page).toHaveURL(/\/login$/);
 });
+
+test("signing out revokes the session, not just the cookie", async ({ page, context, baseURL }) => {
+  await signIn(page, USERS.staff);
+  const token = (await context.cookies()).find((c) => c.name === "brimline_session")?.value;
+  expect(token).toBeTruthy();
+
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/login$/);
+
+  // Put the old token back, as if it had been copied: the engine must refuse it.
+  await context.addCookies([{ name: "brimline_session", value: token!, url: baseURL! }]);
+  await page.goto("/orders");
+  await expect(page).toHaveURL(/\/login$/);
+});
