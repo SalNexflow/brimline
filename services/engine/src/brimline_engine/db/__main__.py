@@ -18,7 +18,7 @@ from brimline_engine.db.migrate import (
     migrate,
     with_database,
 )
-from brimline_engine.db.seed import SeedError, seed
+from brimline_engine.db.seed import SeedError, seed, seed_price_rules_if_missing
 from brimline_engine.settings import get_settings
 
 
@@ -52,6 +52,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{dbname}: seeded from config/shop.toml")
         except SeedError:
             print(f"{dbname}: already has data, not seeded (use reset to start over)")
+            if seed_price_rules_if_missing(owner_url):
+                print(f"{dbname}: added the price rules from config/shop.toml")
     return 0
 
 

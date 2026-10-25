@@ -82,36 +82,7 @@ def seed(owner_url: str, config: ShopConfig | None = None) -> None:
                     (weekday, s.starts, s.ends),
                 )
 
-        # The first dated version of the price rules (created_by null: it comes from the seed).
-        pr = cfg.price_rules
-        row = conn.execute(
-            "INSERT INTO price_rule_sets (effective_from, setup_cents, rush_multiplier_percent, note, created_at)"
-            " VALUES (%s, %s, %s, %s, %s) RETURNING id",
-            (
-                pr.effective_from,
-                pr.setup_cents,
-                pr.rush_multiplier_percent,
-                "Seeded from config/shop.toml",
-                at,
-            ),
-        ).fetchone()
-        assert row is not None
-        rule_set_id = row[0]
-        for code, cents in pr.material_cents_per_gram.items():
-            conn.execute(
-                "INSERT INTO price_material_rates (rule_set_id, material_id, cents_per_gram) VALUES (%s, %s, %s)",
-                (rule_set_id, material_ids[code], cents),
-            )
-        for process, cents in pr.machine_minute_cents.items():
-            conn.execute(
-                "INSERT INTO price_machine_rates (rule_set_id, process, cents_per_minute) VALUES (%s, %s, %s)",
-                (rule_set_id, process, cents),
-            )
-        for kind, cents in pr.post_process_cents_per_part.items():
-            conn.execute(
-                "INSERT INTO price_post_process_rates (rule_set_id, kind, cents_per_part) VALUES (%s, %s, %s)",
-                (rule_set_id, kind, cents),
-            )
+        seed_price_rules(conn, cfg, material_ids)
 
         for o in cfg.orders:
             row = conn.execute(
@@ -134,3 +105,48 @@ def seed(owner_url: str, config: ShopConfig | None = None) -> None:
                     " VALUES (%s, %s, %s, %s, %s, %s)",
                     (row[0], line_no, line.part, line.quantity, material_ids[line.material], at),
                 )
+
+
+def seed_price_rules(
+    conn: psycopg.Connection, cfg: ShopConfig, material_ids: dict[str, int]
+) -> None:
+    """The first dated version of the price rules (created_by null: it comes from config)."""
+    pr = cfg.price_rules
+    row = conn.execute(
+        "INSERT INTO price_rule_sets (effective_from, setup_cents, rush_multiplier_percent, note, created_at)"
+        " VALUES (%s, %s, %s, %s, %s) RETURNING id",
+        (
+            pr.effective_from,
+            pr.setup_cents,
+            pr.rush_multiplier_percent,
+            "Seeded from config/shop.toml",
+            cfg.seed_time,
+        ),
+    ).fetchone()
+    assert row is not None
+    rule_set_id = row[0]
+    for code, cents in pr.material_cents_per_gram.items():
+        conn.execute(
+            "INSERT INTO price_material_rates (rule_set_id, material_id, cents_per_gram) VALUES (%s, %s, %s)",
+            (rule_set_id, material_ids[code], cents),
+        )
+    for process, cents in pr.machine_minute_cents.items():
+        conn.execute(
+            "INSERT INTO price_machine_rates (rule_set_id, process, cents_per_minute) VALUES (%s, %s, %s)",
+            (rule_set_id, process, cents),
+        )
+    for kind, cents in pr.post_process_cents_per_part.items():
+        conn.execute(
+            "INSERT INTO price_post_process_rates (rule_set_id, kind, cents_per_part) VALUES (%s, %s, %s)",
+            (rule_set_id, kind, cents),
+        )
+
+
+def seed_price_rules_if_missing(owner_url: str) -> bool:
+    """For a database seeded before price rules existed (M1): add the configured version once."""
+    cfg = load_shop_config()
+    with psycopg.connect(owner_url) as conn, conn.transaction():
+        if conn.execute("SELECT 1 FROM price_rule_sets LIMIT 1").fetchone():
+            return False
+        seed_price_rules(conn, cfg, _ids(conn, "materials"))
+        return True
