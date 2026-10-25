@@ -3,10 +3,12 @@
 // behaves the same in PowerShell, Git Bash, and CI (GNU make on Windows picks a different shell
 // depending on where it is started; Node does not). See docs/DECISIONS.md D3.
 //
-// Usage: node scripts/tasks.mjs <setup|dev|gate|test|eval|bench|gate-selftest>
+// Usage: node scripts/tasks.mjs <setup|dev|gate|test|db-reset|api-types|eval|bench|gate-selftest>
 
 import { spawn, spawnSync } from "node:child_process";
-import { copyFileSync, existsSync, writeFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,8 +17,28 @@ const WEB = join(ROOT, "apps", "web");
 const ENGINE = join(ROOT, "services", "engine");
 const IS_CI = !!process.env.CI;
 
-// Next.js sends anonymous telemetry by default; a quality gate should not phone home.
-const ENV = { ...process.env, NEXT_TELEMETRY_DISABLED: "1" };
+const ENV_FILE = join(ROOT, ".env");
+const API_TYPES = join(WEB, "src", "lib", "engine-api.ts");
+
+// Create .env from .env.example with a fresh random session secret, if it does not exist yet.
+// Runs before setup and gate, so a fresh clone, CI, and the self-test copy all work unattended.
+function ensureEnv() {
+  if (existsSync(ENV_FILE)) return;
+  const example = readFileSync(join(ROOT, ".env.example"), "utf8");
+  const secret = randomBytes(32).toString("hex");
+  writeFileSync(ENV_FILE, example.replace(/^SESSION_SECRET=.*$/m, `SESSION_SECRET=${secret}`));
+  console.log("Created .env from .env.example (with a random SESSION_SECRET)");
+}
+
+function loadEnv() {
+  ensureEnv();
+  // Variables already set in the shell win over .env, so CI or a developer can override one.
+  process.loadEnvFile(ENV_FILE);
+  // Next.js sends anonymous telemetry by default; a quality gate should not phone home.
+  return { ...process.env, NEXT_TELEMETRY_DISABLED: "1" };
+}
+
+const ENV = loadEnv();
 
 // A step is one command in one folder. `shell: true` because pnpm and uv are .cmd shims on
 // Windows; the folder goes in `cwd` (never in the command string) so spaces in paths are safe.
@@ -27,6 +49,8 @@ const ENGINE_UNIT = step("engine: tests", ENGINE, "uv run --locked pytest");
 
 // Order: fastest checks first, so most mistakes fail in seconds.
 const GATE = [
+  step("db: start", ROOT, "docker compose up -d --wait"),
+  step("api types: up to date", ROOT, "node scripts/tasks.mjs api-types --check"),
   step("web: typecheck", WEB, "pnpm run typecheck"),
   step("web: lint", WEB, "pnpm run lint"),
   WEB_UNIT,
@@ -79,11 +103,6 @@ function setup() {
   requireTool("uv", "Install from https://docs.astral.sh/uv/ (Windows: winget install astral-sh.uv)");
   requireTool("docker", "Install Docker Desktop and start it.");
 
-  if (!existsSync(join(ROOT, ".env"))) {
-    copyFileSync(join(ROOT, ".env.example"), join(ROOT, ".env"));
-    console.log("Created .env from .env.example");
-  }
-
   // Linux CI runners also need the browser's system libraries.
   const browser = IS_CI && process.platform === "linux" ? "chromium --with-deps" : "chromium";
   return runSteps("setup", [
@@ -91,6 +110,7 @@ function setup() {
     step("install engine dependencies", ENGINE, "uv sync --locked"),
     step("install browser for tests", WEB, `pnpm exec playwright install ${browser}`),
     step("start database (waits for health check)", ROOT, "docker compose up -d --wait"),
+    step("migrate and seed the dev database", ENGINE, "uv run --locked python -m brimline_engine.db setup"),
   ]);
 }
 
@@ -125,6 +145,43 @@ function dev() {
   return null; // keep running
 }
 
+// The web app's TypeScript types are generated from the engine's OpenAPI schema, so the two
+// cannot drift. `--check` fails if the committed file is out of date instead of rewriting it.
+function apiTypes(check) {
+  const scratch = mkdtempSync(join(tmpdir(), "brimline-api-"));
+  try {
+    const schema = join(scratch, "openapi.json");
+    const generated = join(scratch, "engine-api.ts");
+    const dump = spawnSync("uv run --locked python -m brimline_engine.openapi", {
+      cwd: ENGINE, env: ENV, shell: true, encoding: "utf8", maxBuffer: 1 << 26,
+    });
+    if (dump.status !== 0) {
+      console.error(dump.stderr);
+      return 1;
+    }
+    writeFileSync(schema, dump.stdout);
+    const gen = spawnSync(`pnpm exec openapi-typescript "${schema}" -o "${generated}"`, {
+      cwd: WEB, env: ENV, shell: true, stdio: "inherit",
+    });
+    if (gen.status !== 0) return 1;
+
+    const lf = (text) => text.replace(/\r\n/g, "\n");
+    const banner = "// GENERATED from the engine's OpenAPI schema by `make api-types`. Do not edit.\n";
+    const fresh = banner + lf(readFileSync(generated, "utf8"));
+    const current = existsSync(API_TYPES) ? lf(readFileSync(API_TYPES, "utf8")) : "";
+    if (check) {
+      if (fresh === current) return 0;
+      console.error("✗ apps/web/src/lib/engine-api.ts is out of date. Run `make api-types` and commit it.");
+      return 1;
+    }
+    writeFileSync(API_TYPES, fresh);
+    console.log("Wrote apps/web/src/lib/engine-api.ts");
+    return 0;
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+}
+
 function notYet(task, milestone) {
   // An honest stub: says what is missing instead of printing made-up numbers (hard rule 11).
   console.log(`'${task}' has nothing to run yet. It arrives in ${milestone} (see docs/MILESTONES.md).`);
@@ -136,6 +193,9 @@ const TASKS = {
   dev,
   gate: () => runSteps("gate", GATE),
   test: () => runSteps("unit tests", [WEB_UNIT, ENGINE_UNIT]),
+  "db-reset": () =>
+    runSteps("db-reset", [step("reset the dev database", ENGINE, "uv run --locked python -m brimline_engine.db reset")]),
+  "api-types": () => apiTypes(process.argv.includes("--check")),
   eval: () => notYet("eval", "M2"),
   bench: () => notYet("bench", "M3"),
   "gate-selftest": () =>

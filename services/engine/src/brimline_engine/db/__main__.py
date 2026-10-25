@@ -3,6 +3,7 @@
     uv run python -m brimline_engine.db migrate [--database NAME]
     uv run python -m brimline_engine.db seed    [--database NAME]
     uv run python -m brimline_engine.db reset   [--database NAME]   # drop, create, migrate, seed
+    uv run python -m brimline_engine.db setup   [--database NAME]   # migrate; seed only if empty
 
 --database targets another database on the same server (tests use brimline_test and brimline_e2e).
 """
@@ -17,13 +18,13 @@ from brimline_engine.db.migrate import (
     migrate,
     with_database,
 )
-from brimline_engine.db.seed import seed
+from brimline_engine.db.seed import SeedError, seed
 from brimline_engine.settings import get_settings
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m brimline_engine.db")
-    parser.add_argument("command", choices=["migrate", "seed", "reset"])
+    parser.add_argument("command", choices=["migrate", "seed", "reset", "setup"])
     parser.add_argument("--database", help="database name (default: the one in DATABASE_URL)")
     args = parser.parse_args(argv)
 
@@ -37,13 +38,20 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "reset":
         drop_database(settings.database_owner_url, dbname)
-    if args.command in ("reset", "migrate"):
+    if args.command in ("reset", "migrate", "setup"):
         ensure_database(settings.database_owner_url, dbname)
         applied = migrate(owner_url, app_url)
         print(f"{dbname}: applied {len(applied)} migration(s) {applied}")
     if args.command in ("reset", "seed"):
         seed(owner_url)
         print(f"{dbname}: seeded from config/shop.toml")
+    if args.command == "setup":
+        # Safe to re-run: seeds only an empty database and leaves existing data alone.
+        try:
+            seed(owner_url)
+            print(f"{dbname}: seeded from config/shop.toml")
+        except SeedError:
+            print(f"{dbname}: already has data, not seeded (use reset to start over)")
     return 0
 
 

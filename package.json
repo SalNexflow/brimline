@@ -11,6 +11,8 @@
     "dev": "node scripts/tasks.mjs dev",
     "gate": "node scripts/tasks.mjs gate",
     "test": "node scripts/tasks.mjs test",
+    "db-reset": "node scripts/tasks.mjs db-reset",
+    "api-types": "node scripts/tasks.mjs api-types",
     "eval": "node scripts/tasks.mjs eval",
     "bench": "node scripts/tasks.mjs bench",
     "gate-selftest": "node scripts/tasks.mjs gate-selftest"
