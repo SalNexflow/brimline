@@ -6,9 +6,11 @@ numbers come from scheduler-side code; the M4 checker will recompute them indepe
 - late jobs: scheduled jobs packed after their due minute; "late or unscheduled" adds the jobs
   that did not fit at all, so dropping a job can never make the late count look better
 - total lateness: sum over scheduled jobs of max(0, completion - due), in minutes
-- changeovers: on each machine, consecutive jobs (by start) with different materials
-- utilisation: machine-task minutes (including cool-down on the machine) / (all machines,
-  including the lightly used CNC mill, x finish time)
+- changeovers: on each machine, consecutive machine tasks (by start) with different materials,
+  including the fixed task of a job left unscheduled (it still runs there); two fixed tasks back
+  to back count none, because no changeover was needed between them (D54)
+- utilisation: machine-task minutes from minute 0 on (including cool-down on the machine) /
+  (all machines, including the lightly used CNC mill, x finish time)
 - finish time: the latest completion of any scheduled job
 """
 
@@ -35,15 +37,22 @@ class Metrics:
 
 def changeovers(instance: Instance, schedule: Schedule) -> int:
     material = {j.id: j.material for j in instance.jobs}
-    by_machine: dict[str, list[tuple[int, str]]] = {}
+    fixed = {f.job_id for f in instance.fixed}
+    by_machine: dict[str, list[tuple[int, str, bool]]] = {}
     for plan in schedule.plans:
         slot = plan.slot("machine")
         if slot is not None:
-            by_machine.setdefault(plan.machine, []).append((slot.start, material[plan.job_id]))
+            by_machine.setdefault(plan.machine, []).append(
+                (slot.start, material[plan.job_id], plan.job_id in fixed)
+            )
+    planned = {p.job_id for p in schedule.plans}
+    for f in instance.fixed:
+        if f.job_id not in planned:
+            by_machine.setdefault(f.machine, []).append((f.start, material[f.job_id], True))
     count = 0
     for runs in by_machine.values():
         runs.sort()
-        count += sum(1 for (_, a), (_, b) in pairwise(runs) if a != b)
+        count += sum(1 for (_, a, fa), (_, b, fb) in pairwise(runs) if a != b and not (fa and fb))
     return count
 
 
@@ -64,7 +73,7 @@ def evaluate(instance: Instance, schedule: Schedule, weights: Weights) -> Metric
         finish = max(finish, plan.completion)
         machine_slot = plan.slot("machine")
         if machine_slot is not None:
-            busy += machine_slot.end - machine_slot.start
+            busy += max(0, machine_slot.end - max(machine_slot.start, 0))
     changes = changeovers(instance, schedule)
     weighted += weights.changeover * changes
     weighted += weights.finish_time_per_minute * finish

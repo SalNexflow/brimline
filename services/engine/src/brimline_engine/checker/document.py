@@ -53,6 +53,10 @@ class Instance:
     machines: tuple[Machine, ...]
     jobs: tuple[Job, ...]
     fixed: tuple[Fixed, ...]
+    # The shifts and staff the plan was made for. Optional: when given, the checker compares
+    # them with its own reading of config/scheduler.toml instead of trusting them.
+    shifts: tuple[tuple[int, int], ...] | None
+    staff: int | None
 
 
 @dataclass(frozen=True)
@@ -94,6 +98,13 @@ def _get(d: object, key: str, kind: type, where: str) -> Any:  # noqa: ANN401 - 
     return value
 
 
+def _only(d: object, allowed: set[str], where: str) -> None:
+    """Strict: an unknown key is a mistake (a typo, or a field this checker does not know)."""
+    extra = set(d) - allowed if isinstance(d, dict) else set()
+    if extra:
+        raise DocumentError(f"{where}: unknown keys {sorted(extra)}")
+
+
 def _ints(d: object, key: str, where: str) -> tuple[int, ...]:
     values = _get(d, key, list, where)
     if len(values) != 3 or any(isinstance(v, bool) or not isinstance(v, int) for v in values):
@@ -109,6 +120,7 @@ def _strs(d: object, key: str, where: str) -> tuple[str, ...]:
 
 
 def _machine(d: object, where: str) -> Machine:
+    _only(d, {"code", "process", "materials", "build_mm"}, where)
     return Machine(
         code=_get(d, "code", str, where),
         process=_get(d, "process", str, where),
@@ -118,6 +130,7 @@ def _machine(d: object, where: str) -> Machine:
 
 
 def _job(d: object, where: str) -> Job:
+    _only(d, {f for f in Job.__dataclass_fields__}, where)
     return Job(
         id=_get(d, "id", str, where),
         arrival=_get(d, "arrival", int, where),
@@ -134,6 +147,7 @@ def _job(d: object, where: str) -> Job:
 
 
 def _fixed(d: object, where: str) -> Fixed:
+    _only(d, {"job_id", "machine", "start"}, where)
     return Fixed(
         job_id=_get(d, "job_id", str, where),
         machine=_get(d, "machine", str, where),
@@ -142,6 +156,7 @@ def _fixed(d: object, where: str) -> Fixed:
 
 
 def _task(d: object, where: str) -> Task:
+    _only(d, {"kind", "start", "end"}, where)
     kind = _get(d, "kind", str, where)
     if kind not in KINDS:
         raise DocumentError(f"{where}.kind: unknown task kind {kind!r}")
@@ -149,6 +164,7 @@ def _task(d: object, where: str) -> Task:
 
 
 def _planned(d: object, where: str) -> PlannedJob:
+    _only(d, {"job_id", "machine", "tasks"}, where)
     tasks = _get(d, "tasks", list, where)
     return PlannedJob(
         job_id=_get(d, "job_id", str, where),
@@ -157,11 +173,30 @@ def _planned(d: object, where: str) -> PlannedJob:
     )
 
 
+def _shifts(inst: dict[str, Any]) -> tuple[tuple[int, int], ...] | None:
+    if "shifts" not in inst:
+        return None
+    windows = _get(inst, "shifts", list, "instance")
+    out = []
+    for w in windows:
+        if not (
+            isinstance(w, list)
+            and len(w) == 2
+            and all(isinstance(v, int) and not isinstance(v, bool) for v in w)
+        ):
+            raise DocumentError(f"instance.shifts: expected [start, end] pairs, got {w!r}")
+        out.append((w[0], w[1]))
+    return tuple(out)
+
+
 def parse(doc: object) -> Document:
+    _only(doc, {"format", "instance", "plan"}, "document")
     if _get(doc, "format", str, "document") != FORMAT:
         raise DocumentError(f"document: format must be {FORMAT!r}")
     inst = _get(doc, "instance", dict, "document")
     plan = _get(doc, "plan", dict, "document")
+    _only(inst, {"name", "horizon", "machines", "jobs", "fixed", "shifts", "staff"}, "instance")
+    _only(plan, {"method", "jobs", "unscheduled"}, "plan")
     machines = _get(inst, "machines", list, "instance")
     jobs = _get(inst, "jobs", list, "instance")
     fixed = _get(inst, "fixed", list, "instance")
@@ -173,6 +208,8 @@ def parse(doc: object) -> Document:
             machines=tuple(_machine(m, f"machines[{i}]") for i, m in enumerate(machines)),
             jobs=tuple(_job(j, f"jobs[{i}]") for i, j in enumerate(jobs)),
             fixed=tuple(_fixed(f, f"fixed[{i}]") for i, f in enumerate(fixed)),
+            shifts=_shifts(inst),
+            staff=_get(inst, "staff", int, "instance") if "staff" in inst else None,
         ),
         plan=Plan(
             method=_get(plan, "method", str, "plan"),

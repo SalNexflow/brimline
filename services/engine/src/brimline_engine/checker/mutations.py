@@ -225,6 +225,45 @@ def overlap(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
     return out
 
 
+def overlap_by_one_minute(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
+    """Start one job's machine task one minute before another's ends, on the same machine."""
+    out = copy.deepcopy(doc)
+    fixed = _fixed_ids(out)
+    jobs = _jobs(out)
+    movable = [pj for pj in jobs if pj["job_id"] not in fixed]
+    if len(jobs) < 2 or not movable:
+        return None
+    b = rng.choice(movable)
+    a = rng.choice([pj for pj in jobs if pj is not b])
+    ta, tb = _task(a, "machine"), _task(b, "machine")
+    assert ta is not None and tb is not None
+    length = tb["end"] - tb["start"]
+    b["machine"], tb["start"] = a["machine"], ta["end"] - 1
+    tb["end"] = tb["start"] + length
+    return out
+
+
+def overlap_unscheduled_fixed(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
+    """List a fixed job as unscheduled, then plan another job on top of its running task: a
+    fixed task blocks its machine even when its job is not planned."""
+    out = copy.deepcopy(doc)
+    fixed = {f["job_id"]: f for f in out["instance"]["fixed"]}
+    jobs = _jobs(out)
+    planned_fixed = [pj for pj in jobs if pj["job_id"] in fixed]
+    movable = [pj for pj in jobs if pj["job_id"] not in fixed]
+    if not planned_fixed or not movable:
+        return None
+    a, b = rng.choice(planned_fixed), rng.choice(movable)
+    out["plan"]["jobs"].remove(a)
+    out["plan"]["unscheduled"].append(a["job_id"])
+    tb = _task(b, "machine")
+    assert tb is not None
+    length = tb["end"] - tb["start"]
+    b["machine"], tb["start"] = fixed[a["job_id"]]["machine"], fixed[a["job_id"]]["start"]
+    tb["end"] = tb["start"] + length
+    return out
+
+
 def squeeze_changeover(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
     """Move a job one minute too close to a neighbour of a different material."""
     out = copy.deepcopy(doc)
@@ -264,6 +303,25 @@ def staff_overload(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
     chosen = rng.sample(sorted(by_job), r.staff + 1)
     at = by_job[chosen[0]]["start"]
     for job_id in chosen:
+        t = by_job[job_id]
+        length = t["end"] - t["start"]
+        t["start"], t["end"] = at, at + length
+    return out
+
+
+def staff_overload_one_minute(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
+    """One task ends at minute `at` + 1 and `staff` others start at `at`: one minute too many."""
+    out = copy.deepcopy(doc)
+    by_job: dict[str, dict[str, Any]] = {}
+    for pj in _jobs(out):
+        for t in pj["tasks"]:
+            if t["kind"] in MANUAL:
+                by_job.setdefault(pj["job_id"], t)
+    if len(by_job) < r.staff + 1:
+        return None
+    first, *rest = rng.sample(sorted(by_job), r.staff + 1)
+    at = by_job[first]["end"] - 1
+    for job_id in rest:
         t = by_job[job_id]
         length = t["end"] - t["start"]
         t["start"], t["end"] = at, at + length
@@ -316,8 +374,11 @@ OPERATORS: dict[str, tuple[str, Operator]] = {
     "part_too_big": ("not_eligible", part_too_big),
     "material_unsupported": ("not_eligible", material_unsupported),
     "overlap": ("machine_overlap", overlap),
+    "overlap_by_one_minute": ("machine_overlap", overlap_by_one_minute),
+    "overlap_unscheduled_fixed": ("machine_overlap", overlap_unscheduled_fixed),
     "squeeze_changeover": ("changeover", squeeze_changeover),
     "staff_overload": ("staff_overload", staff_overload),
+    "staff_overload_one_minute": ("staff_overload", staff_overload_one_minute),
     "move_fixed": ("fixed_moved", move_fixed),
     "shrink_horizon": ("past_horizon", shrink_horizon),
 }

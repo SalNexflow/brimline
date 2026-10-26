@@ -96,6 +96,20 @@ def instance_problems(inst: Instance, r: Rules) -> list[Violation]:
             out.append(
                 Violation("bad_instance", j.id, "quantity and minutes_per_part must be >= 1")
             )
+        if j.post_minutes_per_part < 0 or min(j.part_mm) < 1:
+            out.append(Violation("bad_instance", j.id, "negative post time or part size below 1"))
+    if inst.horizon < 1:
+        out.append(Violation("bad_instance", None, f"horizon {inst.horizon} is not positive"))
+    # The plan was made for these shifts and this staff; they must be what the config says, or
+    # the checker would judge it against different rules than the scheduler used.
+    if inst.shifts is not None and inst.shifts != r.windows:
+        out.append(
+            Violation("bad_instance", None, "the instance's shifts differ from the config's")
+        )
+    if inst.staff is not None and inst.staff != r.staff:
+        out.append(
+            Violation("bad_instance", None, f"instance staff {inst.staff}, config {r.staff}")
+        )
     codes = [m.code for m in inst.machines]
     if len(set(codes)) != len(codes):
         out.append(Violation("bad_instance", None, "two machines share a code"))
@@ -230,10 +244,11 @@ def metrics(
     inst: Instance, plans: list[PlannedJob], unscheduled: int, r: Rules
 ) -> tuple[Metrics, tuple[Deadline, ...]]:
     jobs = {j.id: j for j in inst.jobs}
+    fixed = {f.job_id: f for f in inst.fixed}
     w = r.weights
     late = rush_late = lateness = objective = busy = finish = 0
     deadlines = []
-    by_machine: dict[str, list[tuple[int, str]]] = {}
+    by_machine: dict[str, list[tuple[int, str, bool]]] = {}  # (start, material, fixed)
     for pj in plans:
         job = jobs[pj.job_id]
         if not pj.tasks:
@@ -249,12 +264,22 @@ def metrics(
         deadlines.append(Deadline(job.id, job.due, completion, tardiness, job.rush))
         for t in pj.tasks:
             if t.kind == "machine":
-                busy += t.end - t.start
-                by_machine.setdefault(pj.machine, []).append((t.start, job.material))
+                busy += max(0, t.end - max(t.start, 0))  # count only time from minute 0
+                by_machine.setdefault(pj.machine, []).append(
+                    (t.start, job.material, job.id in fixed)
+                )
+    # A fixed task of an unscheduled job still runs on its machine, so it is part of the
+    # material sequence. Two fixed tasks back to back needed no changeover, so they count none.
+    planned = {pj.job_id for pj in plans}
+    for f in inst.fixed:
+        if f.job_id not in planned:
+            by_machine.setdefault(f.machine, []).append((f.start, jobs[f.job_id].material, True))
     changes = 0
     for items in by_machine.values():
         items.sort()
-        changes += sum(1 for (_, a), (_, b) in pairwise(items) if a != b)
+        changes += sum(
+            1 for (_, a, fa), (_, b, fb) in pairwise(items) if a != b and not (fa and fb)
+        )
     objective += w.changeover * changes + w.finish_time_per_minute * finish
     objective += w.unscheduled_job * unscheduled
     capacity = len(inst.machines) * finish

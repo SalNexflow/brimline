@@ -14,8 +14,7 @@ from brimline_engine.scheduling.generator import generate
 from brimline_engine.scheduling.model import Fixed, Instance, Job, JobPlan, Machine, Slot
 from brimline_engine.shop_config import load_shop_config
 
-# Derived from config/scheduler.toml; the checker reads that file itself.
-NOT_EXPORTED = {"shifts", "staff"}
+NOT_EXPORTED: set[str] = set()  # every Instance field goes into the document
 
 
 def plain(value: object) -> Any:
@@ -62,7 +61,7 @@ def test_every_raw_field_reaches_the_json_unchanged() -> None:
         if f.name in NOT_EXPORTED:
             assert f.name not in d
         elif f.name not in {"machines", "jobs", "fixed"}:
-            assert d[f.name] == getattr(inst, f.name), f.name
+            assert d[f.name] == plain(getattr(inst, f.name)), f.name
     assert len(d["machines"]) == len(inst.machines)
     for m, md in zip(inst.machines, d["machines"], strict=True):
         assert_same(m, md)

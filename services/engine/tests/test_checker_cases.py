@@ -506,3 +506,88 @@ def test_unscheduled_job_too_long_for_the_free_time_is_not_suspicious() -> None:
         RULES,
     )
     assert r.warnings == ()
+
+
+# --- Found by the fresh-context review (M4) -----------------------------------------------------
+
+
+def test_a_plan_made_for_other_shifts_is_refused() -> None:
+    # The document says the shop was open 0-100 only; the config says Mon-Fri 08:00-17:00.
+    # The checker must not judge the plan against rules the scheduler did not use.
+    d = doc([job("A")], [A_OK])
+    d["instance"]["shifts"] = [[0, 100]]
+    assert codes(d) == {"bad_instance"}
+
+
+def test_a_plan_made_for_other_staff_is_refused() -> None:
+    d = doc([job("A")], [A_OK])
+    d["instance"]["staff"] = 1
+    assert codes(d) == {"bad_instance"}
+
+
+def test_matching_shifts_and_staff_are_accepted() -> None:
+    d = doc([job("A")], [A_OK])
+    d["instance"]["shifts"] = [list(w) for w in RULES.windows]
+    d["instance"]["staff"] = 2
+    assert codes(d) == set()
+
+
+@pytest.mark.parametrize(
+    "change",
+    [{"post_minutes_per_part": -5}, {"part_mm": [-5000, 10, 10]}, {"part_mm": [0, 10, 10]}],
+)
+def test_impossible_job_values_are_refused(change: dict[str, Any]) -> None:
+    assert codes(doc([job("A", **change)], [A_OK])) == {"bad_instance"}
+
+
+def test_a_non_positive_horizon_is_refused() -> None:
+    assert codes(doc([job("A")], [], unscheduled=("A",), horizon=-5)) == {"bad_instance"}
+
+
+@pytest.mark.parametrize(
+    "add_key",
+    [
+        lambda d: d["plan"]["jobs"][0]["tasks"][0].update(machine="M2"),
+        lambda d: d["instance"]["jobs"][0].update(oops=1),
+        lambda d: d["plan"].update(note="x"),
+        lambda d: d.update(extra=True),
+    ],
+)
+def test_unknown_keys_are_refused(add_key: Any) -> None:
+    d = doc([job("A")], [A_OK])
+    add_key(d)
+    with pytest.raises(DocumentError, match="unknown keys"):
+        check_document(d, RULES)
+
+
+def test_two_fixed_tasks_back_to_back_count_no_changeover() -> None:
+    # A (PLA) and B (PETG) fixed back to back: no changeover happened, so none is counted.
+    fixed = (
+        {"job_id": "A", "machine": "M1", "start": 0},
+        {"job_id": "B", "machine": "M1", "start": 100},
+    )
+    pa = plan("A", "M1", ("machine", 0, 100), ("finish", 100, 110))
+    pb = plan("B", "M1", ("machine", 100, 200), ("finish", 200, 210))
+    r = check_document(doc([job("A"), job("B", material="PETG")], [pa, pb], fixed=fixed), RULES)
+    assert r.metrics is not None and r.metrics.changeovers == 0
+
+
+def test_a_changeover_after_an_unscheduled_jobs_fixed_task_is_counted() -> None:
+    # A (PLA) runs fixed 0-100 but is unscheduled; B (PETG) follows on M1 at 130: one change.
+    fixed = ({"job_id": "A", "machine": "M1", "start": 0},)
+    pb = plan("B", "M1", ("prep", 0, 10), ("machine", 130, 230), ("finish", 230, 240))
+    r = check_document(
+        doc([job("A"), job("B", material="PETG")], [pb], unscheduled=("A",), fixed=fixed), RULES
+    )
+    assert r.valid
+    assert r.metrics is not None and r.metrics.changeovers == 1
+
+
+def test_utilisation_counts_only_time_from_minute_zero() -> None:
+    # A fixed since -1000, 1100 minutes, so it ends at 100; finish 100-110. Only 100 machine
+    # minutes fall after minute 0: 100 / (3 machines x 110) = 0.303..., not 1100 / 330 = 3.3.
+    fixed = ({"job_id": "A", "machine": "M1", "start": -1000},)
+    p = plan("A", "M1", ("machine", -1000, 100), ("finish", 100, 110))
+    r = check_document(doc([job("A", minutes_per_part=1100)], [p], fixed=fixed), RULES)
+    assert r.valid
+    assert r.metrics is not None and r.metrics.utilisation == pytest.approx(100 / 330)

@@ -2,8 +2,9 @@
 
 Data flows one way: scheduler -> JSON -> checker. Only raw inputs and the plan go in; nothing
 the scheduler derives (durations, shift windows, eligible machines, metrics) does, so the
-checker has to work those out itself. Shifts, staff and weights are not in the document either:
-the checker reads them from config/scheduler.toml, as the scheduler does.
+checker has to work those out itself. The instance's shifts and staff go in as the inputs the
+plan was made for; the checker does not use them but compares them with its own reading of
+config/scheduler.toml, and refuses a plan made for different ones. Weights are not in it.
 """
 
 from typing import Any
@@ -49,6 +50,8 @@ def instance_doc(instance: Instance) -> dict[str, Any]:
         "machines": [machine_doc(m) for m in instance.machines],
         "jobs": [job_doc(j) for j in instance.jobs],
         "fixed": [fixed_doc(f) for f in instance.fixed],
+        "shifts": [list(w) for w in instance.shifts],
+        "staff": instance.staff,
     }
 
 

@@ -53,7 +53,7 @@ Each rule has a code the checker reports.
 | R14 `changeover` | On one machine, sorted by start, two neighbouring machine tasks of different material are at least `changeover_minutes` apart (gap = next start - previous end). Not required when both are fixed. |
 | R15 `fixed_moved` | A planned job with a fixed task keeps its machine and its machine start exactly. |
 | R16 `past_horizon` | Every task ends at or before the horizon, except a fixed machine task (it is a fact). |
-| R17 `bad_instance` | The instance itself is impossible: a fixed task for an unknown job or machine, two fixed tasks overlapping on a machine, a job with quantity or minutes_per_part below 1, or two jobs with the same id. The plan is not judged further. |
+| R17 `bad_instance` | The instance itself is impossible or does not match the config: a fixed task for an unknown job or machine, two fixed tasks overlapping on a machine, a job with quantity or minutes_per_part below 1, a negative post time, a part side below 1 mm, two jobs or machines with the same id, a horizon below 1, or shifts or staff in the document that differ from `config/scheduler.toml`. The plan is not judged further. |
 
 Fixed machine tasks are facts: R08, R09, R10 and R16 do not apply to them. A job with a fixed
 task may still be listed as unscheduled (when its later tasks cannot fit); its fixed task then
@@ -74,9 +74,9 @@ witness exists that it might have fitted:
 
 - its material is on hand before the horizon (`release` < horizon), and
 - some eligible machine has a free stretch, starting at or after the release and inside a shift,
-  long enough for the machine task plus a changeover margin on both sides
-  (`changeover_minutes` before and after, against the machine's planned and fixed tasks),
-  ending by the horizon.
+  long enough for the machine task, keeping `changeover_minutes` from any task of a different
+  material on that machine (planned or fixed), ending by the horizon, and
+- its post-processing and finishing then fit in shifts before the horizon.
 
 It ignores staff and manual tasks, so it can raise a false warning; it is a pointer for a human,
 never a verdict.
@@ -93,9 +93,9 @@ Computed from the plan and the instance only.
 | late_or_unscheduled | late_jobs + unscheduled |
 | rush_late_jobs | late planned jobs that are rush |
 | total_lateness_minutes | sum of tardiness over planned jobs |
-| changeovers | on each machine, the planned jobs' machine tasks sorted by start; neighbours with different material count 1 |
+| changeovers | on each machine, the machine tasks sorted by start (planned jobs, plus the fixed task of any job left unscheduled); neighbours with different material count 1, except two fixed tasks (no changeover was needed between them) |
 | finish_time | latest completion of a planned job (0 if none) |
-| utilisation | sum of planned machine-task minutes / (number of machines * finish_time); 0 if finish_time is 0 |
+| utilisation | planned machine-task minutes from minute 0 on (a fixed task running since before minute 0 counts only its part after it) / (number of machines * finish_time); 0 if finish_time is 0 |
 | objective | sum over planned jobs of `m * (late_job * [late] + tardiness_per_minute * tardiness)`, where `m = rush_multiplier` for rush jobs else 1; plus `changeover * changeovers + finish_time_per_minute * finish_time + unscheduled_job * unscheduled` |
 
 ## Differences found by the blind review (M4)
@@ -111,5 +111,5 @@ page. The differences and how each was resolved (decisions D57 to D61):
 | Prep of a fixed job | must be in the plan | not in the plan | Kept ours: it happened in the past, maybe last week, so no shift could hold it (D58). |
 | Fixed job left unscheduled | a violation | allowed, still blocks, warned as suspicious | Kept ours: otherwise a fixed task near the end of the horizon makes every plan invalid (D59). |
 | Turning a part to fit | not allowed | allowed | Kept ours (printers and mills can orient a part); the reviewer's cases do not depend on it (D60). |
-| Utilisation | per machine, over the horizon | all machines, over the finish time | Kept ours, so the bench numbers stay comparable; both are stated (D60). |
+| Utilisation | per machine, over the horizon | all machines, over the finish time | Kept ours, so the bench numbers stay comparable; both are stated (also D60). |
 | Fixed tasks and shift/release rules | open question | exempt (facts) | Kept ours (D61). |
