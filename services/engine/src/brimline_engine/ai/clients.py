@@ -1,6 +1,7 @@
 """Which model client to use, from AI_MODE:
 
-live  the real API (needs ANTHROPIC_API_KEY or another credential the SDK can find)
+live  the real API of the model's provider in config/models.toml
+      (DeepSeek: DEEPSEEK_API_KEY; Claude: ANTHROPIC_API_KEY or another credential the SDK finds)
 fake  prepared replies, for tests and browser tests: deterministic and free
 off   no model at all: quotes start empty and staff fill them in
 """
@@ -8,6 +9,8 @@ off   no model at all: quotes start empty and staff fill them in
 import json
 from typing import Any
 
+from brimline_engine.ai.config import models_config
+from brimline_engine.ai.deepseek import DeepSeekClient
 from brimline_engine.ai.gateway import (
     AnthropicClient,
     ModelClient,
@@ -16,6 +19,7 @@ from brimline_engine.ai.gateway import (
     TokenUsage,
     Turn,
 )
+from brimline_engine.settings import get_settings
 
 
 def _draft(**overrides: object) -> str:
@@ -78,9 +82,18 @@ def fake_reply(turns: list[Turn]) -> ModelReply:
     return ModelReply(text=text, stop_reason="end_turn", usage=TokenUsage())
 
 
-def client_for(mode: str) -> ModelClient | None:
-    if mode == "live":
-        return AnthropicClient()
+def client_for(mode: str, model: str) -> ModelClient | None:
+    """The client for `model` in this mode, or None when AI is off."""
     if mode == "fake":
         return ScriptedClient(fake_reply)
-    return None
+    if mode != "live":
+        return None
+    cfg = models_config()
+    provider = cfg.prices[model].provider
+    if provider == "deepseek":
+        key = get_settings().deepseek_api_key
+        return DeepSeekClient(
+            api_key=key.get_secret_value() if key else None,
+            base_url=cfg.providers["deepseek"].base_url,
+        )
+    return AnthropicClient()

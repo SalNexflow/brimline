@@ -101,7 +101,7 @@ def run_model(
     task = cfg.task(PURPOSE, model_override=model)
     shop = load_shop_config()
     catalog = [(m.code, m.name) for m in shop.materials]
-    client = client_for(client_mode)
+    client = client_for(client_mode, model)
     cache_dir = RESULTS / "cache" / model / task.prompt_version
 
     scores: list[ItemScore] = []

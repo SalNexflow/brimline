@@ -14,13 +14,19 @@ from brimline_engine.settings import REPO_ROOT
 MODELS_CONFIG_PATH = REPO_ROOT / "config" / "models.toml"
 
 Effort = Literal["low", "medium", "high", "xhigh", "max"]
+Provider = Literal["anthropic", "deepseek"]
 
 
 class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
+class ProviderConfig(_Strict):
+    base_url: str
+
+
 class ModelPrice(_Strict):
+    provider: Provider
     input_usd_per_mtok: Decimal
     output_usd_per_mtok: Decimal
     cache_read_usd_per_mtok: Decimal
@@ -37,6 +43,7 @@ class TaskConfig(_Strict):
 class ModelsConfig(_Strict):
     checked: date
     source: str
+    providers: dict[Provider, ProviderConfig]
     prices: dict[str, ModelPrice]
     tasks: dict[str, TaskConfig]
 

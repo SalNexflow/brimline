@@ -103,6 +103,7 @@ source = { editable = "." }
 dependencies = [
     { name = "anthropic" },
     { name = "fastapi" },
+    { name = "httpx2" },
     { name = "psycopg", extra = ["binary"] },
     { name = "psycopg-pool" },
     { name = "pydantic-settings" },
@@ -112,7 +113,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "httpx2" },
     { name = "mypy" },
     { name = "pytest" },
     { name = "ruff" },
@@ -122,6 +122,7 @@ dev = [
 requires-dist = [
     { name = "anthropic", specifier = ">=2.3.0" },
     { name = "fastapi", specifier = ">=0.162.0" },
+    { name = "httpx2", specifier = ">=2.16.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.6" },
     { name = "psycopg-pool", specifier = ">=3.3.3" },
     { name = "pydantic-settings", specifier = ">=2.16.1" },
@@ -131,7 +132,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "httpx2", specifier = ">=2.16.0" },
     { name = "mypy", specifier = ">=2.4.0" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "ruff", specifier = ">=0.17.2" },

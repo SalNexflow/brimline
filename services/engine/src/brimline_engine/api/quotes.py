@@ -7,11 +7,12 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Response
 
 from brimline_engine import quotes
 from brimline_engine.ai.clients import client_for
+from brimline_engine.ai.config import models_config
 from brimline_engine.ai.gateway import GatewayResult
 from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, Now
 from brimline_engine.dates import shop_today
 from brimline_engine.idempotency import IdempotencyConflictError, StoredResponse
-from brimline_engine.quote_extract import QuoteDraft, extract
+from brimline_engine.quote_extract import PURPOSE, QuoteDraft, extract
 from brimline_engine.shop_config import load_shop_config
 
 router = APIRouter(tags=["quotes"])
@@ -40,7 +41,7 @@ def get_extractor(conn: Conn, settings: CurrentSettings) -> quotes.Extractor:
         (code, name)
         for code, name in conn.execute("SELECT code, name FROM materials ORDER BY code")
     ]
-    client = client_for(settings.ai_mode)
+    client = client_for(settings.ai_mode, models_config().tasks[PURPOSE].model)
 
     def run(message: str) -> GatewayResult[QuoteDraft]:
         return extract(client, mode=settings.ai_mode, message=message, catalog=catalog)

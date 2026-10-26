@@ -1,6 +1,7 @@
 """Shared fixtures. Database tests use their own database (brimline_test), rebuilt once per run,
 so your development data is never touched."""
 
+import os
 from collections.abc import Iterator
 from datetime import UTC, datetime
 
@@ -13,6 +14,12 @@ from brimline_engine.db.migrate import drop_database, ensure_database, migrate, 
 from brimline_engine.db.seed import seed
 from brimline_engine.main import app
 from brimline_engine.settings import Settings, get_settings
+
+# No test may ever reach a real model with a real key (DEFECT_LOG #15). Environment variables
+# win over the .env file, so blanking them hides the keys in .env from every test. Settings are
+# first read by a fixture, after this module has run.
+for _key in ("DEEPSEEK_API_KEY", "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"):
+    os.environ[_key] = ""
 
 TEST_DB = "brimline_test"
 

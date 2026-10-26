@@ -22,6 +22,7 @@ from brimline_engine.ai.gateway import (
 
 # Prices like the Opus row in config/models.toml, written out by hand.
 PRICE = ModelPrice(
+    provider="anthropic",
     input_usd_per_mtok=Decimal("4.00"),
     output_usd_per_mtok=Decimal("20.00"),
     cache_read_usd_per_mtok=Decimal("0.20"),

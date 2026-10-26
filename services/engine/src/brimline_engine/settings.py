@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     demo_login: bool = False
     # Which model client to use: live, fake (tests), or off (staff fill quotes by hand).
     ai_mode: Literal["live", "fake", "off"] = "off"
+    # Read by the DeepSeek client. (The Claude client finds ANTHROPIC_API_KEY itself.)
+    deepseek_api_key: SecretStr | None = None
 
     @field_validator("session_secret")
     @classmethod

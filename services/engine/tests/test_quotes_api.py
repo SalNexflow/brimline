@@ -385,6 +385,8 @@ def test_live_mode_without_credentials_falls_back_to_manual_entry(
     # DEFECT_LOG #13: this used to be a 500.
     from brimline_engine.settings import get_settings
 
+    # Blank (not delete): an environment variable beats the key in .env (DEFECT_LOG #15).
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "")
     for name in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_PROFILE"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("ANTHROPIC_CONFIG_DIR", "/nonexistent-brimline-test")
