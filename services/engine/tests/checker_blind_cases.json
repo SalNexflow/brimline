@@ -1,0 +1,2620 @@
+[
+ {
+  "name": "valid_single_fdm",
+  "why": "Baseline. J1 fdm q=2 mpp=60: prep 15 [0,15); machine 15+2*60+20=155 [15,170); finish 10+2=12 [170,182). All in Monday shift [0,540). Completion 182 <= due 2000. Objective = finish_time 182.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "valid_single_fdm",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": true,
+   "violations": [],
+   "metrics": {
+    "late_jobs": 0,
+    "total_lateness_minutes": 0,
+    "changeovers": 0,
+    "finish_time": 182,
+    "objective": 182
+   }
+  }
+ },
+ {
+  "name": "valid_changeover_gap_exactly_30",
+  "why": "J1 PLA machine [15,170) (155). J2 PETG q=1 mpp=100: machine 15+100+20=135, earliest start 170+30=200 -> [200,335). J2 prep 15 [15,30) (J1 prep [0,15), at most 1 person busy). J2 finish 10+1=11 [335,346). J1 finish [170,182). 1 changeover. finish_time 346. Objective 600+346=946.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "valid_changeover_gap_exactly_30",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     },
+     {
+      "id": "J2",
+      "arrival": 0,
+      "material": "PETG-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       50,
+       50,
+       50
+      ],
+      "quantity": 1,
+      "minutes_per_part": 100,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     },
+     {
+      "job_id": "J2",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 15,
+        "end": 30
+       },
+       {
+        "kind": "machine",
+        "start": 200,
+        "end": 335
+       },
+       {
+        "kind": "finish",
+        "start": 335,
+        "end": 346
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": true,
+   "violations": [],
+   "metrics": {
+    "late_jobs": 0,
+    "total_lateness_minutes": 0,
+    "changeovers": 1,
+    "finish_time": 346,
+    "objective": 946
+   }
+  }
+ },
+ {
+  "name": "changeover_gap_29",
+  "why": "Same as valid_changeover_gap_exactly_30 but J2 machine [199,334): gap 199-170=29 < 30 for PLA->PETG. Durations still right (135, finish [334,345) =11). Only B10 on J2.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "changeover_gap_29",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     },
+     {
+      "id": "J2",
+      "arrival": 0,
+      "material": "PETG-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       50,
+       50,
+       50
+      ],
+      "quantity": 1,
+      "minutes_per_part": 100,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     },
+     {
+      "job_id": "J2",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 15,
+        "end": 30
+       },
+       {
+        "kind": "machine",
+        "start": 199,
+        "end": 334
+       },
+       {
+        "kind": "finish",
+        "start": 334,
+        "end": 345
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B10",
+     "job": "J2"
+    }
+   ],
+   "metrics": {
+    "changeovers": 1,
+    "finish_time": 345
+   }
+  }
+ },
+ {
+  "name": "valid_resin_post_late_rush",
+  "why": "Resin q=3 mpp=40 post=10: prep 15 [0,15); machine 15+120+45=180 [15,195); post 3*10=30 [195,225); finish 10+3=13 [225,238). Due 230 -> late by 8, still VALID (lateness reported). Rush x3: late 5000*3=15000, tardiness 10*8*3=240, finish 238 -> objective 15478.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "valid_resin_post_late_rush",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "RESIN-1",
+      "process": "resin",
+      "materials": [
+       "RESIN-GREY"
+      ],
+      "build_mm": [
+       218,
+       123,
+       235
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "RESIN-GREY",
+      "process": "resin",
+      "part_mm": [
+       100,
+       100,
+       100
+      ],
+      "quantity": 3,
+      "minutes_per_part": 40,
+      "post_minutes_per_part": 10,
+      "due": 230,
+      "rush": true,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "RESIN-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 195
+       },
+       {
+        "kind": "post",
+        "start": 195,
+        "end": 225
+       },
+       {
+        "kind": "finish",
+        "start": 225,
+        "end": 238
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": true,
+   "violations": [],
+   "metrics": {
+    "late_jobs": 1,
+    "total_lateness_minutes": 8,
+    "changeovers": 0,
+    "finish_time": 238,
+    "objective": 15478
+   }
+  }
+ },
+ {
+  "name": "valid_machine_start_1659_overnight_due_exact",
+  "why": "q=1 mpp=600: machine 15+600+20=635. Start 539 = Monday 16:59, last minute inside [0,540); runs overnight to 1174. Prep [400,415). Finish 11 on Tuesday 08:00 [1440,1451) in [1440,1980). Completion 1451 == due 1451 -> on time.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "valid_machine_start_1659_overnight_due_exact",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       50,
+       50,
+       50
+      ],
+      "quantity": 1,
+      "minutes_per_part": 600,
+      "post_minutes_per_part": 0,
+      "due": 1451,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 400,
+        "end": 415
+       },
+       {
+        "kind": "machine",
+        "start": 539,
+        "end": 1174
+       },
+       {
+        "kind": "finish",
+        "start": 1440,
+        "end": 1451
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": true,
+   "violations": [],
+   "metrics": {
+    "late_jobs": 0,
+    "total_lateness_minutes": 0,
+    "changeovers": 0,
+    "finish_time": 1451,
+    "objective": 1451
+   }
+  }
+ },
+ {
+  "name": "machine_start_at_1700",
+  "why": "As the 16:59 case but machine [540,1175): 540 = Monday 17:00, shift is [0,540) exclusive, so start is outside. Duration 635 ok, finish [1440,1451) ok, due 1451 met. Only B11.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "machine_start_at_1700",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       50,
+       50,
+       50
+      ],
+      "quantity": 1,
+      "minutes_per_part": 600,
+      "post_minutes_per_part": 0,
+      "due": 1451,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 400,
+        "end": 415
+       },
+       {
+        "kind": "machine",
+        "start": 540,
+        "end": 1175
+       },
+       {
+        "kind": "finish",
+        "start": 1440,
+        "end": 1451
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B11",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "finish_crosses_1700_by_one",
+  "why": "J1 baseline but finish [529,541): 12 minutes, ends 541 > 540 (17:00). Manual task must fit in one shift. Only B12.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "finish_crosses_1700_by_one",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 529,
+        "end": 541
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B12",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "valid_finish_ends_exactly_1700",
+  "why": "J1 baseline with finish [528,540): ends at 540 exclusive = 17:00 exactly, allowed. Completion 540 <= 2000.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "valid_finish_ends_exactly_1700",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 528,
+        "end": 540
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": true,
+   "violations": [],
+   "metrics": {
+    "late_jobs": 0,
+    "finish_time": 540,
+    "objective": 540
+   }
+  }
+ },
+ {
+  "name": "machine_duration_short_by_one",
+  "why": "J1 machine [15,169) = 154 but 15+120+20 = 155. Finish [169,181) is 12 and follows. Only B04.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "machine_duration_short_by_one",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 169
+       },
+       {
+        "kind": "finish",
+        "start": 169,
+        "end": 181
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B04",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "valid_cnc_exact_fit_no_cooldown",
+  "why": "Part [400,300,150] equals CNC-1 build [400,300,150]: equal fits. Machine 15+90+0 (cnc cool 0)=105 [15,120). Prep [0,15), finish 11 [120,131).",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "valid_cnc_exact_fit_no_cooldown",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "CNC-1",
+      "process": "cnc",
+      "materials": [
+       "AL-6061"
+      ],
+      "build_mm": [
+       400,
+       300,
+       150
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "AL-6061",
+      "process": "cnc",
+      "part_mm": [
+       400,
+       300,
+       150
+      ],
+      "quantity": 1,
+      "minutes_per_part": 90,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "CNC-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 120
+       },
+       {
+        "kind": "finish",
+        "start": 120,
+        "end": 131
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": true,
+   "violations": [],
+   "metrics": {
+    "late_jobs": 0,
+    "finish_time": 131,
+    "objective": 131
+   }
+  }
+ },
+ {
+  "name": "cnc_part_one_mm_too_tall",
+  "why": "Part z=151 > build z=150 (other axes equal). Fails with or without rotation (sorted 151>150). Durations as exact-fit case. Only B08.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "cnc_part_one_mm_too_tall",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "CNC-1",
+      "process": "cnc",
+      "materials": [
+       "AL-6061"
+      ],
+      "build_mm": [
+       400,
+       300,
+       150
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "AL-6061",
+      "process": "cnc",
+      "part_mm": [
+       400,
+       300,
+       151
+      ],
+      "quantity": 1,
+      "minutes_per_part": 90,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "CNC-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 120
+       },
+       {
+        "kind": "finish",
+        "start": 120,
+        "end": 131
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B08",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "material_not_on_machine",
+  "why": "fdm job in TPU-BLACK on FDM-1 whose materials are [PLA-BLACK, PETG-BLACK]. Process matches, times as baseline. Only B07.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "material_not_on_machine",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "TPU-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B07",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "machine_before_release_by_one",
+  "why": "Release 16, machine starts 15 (one minute early). Prep [0,15) is file work, not gated by release (ambiguity 4). Only B15.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "machine_before_release_by_one",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 16
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B15",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "valid_machine_at_release",
+  "why": "Release 15, machine starts 15: start >= release, allowed.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "valid_machine_at_release",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 15
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": true,
+   "violations": [],
+   "metrics": {
+    "late_jobs": 0,
+    "finish_time": 182
+   }
+  }
+ },
+ {
+  "name": "prep_before_arrival",
+  "why": "Arrival 1, prep starts 0. Machine [15,170) release 0 fine. Only B14.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "prep_before_arrival",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 1,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B14",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "post_starts_before_machine_end",
+  "why": "Resin job (see valid_resin_post_late_rush): machine [15,195), post [194,224) starts 1 min before machine end. Post 30 min ok; finish [225,238) after post end 224. Only B05.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "post_starts_before_machine_end",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "RESIN-1",
+      "process": "resin",
+      "materials": [
+       "RESIN-GREY"
+      ],
+      "build_mm": [
+       218,
+       123,
+       235
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "RESIN-GREY",
+      "process": "resin",
+      "part_mm": [
+       100,
+       100,
+       100
+      ],
+      "quantity": 3,
+      "minutes_per_part": 40,
+      "post_minutes_per_part": 10,
+      "due": 230,
+      "rush": true,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "RESIN-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 195
+       },
+       {
+        "kind": "post",
+        "start": 194,
+        "end": 224
+       },
+       {
+        "kind": "finish",
+        "start": 225,
+        "end": 238
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B05",
+     "job": "J1"
+    }
+   ],
+   "metrics": {
+    "late_jobs": 1,
+    "total_lateness_minutes": 8
+   }
+  }
+ },
+ {
+  "name": "machine_overlap_one_minute",
+  "why": "Both PLA-BLACK on FDM-1 (no changeover). J1 machine [15,170); J2 machine 15+100+20=135 [169,304): overlaps minute 169. J2 prep [15,30), finish [304,315). Only B09.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "machine_overlap_one_minute",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     },
+     {
+      "id": "J2",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       50,
+       50,
+       50
+      ],
+      "quantity": 1,
+      "minutes_per_part": 100,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     },
+     {
+      "job_id": "J2",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 15,
+        "end": 30
+       },
+       {
+        "kind": "machine",
+        "start": 169,
+        "end": 304
+       },
+       {
+        "kind": "finish",
+        "start": 304,
+        "end": 315
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B09",
+     "job": null
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "valid_same_material_back_to_back",
+  "why": "As overlap case but J2 machine [170,305): touches J1 end 170, same material so no 30-min gap. finish [305,316).",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "valid_same_material_back_to_back",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     },
+     {
+      "id": "J2",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       50,
+       50,
+       50
+      ],
+      "quantity": 1,
+      "minutes_per_part": 100,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     },
+     {
+      "job_id": "J2",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 15,
+        "end": 30
+       },
+       {
+        "kind": "machine",
+        "start": 170,
+        "end": 305
+       },
+       {
+        "kind": "finish",
+        "start": 305,
+        "end": 316
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": true,
+   "violations": [],
+   "metrics": {
+    "changeovers": 0,
+    "finish_time": 316,
+    "objective": 316
+   }
+  }
+ },
+ {
+  "name": "three_people_at_minute_14",
+  "why": "Three identical J (machine 155, finish 12) on FDM-1..3. Preps J1 [0,15), J2 [0,15), J3 [14,29): minute 14 has 3 manual tasks > 2. J3 machine [29,184), finish [184,196); J1/J2 finish [170,182) (2 people). Only B13.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "three_people_at_minute_14",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     },
+     {
+      "code": "FDM-2",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     },
+     {
+      "code": "FDM-3",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     },
+     {
+      "id": "J2",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     },
+     {
+      "id": "J3",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     },
+     {
+      "job_id": "J2",
+      "machine": "FDM-2",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     },
+     {
+      "job_id": "J3",
+      "machine": "FDM-3",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 14,
+        "end": 29
+       },
+       {
+        "kind": "machine",
+        "start": 29,
+        "end": 184
+       },
+       {
+        "kind": "finish",
+        "start": 184,
+        "end": 196
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B13",
+     "job": null
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "valid_three_jobs_two_people",
+  "why": "As above but J3 prep [15,30) starts when J1/J2 preps end; machine [30,185), finish [185,197). Max 2 concurrent manual. finish_time 197.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "valid_three_jobs_two_people",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     },
+     {
+      "code": "FDM-2",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     },
+     {
+      "code": "FDM-3",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     },
+     {
+      "id": "J2",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     },
+     {
+      "id": "J3",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     },
+     {
+      "job_id": "J2",
+      "machine": "FDM-2",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     },
+     {
+      "job_id": "J3",
+      "machine": "FDM-3",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 15,
+        "end": 30
+       },
+       {
+        "kind": "machine",
+        "start": 30,
+        "end": 185
+       },
+       {
+        "kind": "finish",
+        "start": 185,
+        "end": 197
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": true,
+   "violations": [],
+   "metrics": {
+    "late_jobs": 0,
+    "changeovers": 0,
+    "finish_time": 197,
+    "objective": 197
+   }
+  }
+ },
+ {
+  "name": "fixed_task_moved_one_minute",
+  "why": "Fixed: J1 on FDM-1 starts 15. Plan machine [16,171) (155 ok), finish [171,183). Only B16.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "fixed_task_moved_one_minute",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "start": 15
+     }
+    ]
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 16,
+        "end": 171
+       },
+       {
+        "kind": "finish",
+        "start": 171,
+        "end": 183
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B16",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "fixed_job_dropped_to_unscheduled",
+  "why": "Fixed J1 (running on FDM-1 from 15) is listed as unscheduled; J1 appears exactly once so B01 holds. Only B16.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "fixed_job_dropped_to_unscheduled",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "start": 15
+     }
+    ]
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [],
+    "unscheduled": [
+     "J1"
+    ]
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B16",
+     "job": "J1"
+    }
+   ],
+   "metrics": {
+    "unscheduled": 1
+   }
+  }
+ },
+ {
+  "name": "saturday_prep_at_0859",
+  "why": "Saturday shift 09:00-13:00 = [5*1440+60, 5*1440+300) = [7260,7500). Arrival/release 7200. Prep [7259,7274) starts 08:59. Machine [7274,7429) start in shift; finish [7429,7441) inside. Only B12.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "saturday_prep_at_0859",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 7200,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 20000,
+      "rush": false,
+      "release": 7200
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 7259,
+        "end": 7274
+       },
+       {
+        "kind": "machine",
+        "start": 7274,
+        "end": 7429
+       },
+       {
+        "kind": "finish",
+        "start": 7429,
+        "end": 7441
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B12",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "sunday_machine_start",
+  "why": "Prep Saturday [7400,7415) in [7260,7500). Machine starts 8700 = Sunday (day 6, 8640+60) 09:00, no Sunday shift. Ends 8855. Finish Monday week 2 [10080,10092). Only B11.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "sunday_machine_start",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 7200,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 20000,
+      "rush": false,
+      "release": 7200
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 7400,
+        "end": 7415
+       },
+       {
+        "kind": "machine",
+        "start": 8700,
+        "end": 8855
+       },
+       {
+        "kind": "finish",
+        "start": 10080,
+        "end": 10092
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B11",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "job_missing_from_plan",
+  "why": "J1 scheduled as baseline; J2 neither in plan.jobs nor unscheduled. Only B01 on J2.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "job_missing_from_plan",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       100,
+       100,
+       50
+      ],
+      "quantity": 2,
+      "minutes_per_part": 60,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     },
+     {
+      "id": "J2",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       50,
+       50,
+       50
+      ],
+      "quantity": 1,
+      "minutes_per_part": 100,
+      "post_minutes_per_part": 0,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 170
+       },
+       {
+        "kind": "finish",
+        "start": 170,
+        "end": 182
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B01",
+     "job": "J2"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "missing_post_task",
+  "why": "Resin job with post 10/part but the plan has no post task: prep [0,15), machine [15,195), finish [195,208). Only B02.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "missing_post_task",
+    "horizon": 20160,
+    "machines": [
+     {
+      "code": "RESIN-1",
+      "process": "resin",
+      "materials": [
+       "RESIN-GREY"
+      ],
+      "build_mm": [
+       218,
+       123,
+       235
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "RESIN-GREY",
+      "process": "resin",
+      "part_mm": [
+       100,
+       100,
+       100
+      ],
+      "quantity": 3,
+      "minutes_per_part": 40,
+      "post_minutes_per_part": 10,
+      "due": 2000,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "RESIN-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 0,
+        "end": 15
+       },
+       {
+        "kind": "machine",
+        "start": 15,
+        "end": 195
+       },
+       {
+        "kind": "finish",
+        "start": 195,
+        "end": 208
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B02",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ },
+ {
+  "name": "finish_past_horizon",
+  "why": "Horizon 1440 (one day). Machine starts 539 runs to 1174 (<=1440). Finish must be in a shift: Tuesday [1440,1451) ends 1451 > horizon 1440. Only B03.",
+  "doc": {
+   "format": "brimline-plan/1",
+   "instance": {
+    "name": "finish_past_horizon",
+    "horizon": 1440,
+    "machines": [
+     {
+      "code": "FDM-1",
+      "process": "fdm",
+      "materials": [
+       "PLA-BLACK",
+       "PETG-BLACK"
+      ],
+      "build_mm": [
+       256,
+       256,
+       256
+      ]
+     }
+    ],
+    "jobs": [
+     {
+      "id": "J1",
+      "arrival": 0,
+      "material": "PLA-BLACK",
+      "process": "fdm",
+      "part_mm": [
+       50,
+       50,
+       50
+      ],
+      "quantity": 1,
+      "minutes_per_part": 600,
+      "post_minutes_per_part": 0,
+      "due": 1451,
+      "rush": false,
+      "release": 0
+     }
+    ],
+    "fixed": []
+   },
+   "plan": {
+    "method": "hand",
+    "jobs": [
+     {
+      "job_id": "J1",
+      "machine": "FDM-1",
+      "tasks": [
+       {
+        "kind": "prep",
+        "start": 400,
+        "end": 415
+       },
+       {
+        "kind": "machine",
+        "start": 539,
+        "end": 1174
+       },
+       {
+        "kind": "finish",
+        "start": 1440,
+        "end": 1451
+       }
+      ]
+     }
+    ],
+    "unscheduled": []
+   }
+  },
+  "expected": {
+   "valid": false,
+   "violations": [
+    {
+     "rule": "B03",
+     "job": "J1"
+    }
+   ],
+   "metrics": {}
+  }
+ }
+]
