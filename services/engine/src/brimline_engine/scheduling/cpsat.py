@@ -174,8 +174,10 @@ def solve(
                 )
             )
             machine_intervals.setdefault(code, []).append(jv)
-        for kind in MANUAL:
-            if kind in jv.starts:
+        # TASK_ORDER, not the MANUAL set: a set's order changes from one Python process to the
+        # next (string hashing is randomised), which changed the model and so the schedule.
+        for kind in TASK_ORDER:
+            if kind in MANUAL and kind in jv.starts:
                 manual_intervals.append(
                     model.new_optional_fixed_size_interval_var(
                         jv.starts[kind], jv.durations[kind], jv.scheduled, f"{kind}i_{jv.job.id}"
