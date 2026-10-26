@@ -1,0 +1,60 @@
+{
+  "id": "q17",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T10:48:35+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "coasters",
+        "quantity": null,
+        "material_code": null,
+        "material_as_written": "white",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "none",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [
+      "quantity",
+      "material",
+      "due_date"
+    ],
+    "questions_for_customer": [
+      "How many coasters do you need?",
+      "Which material should the coasters be made from (e.g. PLA, PETG, resin)?",
+      "What is the exact date you need them by?"
+    ],
+    "requests_for_staff": [],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 188,
+      "output_tokens": 703,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 909,
+    "latency_ms": 4469,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\": [{\"part_description\": \"coasters\", \"quantity\": null, \"material_code\": null, \"material_as_written\": \"white\", \"post_processing\": [], \"uncertain\": []}], \"due\": {\"kind\": \"none\", \"weekday\": null, \"count\": null, \"month\": null, \"day\": null, \"year\": null}, \"rush_requested\": false, \"notes_for_shop\": \"\", \"missing\": [\"quantity\", \"material\", \"due_date\"], \"questions_for_customer\": [\"How many coasters do you need?\", \"Which material should the coasters be made from (e.g. PLA, PETG, resin)?\", \"What is the exact date you need them by?\"], \"requests_for_staff\": [], \"language\": \"en\"}"
+    ]
+  }
+}

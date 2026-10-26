@@ -1,0 +1,54 @@
+{
+  "id": "q44",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T10:49:58+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "coasters",
+        "quantity": 30,
+        "material_code": "PLA-WHITE",
+        "material_as_written": "white PLA",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "monday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "Customer asks for free shipping and for the setup fee to be waived."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 197,
+      "output_tokens": 220,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 332,
+    "latency_ms": 1796,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"coasters\",\"quantity\":30,\"material_code\":\"PLA-WHITE\",\"material_as_written\":\"white PLA\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"next_weekday\",\"weekday\":\"monday\",\"count\":null,\"day\":null,\"month\":null,\"year\":null},\"rush_requested\":false,\"notes_for_shop\":\"\",\"missing\":[],\"questions_for_customer\":[],\"requests_for_staff\":[\"Customer asks for free shipping and for the setup fee to be waived.\"],\"language\":\"en\"}"
+    ]
+  }
+}

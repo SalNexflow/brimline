@@ -1,0 +1,57 @@
+{
+  "id": "q35",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T10:49:36+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "spare parts",
+        "quantity": 3,
+        "material_code": "TPU-BLACK",
+        "material_as_written": "schwarzem TPU",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "in_days",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": 1
+    },
+    "rush_requested": true,
+    "notes_for_shop": "Urgent request; customer says the parts are needed by tomorrow.",
+    "missing": [
+      "part"
+    ],
+    "questions_for_customer": [
+      "Which specific spare parts do you need? Please provide part numbers, dimensions, or photos.",
+      "Can you send CAD files or drawings for these spare parts?"
+    ],
+    "requests_for_staff": [],
+    "language": "de"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 195,
+      "output_tokens": 905,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 1154,
+    "latency_ms": 5766,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"spare parts\",\"quantity\":3,\"material_code\":\"TPU-BLACK\",\"material_as_written\":\"schwarzem TPU\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"in_days\",\"count\":1,\"day\":null,\"month\":null,\"weekday\":null,\"year\":null},\"rush_requested\":true,\"notes_for_shop\":\"Urgent request; customer says the parts are needed by tomorrow.\",\"missing\":[\"part\"],\"questions_for_customer\":[\"Which specific spare parts do you need? Please provide part numbers, dimensions, or photos.\",\"Can you send CAD files or drawings for these spare parts?\"],\"requests_for_staff\":[],\"language\":\"de\"}"
+    ]
+  }
+}

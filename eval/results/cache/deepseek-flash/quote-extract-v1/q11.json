@@ -1,0 +1,54 @@
+{
+  "id": "q11",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T10:48:15+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "robot arm kits",
+        "quantity": 3,
+        "material_code": "PETG-BLACK",
+        "material_as_written": "black PETG",
+        "post_processing": [
+          "assembly"
+        ],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "on_date",
+      "year": null,
+      "month": 1,
+      "day": 15,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Printed in black PETG and assembled.",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 191,
+      "output_tokens": 334,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 467,
+    "latency_ms": 2531,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"robot arm kits\",\"quantity\":3,\"material_code\":\"PETG-BLACK\",\"material_as_written\":\"black PETG\",\"post_processing\":[\"assembly\"],\"uncertain\":[]}],\"due\":{\"kind\":\"on_date\",\"month\":1,\"day\":15,\"year\":null,\"weekday\":null,\"count\":null},\"rush_requested\":false,\"notes_for_shop\":\"Printed in black PETG and assembled.\",\"missing\":[],\"questions_for_customer\":[],\"requests_for_staff\":[],\"language\":\"en\"}"
+    ]
+  }
+}

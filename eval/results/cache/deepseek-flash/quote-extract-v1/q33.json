@@ -1,0 +1,60 @@
+{
+  "id": "q33",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T10:49:28+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Vase",
+        "quantity": null,
+        "material_code": null,
+        "material_as_written": null,
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "none",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Customer is flexible on colour (\"Farbe egal\"); no material specified.",
+    "missing": [
+      "quantity",
+      "material",
+      "due_date"
+    ],
+    "questions_for_customer": [
+      "How many vases would you like?",
+      "Which material should we use (e.g. PLA, PETG, resin)?",
+      "When do you need them by?"
+    ],
+    "requests_for_staff": [],
+    "language": "de"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 188,
+      "output_tokens": 437,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 590,
+    "latency_ms": 2797,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\": [{\"part_description\": \"Vase\", \"quantity\": null, \"material_code\": null, \"material_as_written\": null, \"post_processing\": [], \"uncertain\": []}], \"due\": {\"kind\": \"none\", \"count\": null, \"day\": null, \"month\": null, \"weekday\": null, \"year\": null}, \"rush_requested\": false, \"notes_for_shop\": \"Customer is flexible on colour (\\\"Farbe egal\\\"); no material specified.\", \"missing\": [\"quantity\", \"material\", \"due_date\"], \"questions_for_customer\": [\"How many vases would you like?\", \"Which material should we use (e.g. PLA, PETG, resin)?\", \"When do you need them by?\"], \"requests_for_staff\": [], \"language\": \"de\"}"
+    ]
+  }
+}

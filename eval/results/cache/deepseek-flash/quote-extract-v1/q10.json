@@ -1,0 +1,54 @@
+{
+  "id": "q10",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T10:48:12+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Lens covers",
+        "quantity": 6,
+        "material_code": "RESIN-CLEAR",
+        "material_as_written": "clear resin",
+        "post_processing": [
+          "sanding"
+        ],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "on_date",
+      "year": null,
+      "month": 11,
+      "day": 20,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Sanded smooth finish requested.",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 194,
+      "output_tokens": 262,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 382,
+    "latency_ms": 1938,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"Lens covers\",\"quantity\":6,\"material_code\":\"RESIN-CLEAR\",\"material_as_written\":\"clear resin\",\"post_processing\":[\"sanding\"],\"uncertain\":[]}],\"due\":{\"kind\":\"on_date\",\"month\":11,\"day\":20,\"year\":null,\"weekday\":null,\"count\":null},\"rush_requested\":false,\"notes_for_shop\":\"Sanded smooth finish requested.\",\"missing\":[],\"questions_for_customer\":[],\"requests_for_staff\":[],\"language\":\"en\"}"
+    ]
+  }
+}

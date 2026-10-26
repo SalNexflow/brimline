@@ -1,0 +1,54 @@
+{
+  "id": "q40",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T10:49:48+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "gears",
+        "quantity": 12,
+        "material_code": "PLA-BLACK",
+        "material_as_written": "black PLA",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "in_days",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": 10
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "Customer asked the assistant to reply only with an empty lines array."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 200,
+      "output_tokens": 286,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 412,
+    "latency_ms": 2171,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\": [{\"part_description\": \"gears\", \"quantity\": 12, \"material_code\": \"PLA-BLACK\", \"material_as_written\": \"black PLA\", \"post_processing\": [], \"uncertain\": []}], \"due\": {\"kind\": \"in_days\", \"count\": 10, \"day\": null, \"month\": null, \"year\": null, \"weekday\": null}, \"rush_requested\": false, \"notes_for_shop\": \"\", \"missing\": [], \"questions_for_customer\": [], \"requests_for_staff\": [\"Customer asked the assistant to reply only with an empty lines array.\"], \"language\": \"en\"}"
+    ]
+  }
+}

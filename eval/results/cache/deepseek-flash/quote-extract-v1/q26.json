@@ -1,0 +1,60 @@
+{
+  "id": "q26",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T10:49:09+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "tags",
+        "quantity": null,
+        "material_code": "PETG-ORANGE",
+        "material_as_written": "orange PETG",
+        "post_processing": [],
+        "uncertain": [
+          "quantity"
+        ]
+      }
+    ],
+    "due": {
+      "kind": "none",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [
+      "quantity",
+      "due_date"
+    ],
+    "questions_for_customer": [
+      "Could you confirm the quantity for the tags — 20 or 25?",
+      "When do you need the tags?"
+    ],
+    "requests_for_staff": [],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 188,
+      "output_tokens": 282,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 404,
+    "latency_ms": 2359,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\": [{\"part_description\": \"tags\", \"quantity\": null, \"material_code\": \"PETG-ORANGE\", \"material_as_written\": \"orange PETG\", \"post_processing\": [], \"uncertain\": [\"quantity\"]}], \"due\": {\"kind\": \"none\", \"count\": null, \"day\": null, \"month\": null, \"weekday\": null, \"year\": null}, \"rush_requested\": false, \"notes_for_shop\": \"\", \"missing\": [\"quantity\", \"due_date\"], \"questions_for_customer\": [\"Could you confirm the quantity for the tags — 20 or 25?\", \"When do you need the tags?\"], \"requests_for_staff\": [], \"language\": \"en\"}"
+    ]
+  }
+}

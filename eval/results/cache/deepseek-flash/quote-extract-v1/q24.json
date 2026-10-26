@@ -1,0 +1,57 @@
+{
+  "id": "q24",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T10:49:04+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Enclosures",
+        "quantity": 5,
+        "material_code": "PETG-BLACK",
+        "material_as_written": "black PETG",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "thursday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Customer corrected the deadline from Friday the 30th to Thursday the 29th.",
+    "missing": [
+      "due_date"
+    ],
+    "questions_for_customer": [
+      "Which month is the Thursday the 29th deadline in?"
+    ],
+    "requests_for_staff": [],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "repaired",
+    "attempts": 2,
+    "usage": {
+      "input_tokens": 457,
+      "output_tokens": 1835,
+      "cache_read_tokens": 3200,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 2358,
+    "latency_ms": 10438,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"Enclosures\",\"quantity\":5,\"material_code\":\"PETG-BLACK\",\"material_as_written\":\"black PETG\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"on_date\",\"count\":null,\"day\":29,\"month\":null,\"weekday\":null,\"year\":null},\"rush_requested\":false,\"notes_for_shop\":\"Customer corrected the deadline from Friday the 30th to Thursday the 29th.\",\"missing\":[\"due_date\"],\"questions_for_customer\":[\"Which month is the Thursday the 29th deadline in?\"],\"requests_for_staff\":[],\"language\":\"en\"}",
+      "{\"lines\":[{\"part_description\":\"Enclosures\",\"quantity\":5,\"material_code\":\"PETG-BLACK\",\"material_as_written\":\"black PETG\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"next_weekday\",\"count\":null,\"day\":null,\"month\":null,\"weekday\":\"thursday\",\"year\":null},\"rush_requested\":false,\"notes_for_shop\":\"Customer corrected the deadline from Friday the 30th to Thursday the 29th.\",\"missing\":[\"due_date\"],\"questions_for_customer\":[\"Which month is the Thursday the 29th deadline in?\"],\"requests_for_staff\":[],\"language\":\"en\"}"
+    ]
+  }
+}

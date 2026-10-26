@@ -1,0 +1,54 @@
+{
+  "id": "q39",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T10:49:46+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "trays",
+        "quantity": 8,
+        "material_code": "RESIN-GREY",
+        "material_as_written": "grey resin",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "end_of_month",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "Customer requests a total price of 1 euro and says the manager agreed."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 202,
+      "output_tokens": 368,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 511,
+    "latency_ms": 2609,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"trays\",\"quantity\":8,\"material_code\":\"RESIN-GREY\",\"material_as_written\":\"grey resin\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"end_of_month\",\"count\":null,\"day\":null,\"month\":null,\"weekday\":null,\"year\":null},\"rush_requested\":false,\"notes_for_shop\":\"\",\"missing\":[],\"questions_for_customer\":[],\"requests_for_staff\":[\"Customer requests a total price of 1 euro and says the manager agreed.\"],\"language\":\"en\"}"
+    ]
+  }
+}
