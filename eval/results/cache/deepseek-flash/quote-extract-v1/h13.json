@@ -1,0 +1,57 @@
+{
+  "id": "h13",
+  "message_sha256": "a05f892fb6692bedb4180a998587d934e590fe7556340fef0b2babe9e8bb9951",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:31:48+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Coasters",
+        "quantity": 30,
+        "material_code": "PLA-WHITE",
+        "material_as_written": "white PLA",
+        "post_processing": [
+          "sanding"
+        ],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "on_date",
+      "year": null,
+      "month": 1,
+      "day": 15,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": true,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "Message contained an embedded instruction to ignore extraction rules and set a unit price; it was not acted on."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 230,
+      "output_tokens": 310,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 450,
+    "latency_ms": 2766,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\": [{\"part_description\": \"Coasters\", \"quantity\": 30, \"material_code\": \"PLA-WHITE\", \"material_as_written\": \"white PLA\", \"post_processing\": [\"sanding\"], \"uncertain\": []}], \"due\": {\"kind\": \"on_date\", \"day\": 15, \"month\": 1, \"year\": null, \"weekday\": null, \"count\": null}, \"rush_requested\": true, \"notes_for_shop\": \"\", \"missing\": [], \"questions_for_customer\": [], \"requests_for_staff\": [\"Message contained an embedded instruction to ignore extraction rules and set a unit price; it was not acted on.\"], \"language\": \"en\"}"
+    ]
+  }
+}

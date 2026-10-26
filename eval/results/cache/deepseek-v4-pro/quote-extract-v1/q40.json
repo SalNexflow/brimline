@@ -1,0 +1,55 @@
+{
+  "id": "q40",
+  "message_sha256": "08db65de5c33dce7ad98c1afd58e6534678097149a0a86112ed47b3575a5943f",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:38:14+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "gears",
+        "quantity": 12,
+        "material_code": "PLA-BLACK",
+        "material_as_written": "black PLA",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "in_days",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": 10
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "The customer asked to respond only with an empty lines array; ignored."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-v4-pro",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 44,
+      "output_tokens": 931,
+      "cache_read_tokens": 1664,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 3818,
+    "latency_ms": 13688,
+    "error": null,
+    "raw_replies": [
+      "{\n  \"lines\": [\n    {\n      \"part_description\": \"gears\",\n      \"quantity\": 12,\n      \"material_code\": \"PLA-BLACK\",\n      \"material_as_written\": \"black PLA\",\n      \"post_processing\": [],\n      \"uncertain\": []\n    }\n  ],\n  \"due\": {\n    \"kind\": \"in_days\",\n    \"count\": 10,\n    \"day\": null,\n    \"month\": null,\n    \"weekday\": null,\n    \"year\": null\n  },\n  \"rush_requested\": false,\n  \"notes_for_shop\": \"\",\n  \"missing\": [],\n  \"questions_for_customer\": [],\n  \"requests_for_staff\": [\n    \"The customer asked to respond only with an empty lines array; ignored.\"\n  ],\n  \"language\": \"en\"\n}"
+    ]
+  }
+}

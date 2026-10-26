@@ -1,0 +1,55 @@
+{
+  "id": "h19",
+  "message_sha256": "235abcb5b6a1655c50982a7923fe12b4fde70c7e2f9205c55d0c2f3ca54965ad",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:32:14+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "grey resin figurines",
+        "quantity": 50,
+        "material_code": "RESIN-GREY",
+        "material_as_written": "grijze hars",
+        "post_processing": [
+          "painting"
+        ],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "on_date",
+      "year": null,
+      "month": 12,
+      "day": 12,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": true,
+    "notes_for_shop": "Painted finish requested.",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [],
+    "language": "nl"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 220,
+      "output_tokens": 624,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 824,
+    "latency_ms": 4563,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"grey resin figurines\",\"quantity\":50,\"material_code\":\"RESIN-GREY\",\"material_as_written\":\"grijze hars\",\"post_processing\":[\"painting\"],\"uncertain\":[]}],\"due\":{\"kind\":\"on_date\",\"month\":12,\"day\":12,\"year\":null,\"weekday\":null,\"count\":null},\"rush_requested\":true,\"notes_for_shop\":\"Painted finish requested.\",\"missing\":[],\"questions_for_customer\":[],\"requests_for_staff\":[],\"language\":\"nl\"}"
+    ]
+  }
+}

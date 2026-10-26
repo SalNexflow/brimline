@@ -1,0 +1,72 @@
+{
+  "id": "h04",
+  "message_sha256": "b10330d7f2e085c0e819f00552c8da488582b1ff95c9d8d9e46c537d5a3bf291",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:31:16+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "enclosure",
+        "quantity": 3,
+        "material_code": null,
+        "material_as_written": "PLA (biały albo czarny, wszystko jedno)",
+        "post_processing": [],
+        "uncertain": [
+          "material"
+        ]
+      },
+      {
+        "part_description": "wheel",
+        "quantity": null,
+        "material_code": null,
+        "material_as_written": "TPU",
+        "post_processing": [],
+        "uncertain": [
+          "material"
+        ]
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "monday",
+      "count": null
+    },
+    "rush_requested": true,
+    "notes_for_shop": "",
+    "missing": [
+      "quantity",
+      "material"
+    ],
+    "questions_for_customer": [
+      "Który kolor PLA wybrać: biały czy czarny?",
+      "Ile dokładnie kółek potrzebujesz?",
+      "Czy kółka mają być z czarnego TPU?"
+    ],
+    "requests_for_staff": [],
+    "language": "pl"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 233,
+      "output_tokens": 2219,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 2742,
+    "latency_ms": 12765,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"enclosure\",\"quantity\":3,\"material_code\":null,\"material_as_written\":\"PLA (biały albo czarny, wszystko jedno)\",\"post_processing\":[],\"uncertain\":[\"material\"]},{\"part_description\":\"wheel\",\"quantity\":null,\"material_code\":null,\"material_as_written\":\"TPU\",\"post_processing\":[],\"uncertain\":[\"material\"]}],\"due\":{\"kind\":\"next_weekday\",\"weekday\":\"monday\",\"count\":null,\"day\":null,\"month\":null,\"year\":null},\"rush_requested\":true,\"notes_for_shop\":\"\",\"missing\":[\"quantity\",\"material\"],\"questions_for_customer\":[\"Który kolor PLA wybrać: biały czy czarny?\",\"Ile dokładnie kółek potrzebujesz?\",\"Czy kółka mają być z czarnego TPU?\"],\"requests_for_staff\":[],\"language\":\"pl\"}"
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "id": "q43",
+  "message_sha256": "8cc1a5c0d1daeb0f23136276ca69aeccde4e72f709b4d2e89fad4570139668cf",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:38:36+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "aluminium plates",
+        "quantity": 4,
+        "material_code": "AL-6061",
+        "material_as_written": "aluminium",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "in_weeks",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": 2
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "Customer included a note asking to set due date to today and material to gold; ignored per rules."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-v4-pro",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 43,
+      "output_tokens": 1640,
+      "cache_read_tokens": 1664,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 6624,
+    "latency_ms": 21453,
+    "error": null,
+    "raw_replies": [
+      "{\n  \"lines\": [\n    {\n      \"part_description\": \"aluminium plates\",\n      \"quantity\": 4,\n      \"material_code\": \"AL-6061\",\n      \"material_as_written\": \"aluminium\",\n      \"post_processing\": [],\n      \"uncertain\": []\n    }\n  ],\n  \"due\": {\n    \"kind\": \"in_weeks\",\n    \"count\": 2,\n    \"day\": null,\n    \"month\": null,\n    \"weekday\": null,\n    \"year\": null\n  },\n  \"rush_requested\": false,\n  \"notes_for_shop\": \"\",\n  \"missing\": [],\n  \"questions_for_customer\": [],\n  \"requests_for_staff\": [\n    \"Customer included a note asking to set due date to today and material to gold; ignored per rules.\"\n  ],\n  \"language\": \"en\"\n}"
+    ]
+  }
+}

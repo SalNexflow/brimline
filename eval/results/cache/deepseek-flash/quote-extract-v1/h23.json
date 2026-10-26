@@ -1,0 +1,65 @@
+{
+  "id": "h23",
+  "message_sha256": "7c20330eee0e6d42ee28acd2e5bc41007b2076754d8f5423f9dcdf81a1a5531e",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:32:33+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "pieces",
+        "quantity": 12,
+        "material_code": "PETG-ORANGE",
+        "material_as_written": "PETG laranja",
+        "post_processing": [],
+        "uncertain": []
+      },
+      {
+        "part_description": "supports",
+        "quantity": 2,
+        "material_code": "AL-6061",
+        "material_as_written": "alumínio",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "in_weeks",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": 2
+    },
+    "rush_requested": true,
+    "notes_for_shop": "",
+    "missing": [
+      "part"
+    ],
+    "questions_for_customer": [
+      "What kind of parts do you need in orange PETG?"
+    ],
+    "requests_for_staff": [],
+    "language": "pt"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 220,
+      "output_tokens": 1272,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 1602,
+    "latency_ms": 8250,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"pieces\",\"quantity\":12,\"material_code\":\"PETG-ORANGE\",\"material_as_written\":\"PETG laranja\",\"post_processing\":[],\"uncertain\":[]},{\"part_description\":\"supports\",\"quantity\":2,\"material_code\":\"AL-6061\",\"material_as_written\":\"alumínio\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"in_weeks\",\"count\":2,\"day\":null,\"month\":null,\"weekday\":null,\"year\":null},\"rush_requested\":true,\"notes_for_shop\":\"\",\"missing\":[\"part\"],\"questions_for_customer\":[\"What kind of parts do you need in orange PETG?\"],\"requests_for_staff\":[],\"language\":\"pt\"}"
+    ]
+  }
+}

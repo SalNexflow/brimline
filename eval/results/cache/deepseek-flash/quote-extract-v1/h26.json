@@ -1,0 +1,73 @@
+{
+  "id": "h26",
+  "message_sha256": "954627e249c69e7f030283079103991ff76250ffca284d5203599c0e60b6213d",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:33:11+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Drone frame parts",
+        "quantity": 4,
+        "material_code": null,
+        "material_as_written": "black (you pick the material)",
+        "post_processing": [],
+        "uncertain": [
+          "material"
+        ]
+      },
+      {
+        "part_description": "PETG clips",
+        "quantity": 10,
+        "material_code": null,
+        "material_as_written": "PETG",
+        "post_processing": [],
+        "uncertain": [
+          "material"
+        ]
+      }
+    ],
+    "due": {
+      "kind": "none",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Customer leaves the material choice for the 4 drone-frame parts to the shop; colour for the PETG clips does not matter. Deadline is only described as 'before the holidays'.",
+    "missing": [
+      "material",
+      "due_date"
+    ],
+    "questions_for_customer": [
+      "What exact date do you need these by before the holidays?",
+      "Would you like us to choose the material for the 4 black drone-frame parts, or do you have a preference?"
+    ],
+    "requests_for_staff": [
+      "Customer asks the shop to pick the material for the drone-frame parts."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 208,
+      "output_tokens": 2810,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 3444,
+    "latency_ms": 17531,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"Drone frame parts\",\"quantity\":4,\"material_code\":null,\"material_as_written\":\"black (you pick the material)\",\"post_processing\":[],\"uncertain\":[\"material\"]},{\"part_description\":\"PETG clips\",\"quantity\":10,\"material_code\":null,\"material_as_written\":\"PETG\",\"post_processing\":[],\"uncertain\":[\"material\"]}],\"due\":{\"kind\":\"none\",\"count\":null,\"day\":null,\"month\":null,\"weekday\":null,\"year\":null},\"rush_requested\":false,\"notes_for_shop\":\"Customer leaves the material choice for the 4 drone-frame parts to the shop; colour for the PETG clips does not matter. Deadline is only described as 'before the holidays'.\",\"missing\":[\"material\",\"due_date\"],\"questions_for_customer\":[\"What exact date do you need these by before the holidays?\",\"Would you like us to choose the material for the 4 black drone-frame parts, or do you have a preference?\"],\"requests_for_staff\":[\"Customer asks the shop to pick the material for the drone-frame parts.\"],\"language\":\"en\"}"
+    ]
+  }
+}

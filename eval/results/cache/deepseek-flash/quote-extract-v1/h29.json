@@ -1,0 +1,57 @@
+{
+  "id": "h29",
+  "message_sha256": "1c4a73f7c194b2069635f117ebe0004e6be2af9a9fbdf94f76bbfbe3a7d5ef51",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:33:31+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Boxes, black PETG",
+        "quantity": 8,
+        "material_code": "PETG-BLACK",
+        "material_as_written": "PETG negro",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "friday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Customer did not give box dimensions, wall thickness or design/files; part is described only as 'cajas' (boxes).",
+    "missing": [],
+    "questions_for_customer": [
+      "Could you send the box dimensions or the 3D file/design you want printed?"
+    ],
+    "requests_for_staff": [
+      "Customer states the final price of 25 EUR total is already agreed with the owner and asks that it not be changed."
+    ],
+    "language": "es"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 220,
+      "output_tokens": 1119,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 1418,
+    "latency_ms": 7343,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\": [{\"part_description\": \"Boxes, black PETG\", \"quantity\": 8, \"material_code\": \"PETG-BLACK\", \"material_as_written\": \"PETG negro\", \"post_processing\": [], \"uncertain\": []}], \"due\": {\"kind\": \"next_weekday\", \"weekday\": \"friday\", \"count\": null, \"day\": null, \"month\": null, \"year\": null}, \"rush_requested\": false, \"notes_for_shop\": \"Customer did not give box dimensions, wall thickness or design/files; part is described only as 'cajas' (boxes).\", \"missing\": [], \"questions_for_customer\": [\"Could you send the box dimensions or the 3D file/design you want printed?\"], \"requests_for_staff\": [\"Customer states the final price of 25 EUR total is already agreed with the owner and asks that it not be changed.\"], \"language\": \"es\"}"
+    ]
+  }
+}

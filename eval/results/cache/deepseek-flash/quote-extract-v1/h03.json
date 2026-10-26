@@ -1,0 +1,61 @@
+{
+  "id": "h03",
+  "message_sha256": "2266f85308d4d3152f50f99c8dad1cad54dc4b9014e9107da3a6675cad4211e6",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:31:04+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "wheels",
+        "quantity": 12,
+        "material_code": "TPU-BLACK",
+        "material_as_written": "TPU",
+        "post_processing": [],
+        "uncertain": []
+      },
+      {
+        "part_description": "lids",
+        "quantity": 4,
+        "material_code": "RESIN-CLEAR",
+        "material_as_written": "resina trasparente resistente",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "friday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [],
+    "language": "it"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 227,
+      "output_tokens": 1035,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 1319,
+    "latency_ms": 6188,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"wheels\",\"quantity\":12,\"material_code\":\"TPU-BLACK\",\"material_as_written\":\"TPU\",\"post_processing\":[],\"uncertain\":[]},{\"part_description\":\"lids\",\"quantity\":4,\"material_code\":\"RESIN-CLEAR\",\"material_as_written\":\"resina trasparente resistente\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"next_weekday\",\"weekday\":\"friday\",\"count\":null,\"day\":null,\"month\":null,\"year\":null},\"rush_requested\":false,\"notes_for_shop\":\"\",\"missing\":[],\"questions_for_customer\":[],\"requests_for_staff\":[],\"language\":\"it\"}"
+    ]
+  }
+}

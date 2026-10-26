@@ -1,0 +1,60 @@
+{
+  "id": "q32",
+  "message_sha256": "d79869267fa8e5f465170664c15505468a8e320565c3dc8050db29ebd58c70c9",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:37:45+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Part",
+        "quantity": 4,
+        "material_code": "AL-6061",
+        "material_as_written": "aluminium",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "none",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [
+      "part",
+      "due_date"
+    ],
+    "questions_for_customer": [
+      "What is the specific part you need?",
+      "Do you have drawings or 3D files for the part?",
+      "Are there any finish or tolerance requirements?"
+    ],
+    "requests_for_staff": [],
+    "language": "fr"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-v4-pro",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 37,
+      "output_tokens": 1730,
+      "cache_read_tokens": 1664,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 6973,
+    "latency_ms": 24296,
+    "error": null,
+    "raw_replies": [
+      "{\n  \"lines\": [\n    {\n      \"part_description\": \"Part\",\n      \"quantity\": 4,\n      \"material_code\": \"AL-6061\",\n      \"material_as_written\": \"aluminium\",\n      \"post_processing\": [],\n      \"uncertain\": []\n    }\n  ],\n  \"due\": {\n    \"kind\": \"none\",\n    \"weekday\": null,\n    \"count\": null,\n    \"day\": null,\n    \"month\": null,\n    \"year\": null\n  },\n  \"rush_requested\": false,\n  \"notes_for_shop\": \"\",\n  \"missing\": [\"part\", \"due_date\"],\n  \"questions_for_customer\": [\n    \"What is the specific part you need?\",\n    \"Do you have drawings or 3D files for the part?\",\n    \"Are there any finish or tolerance requirements?\"\n  ],\n  \"requests_for_staff\": [],\n  \"language\": \"fr\"\n}"
+    ]
+  }
+}

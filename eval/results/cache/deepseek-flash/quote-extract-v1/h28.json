@@ -1,0 +1,78 @@
+{
+  "id": "h28",
+  "message_sha256": "4e63401ba517697f8c2efcd22e9f3f9b026439c6143acdf7a28ed1c79b7a9634",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:33:24+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Aluminium mounting plate, 6 x 4 x 0.25 in",
+        "quantity": 2,
+        "material_code": null,
+        "material_as_written": "alu",
+        "post_processing": [
+          "sanding"
+        ],
+        "uncertain": [
+          "material"
+        ]
+      },
+      {
+        "part_description": "Grey resin prototype housing",
+        "quantity": 1,
+        "material_code": "RESIN-GREY",
+        "material_as_written": "grey resin",
+        "post_processing": [
+          "sanding",
+          "painting"
+        ],
+        "uncertain": []
+      },
+      {
+        "part_description": "TPU gaskets, 0.5 in OD",
+        "quantity": 3,
+        "material_code": "TPU-BLACK",
+        "material_as_written": "blck TPU",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "friday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Mounting plate dimensions: 6 x 4 x 0.25 in. Gasket OD: 0.5 in.",
+    "missing": [],
+    "questions_for_customer": [
+      "Which aluminium alloy should the mounting plate use (for example, 6061)?"
+    ],
+    "requests_for_staff": [],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 246,
+      "output_tokens": 1222,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 1549,
+    "latency_ms": 8079,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"Aluminium mounting plate, 6 x 4 x 0.25 in\",\"quantity\":2,\"material_code\":null,\"material_as_written\":\"alu\",\"post_processing\":[\"sanding\"],\"uncertain\":[\"material\"]},{\"part_description\":\"Grey resin prototype housing\",\"quantity\":1,\"material_code\":\"RESIN-GREY\",\"material_as_written\":\"grey resin\",\"post_processing\":[\"sanding\",\"painting\"],\"uncertain\":[]},{\"part_description\":\"TPU gaskets, 0.5 in OD\",\"quantity\":3,\"material_code\":\"TPU-BLACK\",\"material_as_written\":\"blck TPU\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"next_weekday\",\"weekday\":\"friday\",\"count\":null,\"day\":null,\"month\":null,\"year\":null},\"rush_requested\":false,\"notes_for_shop\":\"Mounting plate dimensions: 6 x 4 x 0.25 in. Gasket OD: 0.5 in.\",\"missing\":[],\"questions_for_customer\":[\"Which aluminium alloy should the mounting plate use (for example, 6061)?\"],\"requests_for_staff\":[],\"language\":\"en\"}"
+    ]
+  }
+}

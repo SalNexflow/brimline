@@ -1,0 +1,69 @@
+{
+  "id": "h24",
+  "message_sha256": "f95b62d2b8367b3aee092f67df694ea6df9836ee850bef5d3e696dd3599f602c",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:32:44+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Caches (covers)",
+        "quantity": null,
+        "material_code": "PLA-BLACK",
+        "material_as_written": "PLA noir",
+        "post_processing": [],
+        "uncertain": [
+          "quantity"
+        ]
+      },
+      {
+        "part_description": "Housings/enclosures",
+        "quantity": 5,
+        "material_code": "RESIN-GREY",
+        "material_as_written": "résine grise",
+        "post_processing": [
+          "sanding"
+        ],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "on_date",
+      "year": null,
+      "month": 11,
+      "day": 20,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Customer gave the cache quantity as a range (30–40); exact quantity unclear. Resin housings to be sanded.",
+    "missing": [
+      "quantity"
+    ],
+    "questions_for_customer": [
+      "Pouvez-vous confirmer la quantité exacte de caches souhaitée (30, 40 ou autre) ?"
+    ],
+    "requests_for_staff": [],
+    "language": "fr"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 220,
+      "output_tokens": 1793,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 2227,
+    "latency_ms": 10750,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"Caches (covers)\",\"quantity\":null,\"material_code\":\"PLA-BLACK\",\"material_as_written\":\"PLA noir\",\"post_processing\":[],\"uncertain\":[\"quantity\"]},{\"part_description\":\"Housings/enclosures\",\"quantity\":5,\"material_code\":\"RESIN-GREY\",\"material_as_written\":\"résine grise\",\"post_processing\":[\"sanding\"],\"uncertain\":[]}],\"due\":{\"kind\":\"on_date\",\"day\":20,\"month\":11,\"year\":null,\"weekday\":null,\"count\":null},\"rush_requested\":false,\"notes_for_shop\":\"Customer gave the cache quantity as a range (30–40); exact quantity unclear. Resin housings to be sanded.\",\"missing\":[\"quantity\"],\"questions_for_customer\":[\"Pouvez-vous confirmer la quantité exacte de caches souhaitée (30, 40 ou autre) ?\"],\"requests_for_staff\":[],\"language\":\"fr\"}"
+    ]
+  }
+}

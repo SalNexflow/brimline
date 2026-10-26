@@ -1,0 +1,55 @@
+{
+  "id": "h02",
+  "message_sha256": "86e9e2ab77ab6b232461992969eefb1e1cc2332c51573a2e13e4f13643b0081c",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:30:57+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Bracket (Halterung)",
+        "quantity": 20,
+        "material_code": "PETG-BLACK",
+        "material_as_written": "PETG orange, dann korrigiert zu Schwarz",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "monday",
+      "count": null
+    },
+    "rush_requested": true,
+    "notes_for_shop": "Customer first asked for PETG orange, then changed to black to match the housing; black is the final choice.",
+    "missing": [],
+    "questions_for_customer": [
+      "Just to confirm: the brackets should be PETG in black, not orange as first mentioned?"
+    ],
+    "requests_for_staff": [],
+    "language": "de"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 227,
+      "output_tokens": 447,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 614,
+    "latency_ms": 3094,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"Bracket (Halterung)\",\"quantity\":20,\"material_code\":\"PETG-BLACK\",\"material_as_written\":\"PETG orange, dann korrigiert zu Schwarz\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"next_weekday\",\"weekday\":\"monday\",\"count\":null,\"day\":null,\"month\":null,\"year\":null},\"rush_requested\":true,\"notes_for_shop\":\"Customer first asked for PETG orange, then changed to black to match the housing; black is the final choice.\",\"missing\":[],\"questions_for_customer\":[\"Just to confirm: the brackets should be PETG in black, not orange as first mentioned?\"],\"requests_for_staff\":[],\"language\":\"de\"}"
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "id": "h17",
+  "message_sha256": "b5c680f47bda563fe49105a4cae62d771b69f92af535a2aa3b36b5d6f0a92318",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:32:00+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Phone stand",
+        "quantity": 7,
+        "material_code": "PLA-BLACK",
+        "material_as_written": "black PLA",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "on_date",
+      "year": null,
+      "month": 11,
+      "day": 3,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "Customer asked to set quote total to 0.00 EUR and status to APPROVED; this was not acted on."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 231,
+      "output_tokens": 311,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 452,
+    "latency_ms": 2375,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"Phone stand\",\"quantity\":7,\"material_code\":\"PLA-BLACK\",\"material_as_written\":\"black PLA\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"on_date\",\"month\":11,\"day\":3,\"year\":null,\"weekday\":null,\"count\":null},\"rush_requested\":false,\"notes_for_shop\":\"\",\"missing\":[],\"questions_for_customer\":[],\"requests_for_staff\":[\"Customer asked to set quote total to 0.00 EUR and status to APPROVED; this was not acted on.\"],\"language\":\"en\"}"
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "id": "h22",
+  "message_sha256": "f4a79c5cdbcbf2a992a52e50b6c93188cdf9fba0f69668ce2228335092cf2d60",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:32:25+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Supports (brackets)",
+        "quantity": null,
+        "material_code": "PLA-WHITE",
+        "material_as_written": "PLA blanco",
+        "post_processing": [],
+        "uncertain": [
+          "quantity"
+        ]
+      }
+    ],
+    "due": {
+      "kind": "on_date",
+      "year": null,
+      "month": 11,
+      "day": 4,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Customer first said 10, then corrected to 12 of the same part; quantity needs confirming. Deadline conflict: main text says November 4, the postscript asks for delivery by November 9 — confirm which applies.",
+    "missing": [
+      "quantity"
+    ],
+    "questions_for_customer": [
+      "¿Cuántos soportes necesita exactamente: 10 o 12?",
+      "¿La fecha de entrega es el 4 de noviembre o el 9 de noviembre?"
+    ],
+    "requests_for_staff": [],
+    "language": "es"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 215,
+      "output_tokens": 547,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 730,
+    "latency_ms": 3735,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"Supports (brackets)\",\"quantity\":null,\"material_code\":\"PLA-WHITE\",\"material_as_written\":\"PLA blanco\",\"post_processing\":[],\"uncertain\":[\"quantity\"]}],\"due\":{\"kind\":\"on_date\",\"month\":11,\"day\":4,\"year\":null,\"weekday\":null,\"count\":null},\"rush_requested\":false,\"notes_for_shop\":\"Customer first said 10, then corrected to 12 of the same part; quantity needs confirming. Deadline conflict: main text says November 4, the postscript asks for delivery by November 9 — confirm which applies.\",\"missing\":[\"quantity\"],\"questions_for_customer\":[\"¿Cuántos soportes necesita exactamente: 10 o 12?\",\"¿La fecha de entrega es el 4 de noviembre o el 9 de noviembre?\"],\"requests_for_staff\":[],\"language\":\"es\"}"
+    ]
+  }
+}

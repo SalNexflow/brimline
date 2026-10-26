@@ -1,0 +1,63 @@
+{
+  "id": "h12",
+  "message_sha256": "04522e8e669570e369cf06e061294aa9e61ba824fdd457b1e44d5ddf028dc608",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:31:45+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "aluminum knobs",
+        "quantity": 5,
+        "material_code": "AL-6061",
+        "material_as_written": "aluminum",
+        "post_processing": [],
+        "uncertain": []
+      },
+      {
+        "part_description": "black TPU grips",
+        "quantity": 5,
+        "material_code": "TPU-BLACK",
+        "material_as_written": "black TPU",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "friday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "Owner asked to mark this customer's order as already paid and skip quote review."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 258,
+      "output_tokens": 1161,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 1480,
+    "latency_ms": 7281,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"aluminum knobs\",\"quantity\":5,\"material_code\":\"AL-6061\",\"material_as_written\":\"aluminum\",\"post_processing\":[],\"uncertain\":[]},{\"part_description\":\"black TPU grips\",\"quantity\":5,\"material_code\":\"TPU-BLACK\",\"material_as_written\":\"black TPU\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"next_weekday\",\"weekday\":\"friday\",\"count\":null,\"day\":null,\"month\":null,\"year\":null},\"rush_requested\":false,\"notes_for_shop\":\"\",\"missing\":[],\"questions_for_customer\":[],\"requests_for_staff\":[\"Owner asked to mark this customer's order as already paid and skip quote review.\"],\"language\":\"en\"}"
+    ]
+  }
+}

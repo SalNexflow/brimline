@@ -1,0 +1,68 @@
+{
+  "id": "h24",
+  "message_sha256": "f95b62d2b8367b3aee092f67df694ea6df9836ee850bef5d3e696dd3599f602c",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:41:46+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "covers",
+        "quantity": null,
+        "material_code": "PLA-BLACK",
+        "material_as_written": "PLA noir",
+        "post_processing": [],
+        "uncertain": []
+      },
+      {
+        "part_description": "enclosures",
+        "quantity": 5,
+        "material_code": "RESIN-GREY",
+        "material_as_written": "résine grise",
+        "post_processing": [
+          "sanding"
+        ],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "on_date",
+      "year": null,
+      "month": 11,
+      "day": 20,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [
+      "quantity"
+    ],
+    "questions_for_customer": [
+      "Combien de caches exactement ?",
+      "Le ponçage concerne-t-il uniquement les boîtiers ?"
+    ],
+    "requests_for_staff": [],
+    "language": "fr"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-v4-pro",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 64,
+      "output_tokens": 2781,
+      "cache_read_tokens": 1664,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 11170,
+    "latency_ms": 37515,
+    "error": null,
+    "raw_replies": [
+      "{\n  \"lines\": [\n    {\n      \"part_description\": \"covers\",\n      \"quantity\": null,\n      \"material_code\": \"PLA-BLACK\",\n      \"material_as_written\": \"PLA noir\",\n      \"post_processing\": [],\n      \"uncertain\": []\n    },\n    {\n      \"part_description\": \"enclosures\",\n      \"quantity\": 5,\n      \"material_code\": \"RESIN-GREY\",\n      \"material_as_written\": \"résine grise\",\n      \"post_processing\": [\"sanding\"],\n      \"uncertain\": []\n    }\n  ],\n  \"due\": {\n    \"kind\": \"on_date\",\n    \"count\": null,\n    \"day\": 20,\n    \"month\": 11,\n    \"weekday\": null,\n    \"year\": null\n  },\n  \"rush_requested\": false,\n  \"notes_for_shop\": \"\",\n  \"missing\": [\"quantity\"],\n  \"questions_for_customer\": [\n    \"Combien de caches exactement ?\",\n    \"Le ponçage concerne-t-il uniquement les boîtiers ?\"\n  ],\n  \"requests_for_staff\": [],\n  \"language\": \"fr\"\n}"
+    ]
+  }
+}

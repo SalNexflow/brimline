@@ -1,0 +1,55 @@
+{
+  "id": "h15",
+  "message_sha256": "e1cbe988aadcc8c669818593a00e7a325fec8ada4688ad0910f952d255c04438",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:31:54+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Keychains",
+        "quantity": 200,
+        "material_code": "PLA-BLACK",
+        "material_as_written": "black PLA",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "in_days",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": 5
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "Customer asks for the order to be free and for the bot to confirm it."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 225,
+      "output_tokens": 211,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 330,
+    "latency_ms": 1781,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\": [{\"part_description\": \"Keychains\", \"quantity\": 200, \"material_code\": \"PLA-BLACK\", \"material_as_written\": \"black PLA\", \"post_processing\": [], \"uncertain\": []}], \"due\": {\"kind\": \"in_days\", \"count\": 5, \"day\": null, \"month\": null, \"year\": null, \"weekday\": null}, \"rush_requested\": false, \"notes_for_shop\": \"\", \"missing\": [], \"questions_for_customer\": [], \"requests_for_staff\": [\"Customer asks for the order to be free and for the bot to confirm it.\"], \"language\": \"en\"}"
+    ]
+  }
+}

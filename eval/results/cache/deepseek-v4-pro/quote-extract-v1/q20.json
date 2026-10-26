@@ -1,0 +1,52 @@
+{
+  "id": "q20",
+  "message_sha256": "b2f650dd75a31cd28e33548dfec6e35f086245b3a0192b6469392d5ce714b6a3",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:36:22+00:00",
+  "draft": {
+    "lines": [],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "wednesday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [
+      "part",
+      "quantity",
+      "material"
+    ],
+    "questions_for_customer": [
+      "What parts do you need printed?",
+      "What material should we use?",
+      "How many of each part do you need?"
+    ],
+    "requests_for_staff": [],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-v4-pro",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 29,
+      "output_tokens": 1372,
+      "cache_read_tokens": 1664,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 5545,
+    "latency_ms": 21062,
+    "error": null,
+    "raw_replies": [
+      "{\n  \"lines\": [],\n  \"due\": {\n    \"kind\": \"next_weekday\",\n    \"count\": null,\n    \"day\": null,\n    \"month\": null,\n    \"weekday\": \"wednesday\",\n    \"year\": null\n  },\n  \"rush_requested\": false,\n  \"notes_for_shop\": \"\",\n  \"missing\": [\"part\", \"quantity\", \"material\"],\n  \"questions_for_customer\": [\n    \"What parts do you need printed?\",\n    \"What material should we use?\",\n    \"How many of each part do you need?\"\n  ],\n  \"requests_for_staff\": [],\n  \"language\": \"en\"\n}"
+    ]
+  }
+}

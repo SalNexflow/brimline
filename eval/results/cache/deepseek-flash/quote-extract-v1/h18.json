@@ -1,0 +1,87 @@
+{
+  "id": "h18",
+  "message_sha256": "b43bf6e514b4120a48ec59c0469c035bba94f4d3393fc64c7d04b4d37b3089d2",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:32:09+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "ABS housing",
+        "quantity": 10,
+        "material_code": null,
+        "material_as_written": "ABS (black)",
+        "post_processing": [],
+        "uncertain": [
+          "material"
+        ]
+      },
+      {
+        "part_description": "nylon gear",
+        "quantity": 4,
+        "material_code": null,
+        "material_as_written": "nylon",
+        "post_processing": [],
+        "uncertain": [
+          "material"
+        ]
+      },
+      {
+        "part_description": "oak wood handle",
+        "quantity": 2,
+        "material_code": null,
+        "material_as_written": "oak wood",
+        "post_processing": [],
+        "uncertain": [
+          "material"
+        ]
+      },
+      {
+        "part_description": "PETG bracket",
+        "quantity": 6,
+        "material_code": "PETG-BLACK",
+        "material_as_written": "black PETG",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "wednesday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Customer specified black for ABS housings and PETG brackets. ABS, nylon and oak wood are not in the catalog; material mapping needs staff review.",
+    "missing": [],
+    "questions_for_customer": [
+      "For the ABS housings, is ABS required, or may we propose a catalog material?",
+      "For the nylon gears, is nylon required, or may we propose a catalog material?",
+      "For the oak wood handles, is oak required, or may we propose a catalog material?"
+    ],
+    "requests_for_staff": [],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 211,
+      "output_tokens": 1482,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 1851,
+    "latency_ms": 9250,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"ABS housing\",\"quantity\":10,\"material_code\":null,\"material_as_written\":\"ABS (black)\",\"post_processing\":[],\"uncertain\":[\"material\"]},{\"part_description\":\"nylon gear\",\"quantity\":4,\"material_code\":null,\"material_as_written\":\"nylon\",\"post_processing\":[],\"uncertain\":[\"material\"]},{\"part_description\":\"oak wood handle\",\"quantity\":2,\"material_code\":null,\"material_as_written\":\"oak wood\",\"post_processing\":[],\"uncertain\":[\"material\"]},{\"part_description\":\"PETG bracket\",\"quantity\":6,\"material_code\":\"PETG-BLACK\",\"material_as_written\":\"black PETG\",\"post_processing\":[],\"uncertain\":[]}],\"due\":{\"kind\":\"next_weekday\",\"count\":null,\"day\":null,\"month\":null,\"weekday\":\"wednesday\",\"year\":null},\"rush_requested\":false,\"notes_for_shop\":\"Customer specified black for ABS housings and PETG brackets. ABS, nylon and oak wood are not in the catalog; material mapping needs staff review.\",\"missing\":[],\"questions_for_customer\":[\"For the ABS housings, is ABS required, or may we propose a catalog material?\",\"For the nylon gears, is nylon required, or may we propose a catalog material?\",\"For the oak wood handles, is oak required, or may we propose a catalog material?\"],\"requests_for_staff\":[],\"language\":\"en\"}"
+    ]
+  }
+}

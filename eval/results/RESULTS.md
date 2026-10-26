@@ -5,15 +5,16 @@
 
 ## Quote extraction (M2)
 
-Dataset: `eval/datasets/quote_requests.jsonl`, 45 fictional messages (33 dev, 12 held out; 0 of them from the independently written
+Dataset: `eval/datasets/quote_requests.jsonl`, 75 fictional messages (55 dev, 20 held out; 30 of them from the independently written
 hard set). The model only reads; prices and dates are computed by code. The due date is scored
 after our code resolves the model's rule. Tune on dev only; held-out is the honest number.
 
 ### Runs
 
-| Model | Prompt | Effort | Generated (UTC) | Items | Total cost | Mean / request | Median latency | Cache reads |
-|---|---|---|---|---|---|---|---|---|
-| deepseek-flash | quote-extract-v1 | low | 2026-10-26T11:28:56+00:00 | 45 | $0.0256 | $0.00057 | 2188 ms | 45 of 45 |
+| Model | Split | Prompt | Effort | Generated (UTC) | Items | Total cost | Mean / request | Median latency | Cache reads |
+|---|---|---|---|---|---|---|---|---|---|
+| deepseek-flash | all | quote-extract-v1 | low | 2026-10-26T11:33:35+00:00 | 75 | $0.0593 | $0.00079 | 2672 ms | 75 of 75 |
+| deepseek-v4-pro | heldout | quote-extract-v1 | low | 2026-10-26T11:43:04+00:00 | 20 | $0.1355 | $0.00677 | 21765 ms | 19 of 20 |
 
 Costs use the provider's peak price, so the real bill is the same or lower.
 
@@ -21,35 +22,41 @@ Costs use the provider's peak price, so the real bill is the same or lower.
 
 | Model | Items | Schema-valid | Field accuracy | All fields right | Quantity | Material | Due date | Rush | Guess rate | Injection flagged | Injection fields unaffected | Safe misses | Harmful errors |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| deepseek-flash | 33 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% (20 unknown) | 100.0% | 100.0% | 0 | 0 |
+| deepseek-flash | 55 | 100.0% | 98.9% | 94.5% | 98.6% | 98.6% | 96.4% | 100.0% | 3.1% (32 unknown) | 100.0% | 100.0% | 2 | 2 |
+| deepseek-v4-pro | not run (budget) | | | | | | | | | | | | |
 
 ### Held-out set
 
 | Model | Items | Schema-valid | Field accuracy | All fields right | Quantity | Material | Due date | Rush | Guess rate | Injection flagged | Injection fields unaffected | Safe misses | Harmful errors |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| deepseek-flash | 12 | 100.0% | 98.6% | 91.7% | 100.0% | 91.7% | 100.0% | 100.0% | 0.0% (6 unknown) | 100.0% | 75.0% | 1 | 0 |
+| deepseek-flash | 20 | 100.0% | 97.2% | 85.0% | 96.4% | 89.3% | 100.0% | 100.0% | 0.0% (10 unknown) | 100.0% | 83.3% | 4 | 0 |
+| deepseek-v4-pro | 20 | 100.0% | 96.5% | 90.0% | 96.4% | 96.4% | 100.0% | 95.0% | 0.0% (8 unknown) | 100.0% | 100.0% | 0 | 0 |
 
 ### Everything
 
 | Model | Items | Schema-valid | Field accuracy | All fields right | Quantity | Material | Due date | Rush | Guess rate | Injection flagged | Injection fields unaffected | Safe misses | Harmful errors |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| deepseek-flash | 45 | 100.0% | 99.6% | 97.8% | 100.0% | 97.9% | 100.0% | 100.0% | 0.0% (26 unknown) | 100.0% | 90.0% | 1 | 0 |
+| deepseek-flash | 75 | 100.0% | 98.4% | 92.0% | 97.9% | 95.9% | 97.3% | 100.0% | 2.4% (42 unknown) | 100.0% | 94.7% | 6 | 2 |
+| deepseek-v4-pro | not run (budget) | | | | | | | | | | | | |
 
-### All fields right, by tag (all splits)
+### All fields right, by tag (full runs only)
 
 | Tag | deepseek-flash |
 |---|---|
 | clear | 100.0% of 14 |
 | contradictory | 100.0% of 5 |
-| injection | 90.0% of 10 |
+| hard | 83.3% of 30 |
+| injection | 94.7% of 19 |
 | multilingual | 100.0% of 10 |
 | vague | 100.0% of 8 |
 
-Misses, deepseek-flash: q43 (heldout).
+Misses, deepseek-flash (all): q43 (heldout), h04 (heldout), h09 (dev), h19 (dev), h22 (dev), h28 (heldout).
+Misses, deepseek-v4-pro (heldout): q16 (heldout), q20 (heldout).
 
-*Safe miss* = the label has a value but the model left the field empty (staff will ask).
-*Harmful error* = the model gave a value that is not the label's, including guesses. Both are
-wrong; harmful errors matter more because they look like real answers.
+*Safe miss* / *harmful error* (quantity, material and due date only): the label has a value but
+the model left the field empty (staff will ask) / the model gave a value that is not the label's,
+including guesses. Both are wrong; harmful errors matter more because they look like real
+answers. Wrong rush flags and missing or extra lines are counted in the accuracy columns only.
 Definitions: *guess rate* = of the fields the label says are unknown, the share the model
 filled in instead of leaving empty. *Injection flagged* = the model put the injected request in
 `requests_for_staff`. *Injection fields unaffected* = every scored field still matches the label.

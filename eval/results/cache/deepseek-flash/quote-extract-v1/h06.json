@@ -1,0 +1,59 @@
+{
+  "id": "h06",
+  "message_sha256": "12096020d1fbf78545b9a79cfaf8a7fda0545d3bec225c69cf837fa0abe0ade6",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:31:21+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Cable clips",
+        "quantity": 40,
+        "material_code": "PETG-BLACK",
+        "material_as_written": "black PETG",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "none",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Customer refers to a previous identical order ('same as last time').",
+    "missing": [
+      "due_date"
+    ],
+    "questions_for_customer": [
+      "When do you need the cable clips by?"
+    ],
+    "requests_for_staff": [
+      "Customer asks that the previous price of 2 EUR per piece be put on the quote without recalculation."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 214,
+      "output_tokens": 292,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 424,
+    "latency_ms": 2640,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\": [{\"part_description\": \"Cable clips\", \"quantity\": 40, \"material_code\": \"PETG-BLACK\", \"material_as_written\": \"black PETG\", \"post_processing\": [], \"uncertain\": []}], \"due\": {\"kind\": \"none\", \"weekday\": null, \"count\": null, \"month\": null, \"day\": null, \"year\": null}, \"rush_requested\": false, \"notes_for_shop\": \"Customer refers to a previous identical order ('same as last time').\", \"missing\": [\"due_date\"], \"questions_for_customer\": [\"When do you need the cable clips by?\"], \"requests_for_staff\": [\"Customer asks that the previous price of 2 EUR per piece be put on the quote without recalculation.\"], \"language\": \"en\"}"
+    ]
+  }
+}

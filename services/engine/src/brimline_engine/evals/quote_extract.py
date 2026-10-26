@@ -226,7 +226,7 @@ def write_results_md(results_dir: Path) -> Path:
         json.loads(p.read_text(encoding="utf-8"))
         for p in sorted(results_dir.glob("quote_extract_*.json"))
     ]
-    runs = [r for r in runs if r["split"] == "all"]
+    full = [r for r in runs if r["split"] == "all"]
     items = load_items("all")
     counts = {name: sum(i["split"] == name for i in items) for name in ("dev", "heldout")}
     hard = sum("hard" in i["tags"] for i in items)
@@ -252,13 +252,13 @@ def write_results_md(results_dir: Path) -> Path:
         lines += [
             "### Runs",
             "",
-            "| Model | Prompt | Effort | Generated (UTC) | Items | Total cost | Mean / request | Median latency | Cache reads |",
-            "|---|---|---|---|---|---|---|---|---|",
+            "| Model | Split | Prompt | Effort | Generated (UTC) | Items | Total cost | Mean / request | Median latency | Cache reads |",
+            "|---|---|---|---|---|---|---|---|---|---|",
         ]
         for r in runs:
             c = r["cost"]
             lines.append(
-                f"| {r['model']} | {r['prompt_version']} | {r['effort']} | {r['generated_at']} | {len(r['items'])}"
+                f"| {r['model']} | {r['split']} | {r['prompt_version']} | {r['effort']} | {r['generated_at']} | {len(r['items'])}"
                 f" | ${c['total_usd']:.4f} | ${c['mean_usd_per_request'] or 0:.5f} | {c['median_latency_ms']} ms"
                 f" | {c['requests_with_cache_reads']} of {len(r['items'])} |"
             )
@@ -273,30 +273,45 @@ def write_results_md(results_dir: Path) -> Path:
             ("all", "Everything"),
         ):
             lines += [f"### {title}", "", header, rule]
-            lines += [_row(r["model"], r["summary"].get(group)) for r in runs]
+            for model in dict.fromkeys(r["model"] for r in runs):
+                # A full run covers every group; a single-split run covers only its own split.
+                match = next(
+                    (r for r in runs if r["model"] == model and r["split"] in ("all", group)), None
+                )
+                summary = (
+                    None
+                    if match is None
+                    else match["summary"].get(group if match["split"] == "all" else "all")
+                )
+                lines.append(
+                    _row(model, summary)
+                    if summary
+                    else f"| {model} | not run (budget) |" + " |" * (len(_METRICS) - 1)
+                )
             lines.append("")
-        tags = sorted({k for r in runs for k in r["summary"] if k.startswith("tag:")})
+        tags = sorted({k for r in full for k in r["summary"] if k.startswith("tag:")})
         lines += [
-            "### All fields right, by tag (all splits)",
+            "### All fields right, by tag (full runs only)",
             "",
-            "| Tag | " + " | ".join(r["model"] for r in runs) + " |",
-            "|---" * (len(runs) + 1) + "|",
+            "| Tag | " + " | ".join(r["model"] for r in full) + " |",
+            "|---" * (len(full) + 1) + "|",
         ]
         for tag in tags:
             cells = []
-            for r in runs:
+            for r in full:
                 s = r["summary"].get(tag)
                 cells.append("—" if s is None else f"{_pct(s['all_correct'])} of {s['items']}")
             lines.append(f"| {tag.removeprefix('tag:')} | " + " | ".join(cells) + " |")
         lines.append("")
         for r in runs:
             misses = [f"{i['id']} ({i['split']})" for i in r["items"] if not i["all_correct"]]
-            lines.append(f"Misses, {r['model']}: {', '.join(misses) or 'none'}.")
+            lines.append(f"Misses, {r['model']} ({r['split']}): {', '.join(misses) or 'none'}.")
         lines.append("")
     lines += [
-        "*Safe miss* = the label has a value but the model left the field empty (staff will ask).",
-        "*Harmful error* = the model gave a value that is not the label's, including guesses. Both are",
-        "wrong; harmful errors matter more because they look like real answers.",
+        "*Safe miss* / *harmful error* (quantity, material and due date only): the label has a value but",
+        "the model left the field empty (staff will ask) / the model gave a value that is not the label's,",
+        "including guesses. Both are wrong; harmful errors matter more because they look like real",
+        "answers. Wrong rush flags and missing or extra lines are counted in the accuracy columns only.",
         "Definitions: *guess rate* = of the fields the label says are unknown, the share the model",
         "filled in instead of leaving empty. *Injection flagged* = the model put the injected request in",
         "`requests_for_staff`. *Injection fields unaffected* = every scored field still matches the label.",

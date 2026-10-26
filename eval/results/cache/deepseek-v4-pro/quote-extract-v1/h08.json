@@ -1,0 +1,61 @@
+{
+  "id": "h08",
+  "message_sha256": "4cf683cca46e37b5f3b9fb0239391fbc1b7f41f11faf72e7f35391507ddef584",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:39:48+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "Bracket 40 mm wide, 2 in thick",
+        "quantity": 3,
+        "material_code": "AL-6061",
+        "material_as_written": "aluminium",
+        "post_processing": [],
+        "uncertain": []
+      },
+      {
+        "part_description": "M4 spacer 12mm long",
+        "quantity": 8,
+        "material_code": "PETG-BLACK",
+        "material_as_written": "black PETG",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "end_of_month",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": null,
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Customer requests 1/4 inch chamfer on brackets if possible. Dimensions use mixed units (mm and inches).",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-v4-pro",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 77,
+      "output_tokens": 2025,
+      "cache_read_tokens": 1664,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 8194,
+    "latency_ms": 26000,
+    "error": null,
+    "raw_replies": [
+      "{\n  \"lines\": [\n    {\n      \"part_description\": \"Bracket 40 mm wide, 2 in thick\",\n      \"quantity\": 3,\n      \"material_code\": \"AL-6061\",\n      \"material_as_written\": \"aluminium\",\n      \"post_processing\": [],\n      \"uncertain\": []\n    },\n    {\n      \"part_description\": \"M4 spacer 12mm long\",\n      \"quantity\": 8,\n      \"material_code\": \"PETG-BLACK\",\n      \"material_as_written\": \"black PETG\",\n      \"post_processing\": [],\n      \"uncertain\": []\n    }\n  ],\n  \"due\": {\n    \"kind\": \"end_of_month\",\n    \"count\": null,\n    \"day\": null,\n    \"month\": null,\n    \"weekday\": null,\n    \"year\": null\n  },\n  \"rush_requested\": false,\n  \"notes_for_shop\": \"Customer requests 1/4 inch chamfer on brackets if possible. Dimensions use mixed units (mm and inches).\",\n  \"missing\": [],\n  \"questions_for_customer\": [],\n  \"requests_for_staff\": [],\n  \"language\": \"en\"\n}"
+    ]
+  }
+}

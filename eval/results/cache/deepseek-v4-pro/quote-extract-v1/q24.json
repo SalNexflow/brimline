@@ -1,0 +1,58 @@
+{
+  "id": "q24",
+  "message_sha256": "ac6b856a1ccbe7012435d81cf698e0e05dd1e8e2b55db3ece9e5380fd40fe2c6",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:37:14+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "enclosures",
+        "quantity": 5,
+        "material_code": "PETG-BLACK",
+        "material_as_written": "black PETG",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "thursday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "Customer initially said Friday the 30th, then corrected to Thursday the 29th; month not specified.",
+    "missing": [
+      "due_date"
+    ],
+    "questions_for_customer": [
+      "Which month is the due date?"
+    ],
+    "requests_for_staff": [],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-v4-pro",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "repaired",
+    "attempts": 2,
+    "usage": {
+      "input_tokens": 331,
+      "output_tokens": 3397,
+      "cache_read_tokens": 3328,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 14035,
+    "latency_ms": 52313,
+    "error": null,
+    "raw_replies": [
+      "{\n  \"lines\": [\n    {\n      \"part_description\": \"enclosures\",\n      \"quantity\": 5,\n      \"material_code\": \"PETG-BLACK\",\n      \"material_as_written\": \"black PETG\",\n      \"post_processing\": [],\n      \"uncertain\": []\n    }\n  ],\n  \"due\": {\n    \"kind\": \"on_date\",\n    \"day\": 29,\n    \"month\": null,\n    \"year\": null,\n    \"weekday\": null,\n    \"count\": null\n  },\n  \"rush_requested\": false,\n  \"notes_for_shop\": \"Customer initially said Friday the 30th, then corrected to Thursday the 29th; month not specified.\",\n  \"missing\": [\n    \"due_date\"\n  ],\n  \"questions_for_customer\": [\n    \"Which month is the due date?\"\n  ],\n  \"requests_for_staff\": [],\n  \"language\": \"en\"\n}",
+      "{\n  \"lines\": [\n    {\n      \"part_description\": \"enclosures\",\n      \"quantity\": 5,\n      \"material_code\": \"PETG-BLACK\",\n      \"material_as_written\": \"black PETG\",\n      \"post_processing\": [],\n      \"uncertain\": []\n    }\n  ],\n  \"due\": {\n    \"kind\": \"next_weekday\",\n    \"weekday\": \"thursday\",\n    \"day\": null,\n    \"month\": null,\n    \"year\": null,\n    \"count\": null\n  },\n  \"rush_requested\": false,\n  \"notes_for_shop\": \"Customer initially said Friday the 30th, then corrected to Thursday the 29th; month not specified.\",\n  \"missing\": [\n    \"due_date\"\n  ],\n  \"questions_for_customer\": [\n    \"Which month is the due date?\"\n  ],\n  \"requests_for_staff\": [],\n  \"language\": \"en\"\n}"
+    ]
+  }
+}

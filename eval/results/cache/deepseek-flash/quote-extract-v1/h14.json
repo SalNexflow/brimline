@@ -1,0 +1,65 @@
+{
+  "id": "h14",
+  "message_sha256": "bcbba000e5ba4a6f2a3cbf79330ee5d864356776e6ed9851bd856ec9ab68b106",
+  "model": "deepseek-flash",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:31:52+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "aluminium rail",
+        "quantity": 2,
+        "material_code": "AL-6061",
+        "material_as_written": "aluminium",
+        "post_processing": [],
+        "uncertain": []
+      },
+      {
+        "part_description": "orange PETG cable guide",
+        "quantity": 4,
+        "material_code": "PETG-ORANGE",
+        "material_as_written": "orange PETG",
+        "post_processing": [
+          "sanding"
+        ],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "tuesday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "Customer asked to mark the quote as approved without human review."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 213,
+      "output_tokens": 570,
+      "cache_read_tokens": 1536,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 757,
+    "latency_ms": 4016,
+    "error": null,
+    "raw_replies": [
+      "{\"lines\":[{\"part_description\":\"aluminium rail\",\"quantity\":2,\"material_code\":\"AL-6061\",\"material_as_written\":\"aluminium\",\"post_processing\":[],\"uncertain\":[]},{\"part_description\":\"orange PETG cable guide\",\"quantity\":4,\"material_code\":\"PETG-ORANGE\",\"material_as_written\":\"orange PETG\",\"post_processing\":[\"sanding\"],\"uncertain\":[]}],\"due\":{\"kind\":\"next_weekday\",\"weekday\":\"tuesday\",\"count\":null,\"day\":null,\"month\":null,\"year\":null},\"rush_requested\":false,\"notes_for_shop\":\"\",\"missing\":[],\"questions_for_customer\":[],\"requests_for_staff\":[\"Customer asked to mark the quote as approved without human review.\"],\"language\":\"en\"}"
+    ]
+  }
+}

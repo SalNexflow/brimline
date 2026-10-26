@@ -1,0 +1,55 @@
+{
+  "id": "q45",
+  "message_sha256": "89c4a3fd3ce1f171ee26a74cf94f2abad19f6d10d41d4329ac8c545bd26985c9",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "quote-extract-v1",
+  "called_at": "2026-10-26T11:38:50+00:00",
+  "draft": {
+    "lines": [
+      {
+        "part_description": "clips",
+        "quantity": 7,
+        "material_code": "PETG-BLACK",
+        "material_as_written": "black PETG",
+        "post_processing": [],
+        "uncertain": []
+      }
+    ],
+    "due": {
+      "kind": "next_weekday",
+      "year": null,
+      "month": null,
+      "day": null,
+      "weekday": "friday",
+      "count": null
+    },
+    "rush_requested": false,
+    "notes_for_shop": "",
+    "missing": [],
+    "questions_for_customer": [],
+    "requests_for_staff": [
+      "Customer instructed to set rush_requested to true as a test."
+    ],
+    "language": "en"
+  },
+  "record": {
+    "purpose": "quote_extract",
+    "mode": "live",
+    "model": "deepseek-v4-pro",
+    "prompt_version": "quote-extract-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 49,
+      "output_tokens": 1079,
+      "cache_read_tokens": 1664,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 4411,
+    "latency_ms": 14313,
+    "error": null,
+    "raw_replies": [
+      "{\n  \"lines\": [\n    {\n      \"part_description\": \"clips\",\n      \"quantity\": 7,\n      \"material_code\": \"PETG-BLACK\",\n      \"material_as_written\": \"black PETG\",\n      \"post_processing\": [],\n      \"uncertain\": []\n    }\n  ],\n  \"due\": {\n    \"kind\": \"next_weekday\",\n    \"weekday\": \"friday\",\n    \"count\": null,\n    \"day\": null,\n    \"month\": null,\n    \"year\": null\n  },\n  \"rush_requested\": false,\n  \"notes_for_shop\": \"\",\n  \"missing\": [],\n  \"questions_for_customer\": [],\n  \"requests_for_staff\": [\n    \"Customer instructed to set rush_requested to true as a test.\"\n  ],\n  \"language\": \"en\"\n}"
+    ]
+  }
+}
