@@ -95,6 +95,21 @@ const MUTATIONS = [
     replace: '  title: "Untitled",',
     expect: "web: browser tests",
   },
+  {
+    name: "checker lets a changeover one minute short through",
+    file: "services/engine/src/brimline_engine/checker/check.py",
+    find: "and nxt.start - prev.end < r.changeover",
+    replace: "and nxt.start - prev.end < r.changeover - 1",
+    expect: "engine: tests",
+  },
+  {
+    name: "checker imports scheduler code",
+    file: "services/engine/src/brimline_engine/checker/check.py",
+    find: "from brimline_engine.checker.rules import Rules, durations",
+    replace:
+      "from brimline_engine.checker.rules import Rules, durations\nfrom brimline_engine.scheduling.model import TASK_ORDER as _UNUSED  # noqa: F401",
+    expect: "engine: tests",
+  },
 ];
 
 function sh(command, cwd, extraEnv = {}) {
