@@ -205,7 +205,15 @@ const TASKS = {
         ["uv run --locked python -m brimline_engine.evals.quote_extract", ...process.argv.slice(3)].join(" "),
       ),
     ]),
-  bench: () => notYet("bench", "M3"),
+  // Extra arguments pass through, e.g. node scripts/tasks.mjs bench --quick
+  bench: () =>
+    runSteps("bench", [
+      step(
+        "scheduler benchmark",
+        ENGINE,
+        ["uv run --locked python -m brimline_engine.scheduling.bench", ...process.argv.slice(3)].join(" "),
+      ),
+    ]),
   "gate-selftest": () =>
     spawnSync(`node "${join(ROOT, "scripts", "gate_selftest.mjs")}"`, { cwd: ROOT, env: ENV, shell: true, stdio: "inherit" })
       .status ?? 1,

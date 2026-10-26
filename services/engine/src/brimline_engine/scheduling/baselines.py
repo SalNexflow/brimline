@@ -25,16 +25,32 @@ Pick = Literal["start", "finish"]
 class _State:
     machine_free: dict[str, int]
     last_material: dict[str, str | None]
-    lanes: list[int]  # when each person is next free
+    lanes: list[list[tuple[int, int]]]  # each person's busy [start, end) intervals
+
+
+def _earliest_gap(
+    t0: int, duration: int, busy: list[tuple[int, int]], instance: Instance
+) -> int | None:
+    """Earliest start >= t0 inside a shift where this person is free for `duration` minutes.
+    Tasks go into the first free gap, not only after the person's last task (DEFECT_LOG #18)."""
+    t = t0
+    while True:
+        start = earliest_manual_start(t, duration, instance.shifts)
+        if start is None:
+            return None
+        clash = next((e for s, e in busy if s < start + duration and start < e), None)
+        if clash is None:
+            return start
+        t = clash
 
 
 def _place_manual(
-    t0: int, duration: int, lanes: list[int], instance: Instance
+    t0: int, duration: int, lanes: list[list[tuple[int, int]]], instance: Instance
 ) -> tuple[int, int] | None:
     """(lane, start) of the earliest fit for one person, or None."""
     best: tuple[int, int] | None = None
-    for lane, free in enumerate(lanes):
-        start = earliest_manual_start(max(t0, free), duration, instance.shifts)
+    for lane, busy in enumerate(lanes):
+        start = _earliest_gap(t0, duration, busy, instance)
         if start is not None and (best is None or start < best[1]):
             best = (lane, start)
     return best
@@ -42,11 +58,11 @@ def _place_manual(
 
 def _plan_job(
     job: Job, instance: Instance, state: _State, fixed: Fixed | None, pick: Pick, d: Durations
-) -> tuple[JobPlan, list[int]] | None:
+) -> tuple[JobPlan, list[list[tuple[int, int]]]] | None:
     """The job's plan and the staff lanes after it, without changing `state`; None if it cannot
     fit the horizon."""
     durations = task_durations(job, d)
-    lanes = list(state.lanes)
+    lanes = [list(busy) for busy in state.lanes]
     slots: list[Slot] = []
     t = 0
 
@@ -55,7 +71,7 @@ def _plan_job(
         if placed is None:
             return None
         lane, start = placed
-        lanes[lane] = start + durations[kind]
+        lanes[lane].append((start, start + durations[kind]))
         slots.append(Slot(kind, start, start + durations[kind]))
         return start + durations[kind]
 
@@ -103,7 +119,7 @@ def list_schedule(
     state = _State(
         machine_free={m.code: 0 for m in instance.machines},
         last_material={m.code: None for m in instance.machines},
-        lanes=[0] * instance.staff,
+        lanes=[[] for _ in range(instance.staff)],
     )
     fixed = {f.job_id: f for f in instance.fixed}
     # Fixed tasks are already on their machines, so they are placed before anything else.

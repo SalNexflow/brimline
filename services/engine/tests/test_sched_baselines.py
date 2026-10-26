@@ -66,3 +66,22 @@ def test_a_fixed_task_keeps_its_place() -> None:
     slots = machine_slots(fcfs(inst, BARE))
     assert slots["F"] == ("M1", 200, 250)
     assert slots["G"] == ("M1", 250, 350)  # placed after the fixed task, never moving it
+
+
+def test_manual_work_uses_an_earlier_free_gap() -> None:
+    # DEFECT_LOG #18: one person, prep 30, finish 30. A is a long print (0-500 after prep), so its
+    # packing lands at 530-560. B arrives second on the other machine; its prep must go into the
+    # gap at 30-60, not after A's packing at 560.
+    d = Durations(**{**BARE.model_dump(), "prep_minutes": 30, "finish_base_minutes": 30})
+    two = instance(job("A", 1, 500), job("B", 2, 100), machines=(PRINTER, BIG), staff=1)
+    plans = {p.job_id: p for p in fcfs(two, d).plans}
+    assert plans["A"].slots == (
+        Slot("prep", 0, 30),
+        Slot("machine", 30, 530),
+        Slot("finish", 530, 560),
+    )
+    assert plans["B"].slots == (
+        Slot("prep", 30, 60),
+        Slot("machine", 60, 160),
+        Slot("finish", 160, 190),
+    )
