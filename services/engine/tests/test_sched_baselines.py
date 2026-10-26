@@ -65,7 +65,7 @@ def test_a_fixed_task_keeps_its_place() -> None:
     inst = instance(job("G", 1, 100), job("F", 2, 50), fixed=(Fixed("F", "M1", 200),))
     slots = machine_slots(fcfs(inst, BARE))
     assert slots["F"] == ("M1", 200, 250)
-    assert slots["G"] == ("M1", 250, 350)  # placed after the fixed task, never moving it
+    assert slots["G"] == ("M1", 0, 100)  # fills the gap before the fixed task, never moving it
 
 
 def test_manual_work_uses_an_earlier_free_gap() -> None:

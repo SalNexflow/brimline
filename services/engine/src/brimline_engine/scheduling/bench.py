@@ -111,6 +111,17 @@ def _verdict(a: int, b: int) -> str:
     return "win" if a < b else "tie" if a == b else "LOSS"
 
 
+def _status(info: dict[str, Any]) -> str:
+    """The solver status, said honestly: the simple model's OPTIMAL is for its stand-in
+    objective, and a run that found nothing says it fell back to the hint."""
+    status = str(info.get("status", ""))
+    if status == "OPTIMAL" and info.get("objective") == "stand-in changeovers":
+        status = "OPTIMAL (stand-in)"
+    if info.get("fallback"):
+        status += f", fell back to {info['fallback']}"
+    return status
+
+
 def write_bench_md(data: dict[str, Any], path: Path) -> None:
     main = data["main"]
     methods = ["fcfs", "edd", "cpsat-simple"]
@@ -124,8 +135,9 @@ def write_bench_md(data: dict[str, Any], path: Path) -> None:
         f"Generated {data['generated_at']}. Config `config/scheduler.toml` (checked {data['config_checked']}).",
         f"CP-SAT: seed {data['solver']['random_seed']}, {data['solver']['workers']} worker, deterministic time limit "
         f"{data['main_time']:g} s (CP-SAT's machine-independent work measure, roughly seconds).",
-        "**CP-SAT is hinted with the EDD schedule** (`AddHint`), so it starts from the greedy answer and can only",
-        "improve on it within the time limit. Instances are seeded (`scheduling/generator.py`) on the shop's six machines.",
+        "**CP-SAT is hinted with the EDD schedule** (`AddHint`, with a value for every model variable), so it",
+        "starts from the greedy answer. If it finds no solution within the limit it returns the EDD schedule and",
+        "the status column says so. Instances are seeded (`scheduling/generator.py`) on the shop's six machines.",
         "",
         "Weights (objective, lower is better): "
         + ", ".join(f"{k} {v}" for k, v in data["weights"].items())
@@ -133,10 +145,11 @@ def write_bench_md(data: dict[str, Any], path: Path) -> None:
         "",
         "## Averages per size",
         "",
-        "Means over the seeds. Lateness and finish time in hours.",
+        "Means over the seeds. Lateness and finish time in hours. *Late or unscheduled* counts jobs that did not",
+        "fit at all as late, so dropping a job never improves a column; lateness is over scheduled jobs only.",
         "",
-        "| Jobs | Method | Late jobs | Total lateness (h) | Changeovers | Utilisation | Finish time (h) | Unscheduled | Objective | Solve (wall s) |",
-        "|---|---|---|---|---|---|---|---|---|---|",
+        "| Jobs | Method | Late jobs | Late or unscheduled | Total lateness (h) | Changeovers | Utilisation | Finish time (h) | Unscheduled | Objective | Solve (wall s) |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for n in data["sizes"]:
         for method in methods:
@@ -145,7 +158,8 @@ def write_bench_md(data: dict[str, Any], path: Path) -> None:
                 continue
             solve_s = mean(float(r["info"].get("wall_seconds", 0.0)) for r in rows)
             lines.append(
-                f"| {n} | {method} | {mean(r['late_jobs'] for r in rows):.1f} | {_hours(mean(r['total_lateness_minutes'] for r in rows))}"
+                f"| {n} | {method} | {mean(r['late_jobs'] for r in rows):.1f} | {mean(r['late_or_unscheduled'] for r in rows):.1f}"
+                f" | {_hours(mean(r['total_lateness_minutes'] for r in rows))}"
                 f" | {mean(r['changeovers'] for r in rows):.1f} | {mean(r['utilisation'] for r in rows):.1%}"
                 f" | {_hours(mean(r['finish_time'] for r in rows))} | {mean(r['unscheduled'] for r in rows):.1f}"
                 f" | {mean(r['objective'] for r in rows):,.0f} | {solve_s:.1f} |"
@@ -156,7 +170,7 @@ def write_bench_md(data: dict[str, Any], path: Path) -> None:
         "",
         "A *win* means a lower objective than the baseline on that instance; *LOSS* is shown in capitals.",
         "",
-        "| Instance | FCFS | EDD | CP-SAT | vs FCFS | vs EDD | CP-SAT status | Late jobs F/E/C | Changeovers F/E/C | Unscheduled F/E/C |",
+        "| Instance | FCFS | EDD | CP-SAT | vs FCFS | vs EDD | CP-SAT status | Late or unscheduled F/E/C | Changeovers F/E/C | Unscheduled F/E/C |",
         "|---|---|---|---|---|---|---|---|---|---|",
     ]
     wins = {"fcfs": [0, 0, 0], "edd": [0, 0, 0]}
@@ -169,8 +183,9 @@ def write_bench_md(data: dict[str, Any], path: Path) -> None:
             ] += 1
         lines.append(
             f"| {name} | {f['objective']:,} | {e['objective']:,} | {c['objective']:,} | {_verdict(c['objective'], f['objective'])}"
-            f" | {_verdict(c['objective'], e['objective'])} | {c['info']['status']}"
-            f" | {f['late_jobs']}/{e['late_jobs']}/{c['late_jobs']} | {f['changeovers']}/{e['changeovers']}/{c['changeovers']}"
+            f" | {_verdict(c['objective'], e['objective'])} | {_status(c['info'])}"
+            f" | {f['late_or_unscheduled']}/{e['late_or_unscheduled']}/{c['late_or_unscheduled']}"
+            f" | {f['changeovers']}/{e['changeovers']}/{c['changeovers']}"
             f" | {f['unscheduled']}/{e['unscheduled']}/{c['unscheduled']} |"
         )
     lines += [
@@ -193,14 +208,17 @@ def write_bench_md(data: dict[str, Any], path: Path) -> None:
         for r in data["variants"]:
             lines.append(
                 f"| {r['instance']} | {r['info']['variant']} | {r['objective']:,} | {r['late_jobs']} | {_hours(r['total_lateness_minutes'])}"
-                f" | {r['changeovers']} | {r['unscheduled']} | {r['info']['status']} | {r['info']['wall_seconds']} |"
+                f" | {r['changeovers']} | {r['unscheduled']} | {_status(r['info'])} | {r['info']['wall_seconds']} |"
             )
         lines.append("")
     if data["sweep"]:
         lines += [
             f"## Time limit sweep (CP-SAT simple, {data['sweep_size']} jobs)",
             "",
-            "| Time limit (s) | Mean objective | Mean late jobs | Mean lateness (h) | Mean changeovers | Optimal runs | Mean solve (wall s) |",
+            "*Optimal runs* are optimal for the simple model's stand-in objective, not proven optimal for the",
+            "real changeover count.",
+            "",
+            "| Time limit (s) | Mean objective | Mean late jobs | Mean lateness (h) | Mean changeovers | Optimal runs (stand-in) | Mean solve (wall s) |",
             "|---|---|---|---|---|---|---|",
         ]
         for limit in data["sweep_times"]:
@@ -217,7 +235,11 @@ def write_bench_md(data: dict[str, Any], path: Path) -> None:
         "",
         "- Synthetic instances; durations come from a simple formula, not a slicer.",
         "- One machine per job (a large job is never split across printers).",
-        "- Wall-clock solve times depend on this computer; the deterministic limit keeps results repeatable.",
+        "- Wall-clock solve times depend on this computer; the deterministic limit keeps the schedules and",
+        "  metrics repeatable (bench.json also holds timestamps and wall times, which differ between runs).",
+        "- Utilisation = machine-task minutes, including cool-down on the machine, divided by all six machines",
+        "  (including the lightly loaded CNC mill) times the finish time. It is comparable between methods, not",
+        "  an absolute measure of how busy the shop is.",
         "",
     ]
     path.write_text("\n".join(lines), encoding="utf-8", newline="\n")

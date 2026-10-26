@@ -3,10 +3,12 @@
 Every method (FCFS, EDD, CP-SAT) is scored by this same code, so the comparison is fair. These
 numbers come from scheduler-side code; the M4 checker will recompute them independently.
 
-- late jobs: jobs packed after their due minute
-- total lateness: sum over jobs of max(0, completion - due), in minutes
+- late jobs: scheduled jobs packed after their due minute; "late or unscheduled" adds the jobs
+  that did not fit at all, so dropping a job can never make the late count look better
+- total lateness: sum over scheduled jobs of max(0, completion - due), in minutes
 - changeovers: on each machine, consecutive jobs (by start) with different materials
-- utilisation: machine-task minutes / (machines x finish time)
+- utilisation: machine-task minutes (including cool-down on the machine) / (all machines,
+  including the lightly used CNC mill, x finish time)
 - finish time: the latest completion of any scheduled job
 """
 
@@ -22,6 +24,7 @@ class Metrics:
     scheduled: int
     unscheduled: int
     late_jobs: int
+    late_or_unscheduled: int
     rush_late_jobs: int
     total_lateness_minutes: int
     changeovers: int
@@ -71,6 +74,7 @@ def evaluate(instance: Instance, schedule: Schedule, weights: Weights) -> Metric
         scheduled=len(schedule.plans),
         unscheduled=len(schedule.unscheduled),
         late_jobs=late,
+        late_or_unscheduled=late + len(schedule.unscheduled),
         rush_late_jobs=rush_late,
         total_lateness_minutes=lateness,
         changeovers=changes,

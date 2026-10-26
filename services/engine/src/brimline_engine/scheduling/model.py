@@ -41,6 +41,11 @@ class Job:
     rush: bool
     release: int = 0  # minute the material is on hand; the machine task cannot start earlier
 
+    def __post_init__(self) -> None:
+        # Every job has real machine work; a zero-length machine task would break every method.
+        if self.quantity < 1 or self.minutes_per_part < 1:
+            raise ValueError(f"job {self.id}: quantity and minutes_per_part must be at least 1")
+
 
 @dataclass(frozen=True)
 class Fixed:

@@ -1,44 +1,67 @@
 """Two greedy baselines: first-come-first-served (FCFS) and earliest due date (EDD).
 
-One list scheduler, two policies. Jobs are placed one at a time, each task as early as the rules
-allow, never moving anything already placed:
-  FCFS: jobs in arrival order; each on the machine where it can START earliest.
-  EDD:  jobs by due date (rush first on ties, then arrival); each on the machine where it
-        FINISHES earliest.
-Both obey the same rules as the CP-SAT model: eligible machines, shifts, staff, material
-arrival, changeover time between different materials, fixed tasks. A job that cannot fit the
-horizon is reported as unscheduled, never silently dropped.
+One list scheduler, two job orders:
+  FCFS: jobs in arrival order.
+  EDD:  jobs by due date (rush first on ties, then arrival).
+Each job's tasks are then placed one after another, each as early as the rules allow, on the
+machine where its machine task can start earliest (ties: machine code). Earlier placements are
+never moved, but a task may go into any free gap before them: on a machine (respecting the
+changeover time to the jobs on both sides) and in a person's day. Without gap filling the
+baselines would be a strawman (DEFECT_LOG #18, #19).
+Both obey the same rules as the CP-SAT model and the same instance checks (validation.py).
+A job that cannot fit the horizon is reported as unscheduled, never silently dropped; a fixed
+task keeps blocking its machine even then.
 """
 
 from dataclasses import dataclass
-from typing import Literal
 
 from brimline_engine.scheduling.calendar import earliest_machine_start, earliest_manual_start
 from brimline_engine.scheduling.config import Durations
 from brimline_engine.scheduling.durations import eligible_machines, task_durations
 from brimline_engine.scheduling.model import Fixed, Instance, Job, JobPlan, Schedule, Slot, TaskKind
+from brimline_engine.scheduling.validation import check_instance
 
-Pick = Literal["start", "finish"]
+Busy = list[tuple[int, int, str]]  # (start, end, material) of machine tasks already placed
 
 
 @dataclass
 class _State:
-    machine_free: dict[str, int]
-    last_material: dict[str, str | None]
+    machines: dict[str, Busy]
     lanes: list[list[tuple[int, int]]]  # each person's busy [start, end) intervals
 
 
 def _earliest_gap(
     t0: int, duration: int, busy: list[tuple[int, int]], instance: Instance
 ) -> int | None:
-    """Earliest start >= t0 inside a shift where this person is free for `duration` minutes.
-    Tasks go into the first free gap, not only after the person's last task (DEFECT_LOG #18)."""
+    """Earliest start >= t0 inside a shift where this person is free for `duration` minutes."""
     t = t0
     while True:
         start = earliest_manual_start(t, duration, instance.shifts)
         if start is None:
             return None
         clash = next((e for s, e in busy if s < start + duration and start < e), None)
+        if clash is None:
+            return start
+        t = clash
+
+
+def _earliest_machine_gap(
+    t0: int, duration: int, material: str, busy: Busy, instance: Instance, d: Durations
+) -> int | None:
+    """Earliest start >= t0 inside a shift where the machine is free for `duration` minutes,
+    with the changeover time kept to every job of a different material before and after."""
+    t = t0
+    while True:
+        start = earliest_machine_start(t, instance.shifts)
+        if start is None or start + duration > instance.horizon:
+            return None
+        end = start + duration
+        clash = None
+        for s, e, other in busy:
+            gap = d.changeover_minutes if other != material else 0
+            if not (end + gap <= s or start >= e + gap):
+                clash = e + gap
+                break
         if clash is None:
             return start
         t = clash
@@ -57,10 +80,9 @@ def _place_manual(
 
 
 def _plan_job(
-    job: Job, instance: Instance, state: _State, fixed: Fixed | None, pick: Pick, d: Durations
-) -> tuple[JobPlan, list[list[tuple[int, int]]]] | None:
-    """The job's plan and the staff lanes after it, without changing `state`; None if it cannot
-    fit the horizon."""
+    job: Job, instance: Instance, state: _State, fixed: Fixed | None, d: Durations
+) -> tuple[JobPlan | None, list[list[tuple[int, int]]], tuple[str, int, int] | None]:
+    """(plan or None if it cannot fit, staff lanes after it, machine task to block)."""
     durations = task_durations(job, d)
     lanes = [list(busy) for busy in state.lanes]
     slots: list[Slot] = []
@@ -75,51 +97,46 @@ def _plan_job(
         slots.append(Slot(kind, start, start + durations[kind]))
         return start + durations[kind]
 
-    if fixed is None and "prep" in durations:
-        end = manual("prep", 0)
-        if end is None:
-            return None
-        t = end
-
     if fixed is not None:
-        machine, start = fixed.machine, fixed.start
+        machine, start = fixed.machine, fixed.start  # a fact: no checks, prep already done
     else:
-        options: list[tuple[tuple[int, str], str, int]] = []
+        if "prep" in durations:
+            end = manual("prep", 0)
+            if end is None:
+                return None, state.lanes, None
+            t = end
+        options = []
         for m in eligible_machines(job, instance.machines):
-            last = state.last_material[m.code]
-            gap = d.changeover_minutes if last is not None and last != job.material else 0
-            start_at = earliest_machine_start(
-                max(t, job.release, state.machine_free[m.code] + gap), instance.shifts
+            at = _earliest_machine_gap(
+                max(t, job.release),
+                durations["machine"],
+                job.material,
+                state.machines[m.code],
+                instance,
+                d,
             )
-            if start_at is None:
-                continue
-            key = start_at if pick == "start" else start_at + durations["machine"]
-            options.append(((key, m.code), m.code, start_at))
+            if at is not None:
+                options.append((at, m.code))
         if not options:
-            return None
-        _, machine, start = min(options)
+            return None, state.lanes, None
+        start, machine = min(options)
     end = start + durations["machine"]
-    if end > instance.horizon:
-        return None
+    block = (machine, start, end)
     slots.append(Slot("machine", start, end))
     t = end
-
     for kind in ("post", "finish"):
         if kind in durations:
             after = manual(kind, t)
             if after is None:
-                return None
+                return None, state.lanes, block if fixed is not None else None
             t = after
-    return JobPlan(job.id, machine, tuple(slots)), lanes
+    return JobPlan(job.id, machine, tuple(slots)), lanes, block
 
 
-def list_schedule(
-    instance: Instance, order: list[Job], pick: Pick, d: Durations, method: str
-) -> Schedule:
+def list_schedule(instance: Instance, order: list[Job], d: Durations, method: str) -> Schedule:
+    check_instance(instance, d)
     state = _State(
-        machine_free={m.code: 0 for m in instance.machines},
-        last_material={m.code: None for m in instance.machines},
-        lanes=[[] for _ in range(instance.staff)],
+        machines={m.code: [] for m in instance.machines}, lanes=[[] for _ in range(instance.staff)]
     )
     fixed = {f.job_id: f for f in instance.fixed}
     # Fixed tasks are already on their machines, so they are placed before anything else.
@@ -127,26 +144,21 @@ def list_schedule(
     plans: list[JobPlan] = []
     unscheduled: list[str] = []
     for job in ordered:
-        result = _plan_job(job, instance, state, fixed.get(job.id), pick, d)
-        if result is None:
+        plan, lanes, block = _plan_job(job, instance, state, fixed.get(job.id), d)
+        if block is not None:
+            state.machines[block[0]].append((block[1], block[2], job.material))
+        if plan is None:
             unscheduled.append(job.id)
             continue
-        plan, lanes = result
-        machine_slot = plan.slot("machine")
-        assert machine_slot is not None
         state.lanes = lanes
-        state.machine_free[plan.machine] = machine_slot.end
-        state.last_material[plan.machine] = job.material
         plans.append(plan)
     return Schedule(method, tuple(plans), tuple(unscheduled))
 
 
 def fcfs(instance: Instance, d: Durations) -> Schedule:
-    return list_schedule(
-        instance, sorted(instance.jobs, key=lambda j: j.arrival), "start", d, "fcfs"
-    )
+    return list_schedule(instance, sorted(instance.jobs, key=lambda j: j.arrival), d, "fcfs")
 
 
 def edd(instance: Instance, d: Durations) -> Schedule:
     order = sorted(instance.jobs, key=lambda j: (j.due, not j.rush, j.arrival))
-    return list_schedule(instance, order, "finish", d, "edd")
+    return list_schedule(instance, order, d, "edd")
