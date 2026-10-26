@@ -1,18 +1,21 @@
 """Scheduler benchmark: FCFS, EDD and CP-SAT on seeded instances. Writes eval/results/BENCH.md.
 
-    uv run python -m brimline_engine.scheduling.bench                 # everything (~15 min)
+    uv run python -m brimline_engine.scheduling.bench                 # everything (slow: 25 CP-SAT runs)
     uv run python -m brimline_engine.scheduling.bench --quick         # small smoke run
+    uv run python -m brimline_engine.scheduling.bench --recheck       # re-check saved plans only
 
 Three parts:
   1. main:     sizes 20/40/80 x seeds 1-5; FCFS, EDD, CP-SAT (simple model, EDD hint)
   2. (removed) simple vs circuit: the circuit model lost at 80 jobs and was removed (D49);
-     bench.json from that run still holds the comparison, and BENCH.md shows it if present
+     the comparison is in D49 and in bench.json at commit 45a15e6
   3. sweep:    CP-SAT simple at 5 s, 20 s and 60 s on the 80-job instances
-Metrics come from scheduling/metrics.py (scheduler-side code). The M4 checker will re-score
-these schedules independently.
+Metrics come from scheduling/metrics.py (scheduler-side code). Every plan is then saved
+(bench_plans.json.gz) and re-checked by the independent checker, which recomputes the metrics
+from raw inputs; the run fails if it finds a broken rule or a number that disagrees.
 """
 
 import argparse
+import gzip
 import json
 import sys
 from dataclasses import asdict
@@ -21,9 +24,12 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
+from brimline_engine.checker import load_rules
+from brimline_engine.checker.rescore import PLANS_FORMAT, ok, rescore
 from brimline_engine.scheduling.baselines import edd, fcfs
 from brimline_engine.scheduling.config import SchedulerConfig, scheduler_config
 from brimline_engine.scheduling.cpsat import solve
+from brimline_engine.scheduling.export import instance_doc, schedule_doc
 from brimline_engine.scheduling.generator import generate
 from brimline_engine.scheduling.metrics import evaluate
 from brimline_engine.scheduling.model import Instance, Schedule
@@ -60,14 +66,30 @@ def run(
     main: list[dict[str, Any]] = []
     variants: list[dict[str, Any]] = []
     sweep: list[dict[str, Any]] = []
+    instances: dict[str, Any] = {}
+    plans: list[dict[str, Any]] = []
+
+    def keep(section: str, inst: Instance, schedule: Schedule, limit: float) -> None:
+        plans.append(
+            {
+                "section": section,
+                "instance": inst.name,
+                "method": schedule.method,
+                "time_limit": limit,
+                "plan": schedule_doc(schedule),
+            }
+        )
+
     for n in sizes:
         for seed in seeds:
             inst = generate(seed, n, shop, cfg)
+            instances[inst.name] = instance_doc(inst)
             base_fcfs = fcfs(inst, cfg.durations)
             base_edd = edd(inst, cfg.durations)
             simple = solve(inst, cfg, hint=base_edd, deterministic_time=main_time)
             for schedule in (base_fcfs, base_edd, simple):
                 main.append(_record(inst, schedule, cfg, time_limit=main_time))
+                keep("main", inst, schedule, main_time)
             print(f"{inst.name}: done main", flush=True)
             if n == sweep_size:
                 for limit in sweep_times:
@@ -77,6 +99,7 @@ def run(
                         else solve(inst, cfg, hint=base_edd, deterministic_time=limit)
                     )
                     sweep.append(_record(inst, schedule, cfg, time_limit=limit))
+                    keep("sweep", inst, schedule, limit)
                 print(f"{inst.name}: done sweep", flush=True)
     return {
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -91,6 +114,7 @@ def run(
         "main": main,
         "variants": variants,
         "sweep": sweep,
+        "plans": {"format": PLANS_FORMAT, "instances": instances, "runs": plans},
     }
 
 
@@ -113,6 +137,40 @@ def _status(info: dict[str, Any]) -> str:
     return status
 
 
+def _checker_lines(c: dict[str, Any] | None) -> list[str]:
+    if c is None:
+        return []
+    applied = sum(m["applied"] for m in c["mutations"].values())
+    caught = sum(m["caught"] for m in c["mutations"].values())
+    lines = [
+        "## Independent checker",
+        "",
+        "`brimline_engine/checker` imports nothing from the scheduler (enforced by a test). It reads each saved",
+        "plan (`bench_plans.json.gz`) with the raw instance and `config/scheduler.toml`, recomputes durations,",
+        "shift windows and metrics itself, and checks every rule in `docs/SCHEDULE_RULES.md`.",
+        "",
+        f"- Plans checked: {c['plans_checked']} (FCFS, EDD and CP-SAT, including the time sweep);"
+        f" valid: {c['plans_valid']}; rule violations: {len(c['violations'])}.",
+        f"- Metric disagreements with the scheduler's numbers above: {len(c['metric_disagreements'])}.",
+        f"- Unscheduled jobs flagged suspicious (a warning, not a violation): {c['warnings']}.",
+        f"- Mutation test on these plans: {caught} of {applied} corrupted plans caught"
+        f" ({sum(m['applied'] > 0 for m in c['mutations'].values())} kinds of corruption applied;"
+        " a kind that needs fixed tasks cannot apply here, because bench instances have none, and"
+        " is tested on instances with fixed tasks in `tests/test_checker_mutations.py`).",
+        "",
+        "| Corruption | Expected rule | Applied | Caught |",
+        "|---|---|---|---|",
+    ]
+    for name, m in c["mutations"].items():
+        lines.append(f"| {name} | `{m['code']}` | {m['applied']} | {m['caught']} |")
+    lines.append("")
+    for row in c["metric_disagreements"] + c["violations"] + c["mutations_missed"]:
+        lines.append(f"- FINDING: {row}")
+    if c["metric_disagreements"] or c["violations"] or c["mutations_missed"]:
+        lines.append("")
+    return lines
+
+
 def write_bench_md(data: dict[str, Any], path: Path) -> None:
     main = data["main"]
     methods = ["fcfs", "edd", "cpsat-simple"]
@@ -120,8 +178,8 @@ def write_bench_md(data: dict[str, Any], path: Path) -> None:
         "# Scheduler benchmark",
         "",
         "> Generated by `make bench` from `eval/results/bench.json`. Do not edit by hand.",
-        "> **These metrics come from the scheduler's own code (`scheduling/metrics.py`).** The independent",
-        "> checker in M4 will re-validate every schedule and re-score it from raw inputs.",
+        "> These metrics come from the scheduler's own code (`scheduling/metrics.py`). Every plan is also",
+        "> re-checked and re-scored by the independent checker (see *Independent checker* below).",
         "",
         f"Generated {data['generated_at']}. Config `config/scheduler.toml` (checked {data['config_checked']}).",
         f"CP-SAT: seed {data['solver']['random_seed']}, {data['solver']['workers']} worker, deterministic time limit "
@@ -221,6 +279,7 @@ def write_bench_md(data: dict[str, Any], path: Path) -> None:
                 f" | {mean(float(r['info']['wall_seconds']) for r in rows):.1f} |"
             )
         lines.append("")
+    lines += _checker_lines(data.get("checker"))
     lines += [
         "## Limits",
         "",
@@ -231,9 +290,37 @@ def write_bench_md(data: dict[str, Any], path: Path) -> None:
         "- Utilisation = machine-task minutes, including cool-down on the machine, divided by all six machines",
         "  (including the lightly loaded CNC mill) times the finish time. It is comparable between methods, not",
         "  an absolute measure of how busy the shop is.",
+        "- At 80 jobs CP-SAT stops at FEASIBLE, far from proven optimal, and the result depends on the",
+        "  order the model is built in: before DEFECT_LOG #30 was fixed, the same instance gave visibly",
+        "  different objectives. Treat a single 80-job number as one sample, and the win/loss count as",
+        "  the robust result.",
+        "- The checker proves a plan obeys the rules and recomputes its numbers; it does not prove a plan is",
+        "  optimal, or that an unscheduled job could not have fitted (it only flags suspicious ones).",
         "",
     ]
     path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+
+
+def _finish(data: dict[str, Any], bundle: dict[str, Any], out: Path) -> int:
+    """Check every plan, write bench.json and BENCH.md, and fail if the checker disagrees."""
+    data["checker"] = rescore(bundle, data, load_rules())
+    (out / "bench.json").write_text(
+        json.dumps(data, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
+    write_bench_md(data, out / "BENCH.md")
+    print(f"Wrote {out / 'BENCH.md'}")
+    if not ok(data["checker"]):
+        print("The independent checker disagrees with this run: see BENCH.md", file=sys.stderr)
+        return 1
+    return 0
+
+
+def _recheck(out: Path) -> int:
+    """No solving: re-run the checker on the saved plans (for example after a checker change)."""
+    data = json.loads((out / "bench.json").read_text(encoding="utf-8"))
+    with gzip.open(out / "bench_plans.json.gz", "rt", encoding="utf-8") as f:
+        bundle = json.load(f)
+    return _finish(data, bundle, out)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -241,8 +328,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--quick", action="store_true", help="20 jobs, 2 seeds, 2 s limits (smoke run)"
     )
-    parser.add_argument("--out", type=Path, default=RESULTS)
+    parser.add_argument(
+        "--recheck", action="store_true", help="re-check the saved plans only, no solving"
+    )
+    # A smoke run must never overwrite the real results, so --quick writes to its own folder.
+    parser.add_argument("--out", type=Path, default=None, help="default eval/results")
     args = parser.parse_args(argv)
+    if args.out is None:
+        args.out = RESULTS / "quick" if args.quick else RESULTS
+    if args.recheck:
+        return _recheck(args.out)
     cfg = scheduler_config()
     main_time = cfg.solver.deterministic_time_seconds
     if args.quick:
@@ -250,12 +345,11 @@ def main(argv: list[str] | None = None) -> int:
     else:
         data = run([20, 40, 80], [1, 2, 3, 4, 5], main_time, [5.0, main_time, 60.0], 80, cfg)
     args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / "bench.json").write_text(
-        json.dumps(data, indent=2) + "\n", encoding="utf-8", newline="\n"
-    )
-    write_bench_md(data, args.out / "BENCH.md")
-    print(f"Wrote {args.out / 'BENCH.md'}")
-    return 0
+    bundle = data.pop("plans")
+    # mtime=0 keeps the file byte-identical between identical runs
+    with gzip.GzipFile(args.out / "bench_plans.json.gz", "wb", mtime=0) as f:
+        f.write(json.dumps(bundle, separators=(",", ":")).encode("utf-8"))
+    return _finish(data, bundle, args.out)
 
 
 if __name__ == "__main__":
