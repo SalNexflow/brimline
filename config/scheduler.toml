@@ -1,0 +1,37 @@
+# Scheduler settings: task durations, objective weights, solver limits (hard rule 8).
+# All times are whole minutes. Time 0 is Monday 08:00 in the shop (Europe/Berlin).
+# Invented for the fictional shop; change them here, never in code.
+
+checked = 2026-10-27
+
+[durations]
+prep_minutes = 15               # check the file, slice, load the machine
+setup_minutes = 15              # every machine task: bed prep, homing, first layer
+changeover_minutes = 30         # extra, between consecutive jobs of different material on a machine
+finish_base_minutes = 10        # quality check and packing, per job
+finish_minutes_per_part = 1     # ... plus this per part
+cool_down_minutes = { fdm = 20, resin = 45, cnc = 0 }   # part stays on the machine
+
+[staff]
+people_per_shift = 2            # manual tasks running at the same time
+
+[shifts]
+# Staffed hours, shop-local, ISO weekday (1 = Monday). Machines may only START a task inside a
+# shift but may run overnight; manual tasks must fit entirely inside one shift.
+weekdays = { 1 = ["08:00", "17:00"], 2 = ["08:00", "17:00"], 3 = ["08:00", "17:00"], 4 = ["08:00", "17:00"], 5 = ["08:00", "17:00"], 6 = ["09:00", "13:00"] }
+horizon_days = 14               # two weeks from Monday 08:00
+
+# The objective is one weighted sum (integers, scaled so 10 = one minute of lateness).
+# Rush jobs count their lateness and their "late" flag rush_multiplier times.
+[weights]
+late_job = 5000                 # each job finished after its due time
+tardiness_per_minute = 10       # each minute late
+changeover = 600                # each material change on a machine (about one hour of lateness)
+finish_time_per_minute = 1      # the last job's completion: a mild push to finish early
+unscheduled_job = 1000000       # a job that does not fit the horizon at all
+rush_multiplier = 3
+
+[solver]
+random_seed = 7
+workers = 1                          # one worker + deterministic time = repeatable results
+deterministic_time_seconds = 20.0    # CP-SAT's machine-independent work budget, roughly seconds
