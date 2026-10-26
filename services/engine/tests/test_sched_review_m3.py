@@ -1,6 +1,6 @@
 """Regression tests for the M3 adversarial review findings (DEFECT_LOG #19-#24).
 Inputs are the reviewer's triggering cases; expected answers are worked out by hand.
-Every case runs on all four methods, because they must obey exactly the same rules."""
+Every case runs on every method, because they must obey exactly the same rules."""
 
 from collections.abc import Callable
 
@@ -22,8 +22,7 @@ CFG: SchedulerConfig = BASE.model_copy(update={"durations": BARE, "weights": WEI
 METHODS: dict[str, Callable[[Instance], Schedule]] = {
     "fcfs": lambda i: fcfs(i, BARE),
     "edd": lambda i: edd(i, BARE),
-    "simple": lambda i: solve(i, CFG, variant="simple"),
-    "circuit": lambda i: solve(i, CFG, variant="circuit"),
+    "cpsat": lambda i: solve(i, CFG),
 }
 
 
@@ -113,16 +112,15 @@ def test_a_job_with_no_machine_work_is_rejected() -> None:
 
 def test_the_simple_model_says_its_optimum_is_for_a_stand_in() -> None:
     inst = instance(job("A", 1, 10))
-    assert solve(inst, CFG, variant="simple").info["objective"] == "stand-in changeovers"
-    assert solve(inst, CFG, variant="circuit").info["objective"] == "exact"
+    assert solve(inst, CFG).info["objective"] == "stand-in changeovers"
 
 
 def test_a_short_limit_on_80_jobs_still_returns_a_complete_schedule() -> None:
-    # Review finding 2: with a partial hint, the circuit model at 1 s returned UNKNOWN and every
-    # job unscheduled. With a complete hint it must do at least as well as EDD.
+    # Review finding 2: with a partial hint, a 1 s run returned UNKNOWN and every job
+    # unscheduled. With a complete hint (and the EDD fallback) it must do at least as well as EDD.
     inst = generate(1, 80, load_shop_config(), BASE)
     hint = edd(inst, BASE.durations)
-    s = solve(inst, BASE, variant="circuit", hint=hint, deterministic_time=1.0)
+    s = solve(inst, BASE, hint=hint, deterministic_time=1.0)
     assert len(s.unscheduled) <= len(hint.unscheduled)
     assert evaluate(inst, s, BASE.weights).objective <= evaluate(inst, hint, BASE.weights).objective
 

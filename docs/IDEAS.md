@@ -12,3 +12,6 @@ Bigger "nice to have" ideas, one-line pitch each. Not commitments.
 - **Batch eval runs:** use the Message Batches API for `make eval --fresh` at half the cost.
 - **Fix the colour rule mismatch for single-entry materials (quote prompt v2):** the prompt says "material and colour", the labelling rule says TPU and aluminium need no colour, so the model leaves them empty (q43, h04, h09, h28). Tune the prompt on the **dev split only**, and keep the pre-fix held-out score in `eval/results/RESULTS.md` as the honest number next to the new one.
 - **Dates as raw text, resolved by code:** have the model return the deadline exactly as written ("12 januari", "le 20/11") and let code parse it, with month names in every supported language, so a misread like "12 januari" becoming December (h19) cannot happen.
+- **Exact changeovers that actually help:** revisit AddCircuit (D49) with longer limits, several workers for a non-repeatable "best effort" mode, or a large-neighbourhood search that re-sequences one machine at a time.
+- **Split large jobs** across printers when one machine would make them late.
+- **Slicer-based print times** instead of the minutes-per-part formula.

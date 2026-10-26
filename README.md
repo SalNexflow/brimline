@@ -5,7 +5,8 @@ the work is planned across machines by a constraint solver, every plan is proven
 and the day is re-planned when something breaks. AI reads language and explains; code decides prices, dates,
 permissions, and schedules.
 
-> Status: **M2 (pricing rules and AI quote builder).** A customer message becomes an AI-drafted quote that code prices
+> Status: **M3 (scheduler, baselines, benchmark).** A CP-SAT scheduler plans the work across machines and shifts and is
+> benchmarked against two greedy baselines in `eval/results/BENCH.md`. Earlier: **M2 (pricing rules and AI quote builder).** A customer message becomes an AI-drafted quote that code prices
 > and staff approve into an order. Earlier: demo login for four roles, orders by hand, append-only audit log.
 > All data is synthetic.
 > Results tables will appear here only once `make eval` and `make bench` produce them.
@@ -44,7 +45,7 @@ First run: `make setup` then `make gate`.
 | `api-types` | Regenerate the web's TypeScript types from the engine's OpenAPI schema |
 | `gate-selftest` | Proves the gate fails: plants deliberate errors in a throwaway copy and checks each is caught at the right step. Refuses to run on a dirty git tree |
 | `eval` | Run the evaluations and write `eval/results/RESULTS.md` (needs model access; see `eval/README.md`) |
-| `bench` | Scheduler benchmark against baselines (from M3) |
+| `bench` | Scheduler benchmark against two baselines; writes `eval/results/BENCH.md` (about 15 minutes; `--quick` for a smoke run) |
 
 ## Demo login
 

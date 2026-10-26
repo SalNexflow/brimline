@@ -10,13 +10,12 @@ tasks); everything ends within the horizon.
 Objective (weights from config/scheduler.toml): late jobs and minutes late (rush jobs count
 more), changeovers, the finish time, and a large penalty for each job left unscheduled.
 
-Two ways to handle changeovers:
-  simple   pairwise: any two jobs of different material on the same machine are separated by
-           the changeover time. The objective counts *distinct materials per machine* as a
-           stand-in for the number of changeovers, so its "OPTIMAL" is optimal for that stand-in,
-           not for the real changeover count (info["objective"] says which).
-  circuit  AddCircuit per machine chooses the job sequence explicitly, so the changeover time
-           applies between consecutive jobs and the objective counts changeovers exactly.
+Changeovers ("simple" model): any two jobs of different material on the same machine are
+separated by the changeover time (equivalent to the rule for consecutive jobs). The objective
+counts *distinct materials per machine* as a stand-in for the number of changeovers, so its
+"OPTIMAL" is optimal for that stand-in, not for the real changeover count; info["objective"]
+says so. An exact AddCircuit model was built and measured and lost at 80 jobs, so it was removed
+(docs/DECISIONS.md D49).
 Repeatable: fixed seed, one worker, deterministic time limit. The search is hinted with a full
 solution built from the EDD schedule (every variable gets a value). If CP-SAT still finds no
 solution within the limit, the EDD schedule is returned, labelled as a fallback in info.
@@ -26,7 +25,6 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from itertools import pairwise
-from typing import Literal
 
 from ortools.sat.python import cp_model
 
@@ -45,7 +43,7 @@ from brimline_engine.scheduling.model import (
 )
 from brimline_engine.scheduling.validation import check_instance
 
-Variant = Literal["simple", "circuit"]
+METHOD = "cpsat-simple"  # the name in schedules and in eval/results/BENCH.md
 
 
 @dataclass
@@ -79,10 +77,6 @@ class _Extras:
         default_factory=dict
     )  # (machine, material)
     machine_used: dict[str, cp_model.IntVar] = field(default_factory=dict)
-    arcs: dict[str, dict[tuple[str | None, str | None], cp_model.IntVar]] = field(
-        default_factory=dict
-    )
-    empty: dict[str, cp_model.IntVar] = field(default_factory=dict)
 
 
 def _domain(ranges: list[tuple[int, int]]) -> cp_model.Domain:
@@ -149,7 +143,6 @@ def solve(
     instance: Instance,
     cfg: SchedulerConfig,
     *,
-    variant: Variant = "simple",
     hint: Schedule | None = None,
     deterministic_time: float | None = None,
     weights: Weights | None = None,
@@ -205,10 +198,7 @@ def solve(
     extras = _Extras(finish=model.new_int_var(0, finish_ub, "finish_time"))
     changeover_terms: list[cp_model.LinearExprT] = []
     for code, jobs in machine_intervals.items():
-        if variant == "simple":
-            changeover_terms.append(_simple_changeovers(model, code, jobs, co_time, extras))
-        else:
-            changeover_terms.append(_circuit_changeovers(model, code, jobs, co_time, extras))
+        changeover_terms.append(_simple_changeovers(model, code, jobs, co_time, extras))
 
     # Lateness and finish time.
     objective: list[cp_model.LinearExprT] = []
@@ -247,9 +237,9 @@ def solve(
 
     found = status in (cp_model.OPTIMAL, cp_model.FEASIBLE)
     info: dict[str, object] = {
-        "variant": variant,
+        "variant": "simple",
         "status": solver.status_name(status),
-        "objective": "stand-in changeovers" if variant == "simple" else "exact",
+        "objective": "stand-in changeovers",
         "solver_objective": solver.objective_value if found else None,
         "solver_bound": solver.best_objective_bound if found else None,
         "deterministic_time": round(solver.deterministic_time, 2),
@@ -257,7 +247,7 @@ def solve(
         "hinted": hint is not None,
         "fallback": None,
     }
-    method = f"cpsat-{variant}"
+    method = METHOD
     if not found:
         if hint is not None:
             # Nothing found in the limit: give back the hint, saying so, rather than nothing.
@@ -310,43 +300,6 @@ def _simple_changeovers(
     return sum(used.values()) - machine_used
 
 
-def _circuit_changeovers(
-    model: cp_model.CpModel, code: str, jobs: list[_JobVars], co_time: int, extras: _Extras
-) -> cp_model.LinearExprT:
-    """The job sequence on this machine as a circuit; returns the exact number of changeovers."""
-    arcs: list[tuple[int, int, cp_model.LiteralT]] = []
-    named: dict[tuple[str | None, str | None], cp_model.IntVar] = {}
-    empty = model.new_bool_var(f"empty_{code}")
-    extras.empty[code] = empty
-    model.add_bool_or([jv.on[code] for jv in jobs] + [empty])
-    for jv in jobs:
-        model.add_implication(empty, ~jv.on[code])
-    arcs.append((0, 0, empty))
-    changes: list[cp_model.IntVar] = []
-    for i, a in enumerate(jobs, start=1):
-        named[(None, a.job.id)] = model.new_bool_var(f"first_{code}_{a.job.id}")
-        named[(a.job.id, None)] = model.new_bool_var(f"last_{code}_{a.job.id}")
-        arcs += [
-            (0, i, named[(None, a.job.id)]),
-            (i, 0, named[(a.job.id, None)]),
-            (i, i, ~a.on[code]),
-        ]
-        for k, b in enumerate(jobs, start=1):
-            if i == k:
-                continue
-            follows = model.new_bool_var(f"next_{code}_{a.job.id}_{b.job.id}")
-            named[(a.job.id, b.job.id)] = follows
-            arcs.append((i, k, follows))
-            different = a.job.material != b.job.material
-            gap = co_time if different and not (a.fixed and b.fixed) else 0
-            model.add(b.starts["machine"] >= a.end("machine") + gap).only_enforce_if(follows)
-            if different:
-                changes.append(follows)
-    extras.arcs[code] = named
-    model.add_circuit(arcs)
-    return sum(changes)
-
-
 def _add_hint(
     model: cp_model.CpModel, all_vars: list[_JobVars], extras: _Extras, hint: Schedule
 ) -> None:
@@ -390,12 +343,3 @@ def _add_hint(
         )
     for code, var in extras.machine_used.items():
         model.add_hint(var, code in machine_of.values())
-    for code, named in extras.arcs.items():
-        sequence = sorted(
-            (starts[j], j) for j, m in machine_of.items() if m == code and j in starts
-        )
-        order = [j for _, j in sequence]
-        model.add_hint(extras.empty[code], not order)
-        chosen = set(pairwise([None, *order, None])) if order else set()
-        for key, var in named.items():
-            model.add_hint(var, key in chosen)

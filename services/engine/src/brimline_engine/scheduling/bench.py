@@ -5,7 +5,8 @@
 
 Three parts:
   1. main:     sizes 20/40/80 x seeds 1-5; FCFS, EDD, CP-SAT (simple model, EDD hint)
-  2. variants: CP-SAT simple vs circuit on the 80-job instances, same time limit
+  2. (removed) simple vs circuit: the circuit model lost at 80 jobs and was removed (D49);
+     bench.json from that run still holds the comparison, and BENCH.md shows it if present
   3. sweep:    CP-SAT simple at 5 s, 20 s and 60 s on the 80-job instances
 Metrics come from scheduling/metrics.py (scheduler-side code). The M4 checker will re-score
 these schedules independently.
@@ -22,7 +23,7 @@ from typing import Any
 
 from brimline_engine.scheduling.baselines import edd, fcfs
 from brimline_engine.scheduling.config import SchedulerConfig, scheduler_config
-from brimline_engine.scheduling.cpsat import Variant, solve
+from brimline_engine.scheduling.cpsat import solve
 from brimline_engine.scheduling.generator import generate
 from brimline_engine.scheduling.metrics import evaluate
 from brimline_engine.scheduling.model import Instance, Schedule
@@ -64,29 +65,19 @@ def run(
             inst = generate(seed, n, shop, cfg)
             base_fcfs = fcfs(inst, cfg.durations)
             base_edd = edd(inst, cfg.durations)
-            simple = solve(inst, cfg, variant="simple", hint=base_edd, deterministic_time=main_time)
+            simple = solve(inst, cfg, hint=base_edd, deterministic_time=main_time)
             for schedule in (base_fcfs, base_edd, simple):
                 main.append(_record(inst, schedule, cfg, time_limit=main_time))
             print(f"{inst.name}: done main", flush=True)
             if n == sweep_size:
-                circuit = solve(
-                    inst, cfg, variant="circuit", hint=base_edd, deterministic_time=main_time
-                )
-                variants += [
-                    _record(inst, simple, cfg, time_limit=main_time),
-                    _record(inst, circuit, cfg, time_limit=main_time),
-                ]
                 for limit in sweep_times:
-                    variant: Variant = "simple"
                     schedule = (
                         simple
                         if limit == main_time
-                        else solve(
-                            inst, cfg, variant=variant, hint=base_edd, deterministic_time=limit
-                        )
+                        else solve(inst, cfg, hint=base_edd, deterministic_time=limit)
                     )
                     sweep.append(_record(inst, schedule, cfg, time_limit=limit))
-                print(f"{inst.name}: done variants and sweep", flush=True)
+                print(f"{inst.name}: done sweep", flush=True)
     return {
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "config_checked": cfg.checked.isoformat(),
