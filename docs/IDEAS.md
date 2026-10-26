@@ -15,3 +15,6 @@ Bigger "nice to have" ideas, one-line pitch each. Not commitments.
 - **Exact changeovers that actually help:** revisit AddCircuit (D49) with longer limits, several workers for a non-repeatable "best effort" mode, or a large-neighbourhood search that re-sequences one machine at a time.
 - **Split large jobs** across printers when one machine would make them late.
 - **Slicer-based print times** instead of the minutes-per-part formula.
+- **Disruptions as raw checker input (M6):** pass machine-down and staff-off events into the plan document so the checker applies them itself, instead of trusting changed shifts or staff (today a mismatch with the config is refused, D62).
+- **Measure solver variance:** run each 80-job instance under several equivalent model orders or seeds and report the spread, since one CP-SAT run at 80 jobs is one sample (D67).
+- **Near-miss mutations:** generated changes that must stay valid (a gap of exactly the changeover time, tasks that just touch), to measure false alarms the way mutations measure misses.
