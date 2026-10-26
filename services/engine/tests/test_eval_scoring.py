@@ -107,3 +107,13 @@ def test_summary_rates_by_hand() -> None:
     assert s["field_accuracy"] == 11 / 12
     assert s["all_correct"] == 0.5
     assert s["guess_rate"] is None  # no unknown fields in these labels
+
+
+def test_safe_misses_and_harmful_errors_are_told_apart() -> None:
+    # Label: 20 PETG-BLACK by Friday. Empty material = safe miss; wrong quantity = harmful error.
+    s = score_item(ITEM, draft(21, None, FRIDAY), MONDAY)
+    assert (s.safe_misses, s.harmful_errors) == (1, 1)
+    # A guess on an unknown field is also a harmful error.
+    g = score_item(VAGUE, draft(10, None, NONE), MONDAY)
+    assert (g.guessed, g.harmful_errors, g.safe_misses) == (1, 1, 0)
+    assert summarise([s, g])["harmful_errors"] == 2

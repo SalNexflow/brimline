@@ -11,6 +11,7 @@ generated, never edited by hand (hard rule 11).
 """
 
 import argparse
+import hashlib
 import json
 import sys
 from dataclasses import asdict
@@ -35,6 +36,10 @@ class StopEvalError(Exception):
     pass
 
 
+def message_hash(message: str, received_at: str) -> str:
+    return hashlib.sha256(f"{received_at}\n{message}".encode()).hexdigest()
+
+
 def load_items(split: str) -> list[dict[str, Any]]:
     items = [
         json.loads(line)
@@ -56,8 +61,13 @@ def _cached_or_call(
 ) -> tuple[dict[str, Any], bool]:
     """The saved reply for this item, or a new call. Returns (entry, was_cached)."""
     path = cache_dir / f"{item['id']}.json"
+    digest = message_hash(item["message"], item["received_at"])
     if path.exists() and not fresh:
-        return json.loads(path.read_text(encoding="utf-8")), True
+        saved = json.loads(path.read_text(encoding="utf-8"))
+        # A reply only counts for the exact message it answered (DEFECT_LOG #16): if the text
+        # was edited since, call the model again instead of scoring a stale reply.
+        if saved.get("message_sha256") == digest:
+            return saved, True
     if client is None:
         raise StopEvalError(
             f"no saved reply for {item['id']} with {model}, and no live client. "
@@ -76,6 +86,7 @@ def _cached_or_call(
         raise StopEvalError(f"the API refused the credentials: {record.error}")
     entry = {
         "id": item["id"],
+        "message_sha256": digest,
         "model": model,
         "prompt_version": record.prompt_version,
         "called_at": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -138,6 +149,8 @@ def run_model(
                 "checks": score.checks,
                 "flagged": score.flagged,
                 "guessed": score.guessed,
+                "safe_misses": score.safe_misses,
+                "harmful_errors": score.harmful_errors,
                 "flagged_for_staff": score.flagged_for_staff,
                 "cost_micro_usd": record["cost_micro_usd"],
                 "latency_ms": record["latency_ms"],
@@ -152,7 +165,7 @@ def run_model(
     groups: dict[str, list[ItemScore]] = {"all": scores}
     for name in ("dev", "heldout"):
         groups[name] = [s for s in scores if s.split == name]
-    for tag in ("clear", "vague", "contradictory", "multilingual", "injection"):
+    for tag in ("clear", "vague", "contradictory", "multilingual", "injection", "hard"):
         groups[f"tag:{tag}"] = [s for s in scores if tag in s.tags]
     costs = [p["cost_micro_usd"] for p in per_item]
     latencies = sorted(p["latency_ms"] for p in per_item)
@@ -181,12 +194,44 @@ def _pct(value: float | None) -> str:
     return "n/a" if value is None else f"{value * 100:.1f}%"
 
 
+_METRICS = [
+    ("Items", "items", False),
+    ("Schema-valid", "schema_valid", True),
+    ("Field accuracy", "field_accuracy", True),
+    ("All fields right", "all_correct", True),
+    ("Quantity", "quantity_accuracy", True),
+    ("Material", "material_accuracy", True),
+    ("Due date", "due_date_accuracy", True),
+    ("Rush", "rush_accuracy", True),
+    ("Guess rate", "guess_rate", True),
+    ("Injection flagged", "injection_flagged_for_staff", True),
+    ("Injection fields unaffected", "injection_fields_unaffected", True),
+    ("Safe misses", "safe_misses", False),
+    ("Harmful errors", "harmful_errors", False),
+]
+
+
+def _row(label: str, s: dict[str, Any] | None) -> str:
+    if s is None:
+        return f"| {label} |" + " — |" * len(_METRICS)
+    cells = [_pct(s[key]) if is_rate else str(s[key]) for _, key, is_rate in _METRICS]
+    cells[8] += f" ({s['unknown_fields']} unknown)"
+    return f"| {label} | " + " | ".join(cells) + " |"
+
+
 def write_results_md(results_dir: Path) -> Path:
-    """RESULTS.md from every quote_extract_*.json present. Generated: never edit by hand."""
+    """RESULTS.md from every full-dataset quote_extract_<model>.json present, models side by side.
+    Generated: never edit by hand."""
     runs = [
         json.loads(p.read_text(encoding="utf-8"))
         for p in sorted(results_dir.glob("quote_extract_*.json"))
     ]
+    runs = [r for r in runs if r["split"] == "all"]
+    items = load_items("all")
+    counts = {name: sum(i["split"] == name for i in items) for name in ("dev", "heldout")}
+    hard = sum("hard" in i["tags"] for i in items)
+    header = "| Model | " + " | ".join(label for label, _, _ in _METRICS) + " |"
+    rule = "|---" * (len(_METRICS) + 1) + "|"
     lines = [
         "# Evaluation results",
         "",
@@ -195,35 +240,63 @@ def write_results_md(results_dir: Path) -> Path:
         "",
         "## Quote extraction (M2)",
         "",
-        "Dataset: `eval/datasets/quote_requests.jsonl`, 45 fictional messages (33 dev, 12 held out),",
-        "hand-labelled. The model only reads; prices and dates are computed by code and are not part of",
-        "this score except that the due date is the model's rule *resolved by our code*.",
+        f"Dataset: `eval/datasets/quote_requests.jsonl`, {len(items)} fictional messages "
+        f"({counts['dev']} dev, {counts['heldout']} held out; {hard} of them from the independently written",
+        "hard set). The model only reads; prices and dates are computed by code. The due date is scored",
+        "after our code resolves the model's rule. Tune on dev only; held-out is the honest number.",
         "",
     ]
     if not runs:
         lines += ["No runs recorded yet. Run `make eval` with model access to produce results.", ""]
-    for run in runs:
+    else:
         lines += [
-            f"### {run['model']} ({run['prompt_version']}, effort {run['effort']}), split `{run['split']}`",
+            "### Runs",
             "",
-            f"Generated {run['generated_at']} · total cost ${run['cost']['total_usd']:.4f}"
-            f" · mean ${run['cost']['mean_usd_per_request'] or 0:.5f}/request"
-            f" · median latency {run['cost']['median_latency_ms']} ms"
-            f" · {run['cost']['requests_with_cache_reads']} requests read the prompt cache",
-            "",
-            "| Group | Items | Schema-valid | Field accuracy | All fields right | Quantity | Material | Due date | Rush | Guess rate | Injection flagged | Injection fields unaffected |",
-            "|---|---|---|---|---|---|---|---|---|---|---|---|",
+            "| Model | Prompt | Effort | Generated (UTC) | Items | Total cost | Mean / request | Median latency | Cache reads |",
+            "|---|---|---|---|---|---|---|---|---|",
         ]
-        for name, s in run["summary"].items():
+        for r in runs:
+            c = r["cost"]
             lines.append(
-                f"| {name} | {s['items']} | {_pct(s['schema_valid'])} | {_pct(s['field_accuracy'])} | {_pct(s['all_correct'])}"
-                f" | {_pct(s['quantity_accuracy'])} | {_pct(s['material_accuracy'])} | {_pct(s['due_date_accuracy'])}"
-                f" | {_pct(s['rush_accuracy'])} | {_pct(s['guess_rate'])} ({s['unknown_fields']} unknown)"
-                f" | {_pct(s['injection_flagged_for_staff'])} | {_pct(s['injection_fields_unaffected'])} |"
+                f"| {r['model']} | {r['prompt_version']} | {r['effort']} | {r['generated_at']} | {len(r['items'])}"
+                f" | ${c['total_usd']:.4f} | ${c['mean_usd_per_request'] or 0:.5f} | {c['median_latency_ms']} ms"
+                f" | {c['requests_with_cache_reads']} of {len(r['items'])} |"
             )
-        misses = [i["id"] for i in run["items"] if not i["all_correct"]]
-        lines += ["", f"Items with at least one wrong field: {', '.join(misses) or 'none'}.", ""]
+        lines += [
+            "",
+            "Costs use the provider's peak price, so the real bill is the same or lower.",
+            "",
+        ]
+        for group, title in (
+            ("dev", "Dev set"),
+            ("heldout", "Held-out set"),
+            ("all", "Everything"),
+        ):
+            lines += [f"### {title}", "", header, rule]
+            lines += [_row(r["model"], r["summary"].get(group)) for r in runs]
+            lines.append("")
+        tags = sorted({k for r in runs for k in r["summary"] if k.startswith("tag:")})
+        lines += [
+            "### All fields right, by tag (all splits)",
+            "",
+            "| Tag | " + " | ".join(r["model"] for r in runs) + " |",
+            "|---" * (len(runs) + 1) + "|",
+        ]
+        for tag in tags:
+            cells = []
+            for r in runs:
+                s = r["summary"].get(tag)
+                cells.append("—" if s is None else f"{_pct(s['all_correct'])} of {s['items']}")
+            lines.append(f"| {tag.removeprefix('tag:')} | " + " | ".join(cells) + " |")
+        lines.append("")
+        for r in runs:
+            misses = [f"{i['id']} ({i['split']})" for i in r["items"] if not i["all_correct"]]
+            lines.append(f"Misses, {r['model']}: {', '.join(misses) or 'none'}.")
+        lines.append("")
     lines += [
+        "*Safe miss* = the label has a value but the model left the field empty (staff will ask).",
+        "*Harmful error* = the model gave a value that is not the label's, including guesses. Both are",
+        "wrong; harmful errors matter more because they look like real answers.",
         "Definitions: *guess rate* = of the fields the label says are unknown, the share the model",
         "filled in instead of leaving empty. *Injection flagged* = the model put the injected request in",
         "`requests_for_staff`. *Injection fields unaffected* = every scored field still matches the label.",

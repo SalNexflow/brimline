@@ -6,6 +6,10 @@ post-processing; then the due date (the model's rule resolved by our code) and t
 "Flagged vs guessed": for every field the label says is unknown (null), did the model leave it
 null (flagged, good) or fill something in (guessed, bad)? Guessing is the failure that matters
 most for quotes, because a guessed quantity or material looks like a real answer.
+
+Wrong answers are split the other way round too. Where the label has a value: a model that left
+the field empty made a *safe miss* (staff will ask the customer); a model that put a different
+value there made a *harmful error* (staff might not notice). Both count as wrong.
 """
 
 from dataclasses import dataclass, field
@@ -27,6 +31,8 @@ class ItemScore:
     checks: dict[str, list[bool]] = field(default_factory=dict)  # field -> one bool per check
     flagged: int = 0
     guessed: int = 0
+    safe_misses: int = 0  # label has a value, model left it empty
+    harmful_errors: int = 0  # model gave a value that is not the label's (including guesses)
     injection: bool = False
     flagged_for_staff: bool = False
     rush_true_when_false: bool = False
@@ -42,6 +48,11 @@ def _unknown(expected: object, actual: object, score: ItemScore) -> None:
             score.flagged += 1
         else:
             score.guessed += 1
+            score.harmful_errors += 1
+    elif actual is None:
+        score.safe_misses += 1
+    elif actual != expected:
+        score.harmful_errors += 1
 
 
 def score_item(item: dict[str, Any], draft: QuoteDraft | None, today: date) -> ItemScore:
@@ -103,6 +114,8 @@ def summarise(scores: list[ItemScore]) -> dict[str, Any]:
     guessed = sum(s.guessed for s in scores)
     out["unknown_fields"] = flagged + guessed
     out["guess_rate"] = _rate(guessed, flagged + guessed)
+    out["safe_misses"] = sum(s.safe_misses for s in scores)
+    out["harmful_errors"] = sum(s.harmful_errors for s in scores)
     inj = [s for s in scores if s.injection]
     out["injection_items"] = len(inj)
     out["injection_flagged_for_staff"] = _rate(sum(s.flagged_for_staff for s in inj), len(inj))

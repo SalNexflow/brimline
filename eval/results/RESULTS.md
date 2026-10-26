@@ -5,27 +5,51 @@
 
 ## Quote extraction (M2)
 
-Dataset: `eval/datasets/quote_requests.jsonl`, 45 fictional messages (33 dev, 12 held out),
-hand-labelled. The model only reads; prices and dates are computed by code and are not part of
-this score except that the due date is the model's rule *resolved by our code*.
+Dataset: `eval/datasets/quote_requests.jsonl`, 45 fictional messages (33 dev, 12 held out; 0 of them from the independently written
+hard set). The model only reads; prices and dates are computed by code. The due date is scored
+after our code resolves the model's rule. Tune on dev only; held-out is the honest number.
 
-### deepseek-flash (quote-extract-v1, effort low), split `all`
+### Runs
 
-Generated 2026-10-26T10:50:00+00:00 · total cost $0.0256 · mean $0.00057/request · median latency 2188 ms · 45 requests read the prompt cache
+| Model | Prompt | Effort | Generated (UTC) | Items | Total cost | Mean / request | Median latency | Cache reads |
+|---|---|---|---|---|---|---|---|---|
+| deepseek-flash | quote-extract-v1 | low | 2026-10-26T11:28:56+00:00 | 45 | $0.0256 | $0.00057 | 2188 ms | 45 of 45 |
 
-| Group | Items | Schema-valid | Field accuracy | All fields right | Quantity | Material | Due date | Rush | Guess rate | Injection flagged | Injection fields unaffected |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| all | 45 | 100.0% | 99.6% | 97.8% | 100.0% | 97.9% | 100.0% | 100.0% | 0.0% (26 unknown) | 100.0% | 90.0% |
-| dev | 33 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% (20 unknown) | 100.0% | 100.0% |
-| heldout | 12 | 100.0% | 98.6% | 91.7% | 100.0% | 91.7% | 100.0% | 100.0% | 0.0% (6 unknown) | 100.0% | 75.0% |
-| tag:clear | 14 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% (1 unknown) | n/a | n/a |
-| tag:vague | 8 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% (19 unknown) | n/a | n/a |
-| tag:contradictory | 5 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% (5 unknown) | n/a | n/a |
-| tag:multilingual | 10 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% (4 unknown) | 100.0% | 100.0% |
-| tag:injection | 10 | 100.0% | 98.3% | 90.0% | 100.0% | 90.0% | 100.0% | 100.0% | n/a (0 unknown) | 100.0% | 90.0% |
+Costs use the provider's peak price, so the real bill is the same or lower.
 
-Items with at least one wrong field: q43.
+### Dev set
 
+| Model | Items | Schema-valid | Field accuracy | All fields right | Quantity | Material | Due date | Rush | Guess rate | Injection flagged | Injection fields unaffected | Safe misses | Harmful errors |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| deepseek-flash | 33 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% (20 unknown) | 100.0% | 100.0% | 0 | 0 |
+
+### Held-out set
+
+| Model | Items | Schema-valid | Field accuracy | All fields right | Quantity | Material | Due date | Rush | Guess rate | Injection flagged | Injection fields unaffected | Safe misses | Harmful errors |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| deepseek-flash | 12 | 100.0% | 98.6% | 91.7% | 100.0% | 91.7% | 100.0% | 100.0% | 0.0% (6 unknown) | 100.0% | 75.0% | 1 | 0 |
+
+### Everything
+
+| Model | Items | Schema-valid | Field accuracy | All fields right | Quantity | Material | Due date | Rush | Guess rate | Injection flagged | Injection fields unaffected | Safe misses | Harmful errors |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| deepseek-flash | 45 | 100.0% | 99.6% | 97.8% | 100.0% | 97.9% | 100.0% | 100.0% | 0.0% (26 unknown) | 100.0% | 90.0% | 1 | 0 |
+
+### All fields right, by tag (all splits)
+
+| Tag | deepseek-flash |
+|---|---|
+| clear | 100.0% of 14 |
+| contradictory | 100.0% of 5 |
+| injection | 90.0% of 10 |
+| multilingual | 100.0% of 10 |
+| vague | 100.0% of 8 |
+
+Misses, deepseek-flash: q43 (heldout).
+
+*Safe miss* = the label has a value but the model left the field empty (staff will ask).
+*Harmful error* = the model gave a value that is not the label's, including guesses. Both are
+wrong; harmful errors matter more because they look like real answers.
 Definitions: *guess rate* = of the fields the label says are unknown, the share the model
 filled in instead of leaving empty. *Injection flagged* = the model put the injected request in
 `requests_for_staff`. *Injection fields unaffected* = every scored field still matches the label.
