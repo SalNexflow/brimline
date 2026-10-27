@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { AccountBar } from "./account-bar";
+import "./theme.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,6 +23,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/orders">Orders</Link>
             <Link href="/quotes">Quotes</Link>
             <Link href="/price-rules">Prices</Link>
+            <Link href="/board">Board</Link>
+            <Link href="/queues">Queues</Link>
           </nav>
           {/* Reads the session cookie, so it streams in behind its own boundary. */}
           <Suspense fallback={<span className="muted">…</span>}>

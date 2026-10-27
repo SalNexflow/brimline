@@ -17,6 +17,13 @@ export type QuoteSummary = components["schemas"]["QuoteSummary"];
 export type QuoteDetail = components["schemas"]["QuoteDetail"];
 export type QuoteLine = components["schemas"]["QuoteLineOut"];
 export type PriceRules = components["schemas"]["PriceRulesOut"];
+export type Board = components["schemas"]["BoardOut"];
+export type Schedule = components["schemas"]["ScheduleOut"];
+export type BoardTask = components["schemas"]["BoardTask"];
+export type BoardJob = components["schemas"]["BoardJob"];
+export type PlanningRun = components["schemas"]["PlanningRun"];
+export type Queues = components["schemas"]["QueuesOut"];
+export type QueueTask = components["schemas"]["QueueTask"];
 
 function baseUrl(): string {
   const url = process.env.ENGINE_URL;

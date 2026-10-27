@@ -152,9 +152,9 @@ def discard_schedule(
 
 
 @router.get("/queues")
-def get_queues(conn: Conn, user: CurrentUser) -> queues.QueuesOut:
+def get_queues(conn: Conn, user: CurrentUser, tz: Tz) -> queues.QueuesOut:
     try:
-        return queues.get_queues(conn, user.actor)
+        return queues.get_queues(conn, user.actor, tz)
     except tuple(ERRORS) as exc:
         raise _http_error(exc) from None
 

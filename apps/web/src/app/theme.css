@@ -1,0 +1,77 @@
+/* The look of Brimline, in one file: colours, type and sizes as CSS custom properties.
+   Components use only these tokens, so a new visual direction means editing this file. */
+:root {
+  --color-bg: #ffffff;
+  --color-fg: #1a1a1a;
+  --color-muted: #5c5c5c;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --space-page: clamp(1rem, 4vw, 3rem);
+  --color-border: #d4d4d4;
+  --color-accent: #b4610e;
+  --color-error-bg: #fdecea;
+  --color-error-fg: #8a1c11;
+  --color-surface: #f6f6f6;
+
+  /* Board and badges */
+  --color-ok-bg: #e7f5ea;
+  --color-ok-fg: #1d5e2c;
+  --color-warn-bg: #fff4d6;
+  --color-warn-fg: #6b4b00;
+  --color-focus: #1a5fb4;
+  --color-now: #c01c28;
+  --color-shift: #f1efe9;
+  --color-late: #a51d2d;
+  --bar-1: #2a5f9e;
+  --bar-2: #1f6e47;
+  --bar-3: #6f45a8;
+  --bar-4: #9a4f08;
+  --bar-5: #1d6b77;
+  --bar-6: #94285f;
+  --bar-fg: #ffffff;
+  --bar-manual: #5c5c5c;
+
+  /* Sizes */
+  --board-day-width: 16rem;
+  --board-row-height: 2.75rem;
+  --board-label-width: 9rem;
+  --bar-radius: 4px;
+  --radius: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #111111;
+    --color-fg: #ededed;
+    --color-muted: #a3a3a3;
+    --color-border: #3a3a3a;
+    --color-accent: #f2a33a;
+    --color-error-bg: #3b1714;
+    --color-error-fg: #ffb4a9;
+    --color-surface: #1c1c1c;
+
+    --color-ok-bg: #16321e;
+    --color-ok-fg: #9be3ad;
+    --color-warn-bg: #3a2e0a;
+    --color-warn-fg: #f5d77a;
+    --color-focus: #78aeed;
+    --color-now: #ff6b6b;
+    --color-shift: #1f1d1a;
+    --color-late: #ff8a8a;
+    --bar-1: #4f8fdb;
+    --bar-2: #3fae78;
+    --bar-3: #a882e0;
+    --bar-4: #e08a2e;
+    --bar-5: #3eb0c2;
+    --bar-6: #d4569a;
+    --bar-fg: #0b0b0b;
+    --bar-manual: #a0a0a0;
+  }
+}
+
+/* Narrow screens: a smaller board (it scrolls sideways inside its own box). */
+@media (max-width: 40rem) {
+  :root {
+    --board-label-width: 5.5rem;
+    --board-day-width: 12rem;
+  }
+}

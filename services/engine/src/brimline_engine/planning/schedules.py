@@ -90,6 +90,11 @@ class BoardTask(BaseModel):
     actual_end: datetime | None
 
 
+class TimeWindow(BaseModel):
+    start: datetime
+    end: datetime
+
+
 class Unplannable(BaseModel):
     job: str
     part: str
@@ -107,6 +112,7 @@ class ScheduleOut(BaseModel):
     anchor: datetime
     plan_start: datetime
     horizon_end: datetime
+    shifts: list[TimeWindow]  # staffed hours over the plan, for shading the board
     stale: bool  # a draft whose inputs changed since it was planned (cannot be approved)
     check: CheckOut
     solver: dict[str, Any]
@@ -118,6 +124,7 @@ class ScheduleOut(BaseModel):
 
 
 class BoardOut(BaseModel):
+    time_zone: str  # the shop's; times are UTC, shown in this zone
     draft: ScheduleOut | None
     approved: ScheduleOut | None
     run: PlanningRun | None
@@ -240,6 +247,10 @@ def _schedule_out(
         anchor=anchor,
         plan_start=at_minute(inst.get("plan_start", 0), anchor, tz),
         horizon_end=at_minute(inst["horizon"], anchor, tz),
+        shifts=[
+            TimeWindow(start=at_minute(lo, anchor, tz), end=at_minute(hi, anchor, tz))
+            for lo, hi in inst.get("shifts", [])
+        ],
         stale=stale,
         check=_check_out(result),
         solver=solver,
@@ -267,6 +278,7 @@ def get_board(
         if row is not None:
             out[status] = _schedule_out(conn, actor, row, now, cfg, tz)
     return BoardOut(
+        time_zone=tz,
         draft=out["draft"],
         approved=out["approved"],
         run=latest_run(conn, actor),

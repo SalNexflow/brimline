@@ -61,6 +61,7 @@ class Queue(BaseModel):
 
 
 class QueuesOut(BaseModel):
+    time_zone: str
     schedule_version: int | None
     queues: list[Queue]
     can_update: bool
@@ -92,7 +93,7 @@ def _blocker(
     return None
 
 
-def get_queues(conn: psycopg.Connection, actor: Actor) -> QueuesOut:
+def get_queues(conn: psycopg.Connection, actor: Actor, tz: str) -> QueuesOut:
     if not can(actor, "queue.read"):
         raise ForbiddenError("queue.read")
     version = conn.execute("SELECT version FROM schedules WHERE status = 'approved'").fetchone()
@@ -128,6 +129,7 @@ def get_queues(conn: psycopg.Connection, actor: Actor) -> QueuesOut:
         )
         (queues[r[13]] if r[13] is not None else manual).tasks.append(task)
     return QueuesOut(
+        time_zone=tz,
         schedule_version=None if version is None else int(version[0]),
         queues=[*queues.values(), manual],
         can_update=may_update,

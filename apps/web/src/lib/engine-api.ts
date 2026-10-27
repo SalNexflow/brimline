@@ -62,6 +62,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Board */
+        get: operations["get_board_board_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/customers": {
         parameters: {
             query?: never;
@@ -182,6 +199,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/planning-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Planning
+         * @description Plan day. Returns at once with a run to poll; the solve happens in the background.
+         */
+        post: operations["start_planning_planning_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/planning-runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Planning Run */
+        get: operations["get_planning_run_planning_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/price-rules": {
         parameters: {
             query?: never;
@@ -197,6 +251,23 @@ export interface paths {
         put?: never;
         /** Create Price Rules */
         post: operations["create_price_rules_price_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/queues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Queues */
+        get: operations["get_queues_queues_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -275,6 +346,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/schedules/{schedule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Schedule */
+        get: operations["get_schedule_schedules__schedule_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedules/{schedule_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Schedule */
+        post: operations["approve_schedule_schedules__schedule_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedules/{schedule_id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Discard Schedule */
+        post: operations["discard_schedule_schedules__schedule_id__discard_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tasks/{task_id}/{action}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Act On Task */
+        post: operations["act_on_task_tasks__task_id___action__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -292,12 +431,121 @@ export interface components {
             /** Prompt Version */
             prompt_version: string;
         };
+        /** BoardJob */
+        BoardJob: {
+            /** Completion */
+            completion: string | null;
+            /**
+             * Due
+             * Format: date-time
+             */
+            due: string;
+            /** Key */
+            key: string;
+            /** Late Minutes */
+            late_minutes: number;
+            /** Material Code */
+            material_code: string;
+            /** Order Number */
+            order_number: string;
+            /** Part Name */
+            part_name: string;
+            /** Quantity */
+            quantity: number;
+            /** Rush */
+            rush: boolean;
+            /** Unscheduled */
+            unscheduled: boolean;
+        };
+        /** BoardMachine */
+        BoardMachine: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Process */
+            process: string;
+        };
+        /** BoardOut */
+        BoardOut: {
+            approved: components["schemas"]["ScheduleOut"] | null;
+            /** Can Plan */
+            can_plan: boolean;
+            draft: components["schemas"]["ScheduleOut"] | null;
+            run: components["schemas"]["PlanningRun"] | null;
+            /** Time Zone */
+            time_zone: string;
+        };
+        /** BoardTask */
+        BoardTask: {
+            /** Actual End */
+            actual_end: string | null;
+            /** Actual Start */
+            actual_start: string | null;
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /** Job */
+            job: string;
+            /** Kind */
+            kind: string;
+            /** Machine */
+            machine: string | null;
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+            /** Status */
+            status: string;
+            /** Task Id */
+            task_id: number | null;
+        };
+        /** CheckIssue */
+        CheckIssue: {
+            /** Code */
+            code: string;
+            /** Detail */
+            detail: string;
+            /** Job */
+            job: string | null;
+        };
+        /**
+         * CheckOut
+         * @description The independent checker's verdict on the saved plan, computed when it was read.
+         */
+        CheckOut: {
+            /** Metrics */
+            metrics: {
+                [key: string]: number;
+            } | null;
+            /** Valid */
+            valid: boolean;
+            /** Violations */
+            violations: components["schemas"]["CheckIssue"][];
+            /** Warnings */
+            warnings: components["schemas"]["CheckIssue"][];
+        };
         /** CustomerOut */
         CustomerOut: {
             /** Code */
             code: string;
             /** Name */
             name: string;
+        };
+        /** Decision */
+        Decision: {
+            /** Id */
+            id: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "superseded" | "discarded";
+            /** Version */
+            version: number;
         };
         /** DemoLoginRequest */
         DemoLoginRequest: {
@@ -517,6 +765,35 @@ export interface components {
              */
             status: "open" | "in_production" | "done" | "cancelled";
         };
+        /** PlanningRun */
+        PlanningRun: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Id */
+            id: number;
+            /** Phase */
+            phase: string;
+            /** Progress */
+            progress: {
+                [key: string]: unknown;
+            };
+            /** Schedule Id */
+            schedule_id: number | null;
+            /** Started At */
+            started_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "done" | "failed";
+        };
         /** PriceOut */
         PriceOut: {
             /** Lines */
@@ -596,6 +873,68 @@ export interface components {
             rush_multiplier_percent: number;
             /** Setup Cents */
             setup_cents: number;
+        };
+        /** Queue */
+        Queue: {
+            /** Machine */
+            machine: string | null;
+            /** Name */
+            name: string;
+            /** Tasks */
+            tasks: components["schemas"]["QueueTask"][];
+        };
+        /** QueueTask */
+        QueueTask: {
+            /** Actual End */
+            actual_end: string | null;
+            /** Actual Start */
+            actual_start: string | null;
+            /** Can Start */
+            can_start: boolean;
+            /** Id */
+            id: number;
+            /** Job */
+            job: string;
+            /** Kind */
+            kind: string;
+            /** Material Code */
+            material_code: string;
+            /** Order Number */
+            order_number: string;
+            /** Part Name */
+            part_name: string;
+            /**
+             * Planned End
+             * Format: date-time
+             */
+            planned_end: string;
+            /**
+             * Planned Start
+             * Format: date-time
+             */
+            planned_start: string;
+            /** Quantity */
+            quantity: number;
+            /** Rush */
+            rush: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "planned" | "running" | "done" | "failed" | "cancelled";
+            /** Waiting For */
+            waiting_for: string | null;
+        };
+        /** QueuesOut */
+        QueuesOut: {
+            /** Can Update */
+            can_update: boolean;
+            /** Queues */
+            queues: components["schemas"]["Queue"][];
+            /** Schedule Version */
+            schedule_version: number | null;
+            /** Time Zone */
+            time_zone: string;
         };
         /** QuoteDecision */
         QuoteDecision: {
@@ -748,6 +1087,85 @@ export interface components {
             /** Total Cents */
             total_cents: number | null;
         };
+        /** ScheduleOut */
+        ScheduleOut: {
+            /**
+             * Anchor
+             * Format: date-time
+             */
+            anchor: string;
+            /** Can Approve */
+            can_approve: boolean;
+            check: components["schemas"]["CheckOut"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By Name */
+            created_by_name: string;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decided By Name */
+            decided_by_name: string | null;
+            /**
+             * Horizon End
+             * Format: date-time
+             */
+            horizon_end: string;
+            /** Id */
+            id: number;
+            /** Jobs */
+            jobs: components["schemas"]["BoardJob"][];
+            /** Machines */
+            machines: components["schemas"]["BoardMachine"][];
+            /**
+             * Plan Start
+             * Format: date-time
+             */
+            plan_start: string;
+            /** Shifts */
+            shifts: components["schemas"]["TimeWindow"][];
+            /** Solver */
+            solver: {
+                [key: string]: unknown;
+            };
+            /** Stale */
+            stale: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "superseded" | "discarded";
+            /** Tasks */
+            tasks: components["schemas"]["BoardTask"][];
+            /** Unplannable */
+            unplannable: components["schemas"]["Unplannable"][];
+            /** Version */
+            version: number;
+        };
+        /** TimeWindow */
+        TimeWindow: {
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+        };
+        /** Unplannable */
+        Unplannable: {
+            /** Job */
+            job: string;
+            /** Missing */
+            missing: string[];
+            /** Part */
+            part: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -840,6 +1258,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_board_board_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardOut"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -1105,6 +1554,71 @@ export interface operations {
             };
         };
     };
+    start_planning_planning_runs_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningRun"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_planning_run_planning_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningRun"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_price_rules_price_rules_get: {
         parameters: {
             query?: never;
@@ -1159,6 +1673,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PriceRulesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_queues_queues_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueuesOut"];
                 };
             };
             /** @description Validation Error */
@@ -1336,6 +1881,163 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["QuoteDetail"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_schedule_schedules__schedule_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                schedule_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_schedule_schedules__schedule_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                schedule_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Decision"];
+                };
+            };
+            /** @description not a draft */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description refused by the rules */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    discard_schedule_schedules__schedule_id__discard_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                schedule_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Decision"];
+                };
+            };
+            /** @description not a draft */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    act_on_task_tasks__task_id___action__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                task_id: number;
+                action: "start" | "done" | "fail";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description not allowed in the task's current state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
