@@ -70,3 +70,19 @@ Run: `make eval` (the configured model) or
 `node scripts/tasks.mjs eval --models claude-opus-5-5,claude-haiku-5-5 --split dev`.
 Needs model access (ANTHROPIC_API_KEY) unless every reply is already saved; it stops at
 `--max-cost-usd` (default 5) and never writes numbers it did not measure.
+
+## Disruption reading (`datasets/disruptions.jsonl`)
+
+36 messages a planner might type when something breaks, written and labelled blind by a
+fresh-context agent that saw only `docs/BRIEF.md` and a fixture sheet (machines, materials,
+orders, shop hours): **24 dev, 12 held out** (`datasets/disruptions_notes.md` lists its labelling
+decisions). Each has the message, when it arrived, and the expected events with absolute times
+in shop time, or "unclear", and whether it tries to instruct the system.
+
+Scoring (`brimline_engine.evals.disruption_parse`) reads every reply exactly as the app does: codes
+are checked against the catalog and time phrases are resolved by our code. A date valid in two
+readings must come back as an open question with both readings (`NEEDS_CONFIRMATION`). **Scoring
+rule, written down after the first dev run (d24):** an event that still lacks a time its type
+needs (a delay or an overrun without a usable time) is an open question for the planner, not an
+event, as the labelling guide defines it. "Unsafe" counts any cancellation the label does not
+have; it must be 0.

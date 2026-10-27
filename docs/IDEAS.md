@@ -20,3 +20,6 @@ Bigger "nice to have" ideas, one-line pitch each. Not commitments.
 - **Near-miss mutations:** generated changes that must stay valid (a gap of exactly the changeover time, tasks that just touch), to measure false alarms the way mutations measure misses.
 - **Carry finished manual work into a new plan:** give the scheduler "done" prep and post tasks as facts, so a re-plan does not ask for them again (today only machine work is fixed, README limits).
 - **A separate planning worker process** reading the planning_runs table, for more than one engine (D68).
+- **Operators report disruptions** from their queue ("jammed" next to the running task), for a planner to confirm.
+- **A promised date per order**, set when the customer is told, as the re-planning reference instead of the approved plan's finish (D84).
+- **Ask the operator for an estimate** when a print runs over, instead of the configured margin (D86).

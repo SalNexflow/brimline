@@ -5,7 +5,9 @@ the work is planned across machines by a constraint solver, every plan is proven
 and the day is re-planned when something breaks. AI reads language and explains; code decides prices, dates,
 permissions, and schedules.
 
-> Status: **M5 (production board).** A planner presses Plan day (it solves in the background), reads the plan as bars
+> Status: **M6 (disruptions and re-planning).** A planner types what broke; the AI proposes typed events, code
+> resolves the times, the planner confirms, and the re-plan shows what moves and why before anyone approves it.
+> Earlier: **M5 (production board).** A planner presses Plan day (it solves in the background), reads the plan as bars
 > per machine with an independent-check badge, and approves it; operators then work per-machine queues. Earlier:
 > **M4 (independent checker).** Every plan is re-validated by a checker that shares no code with the
 > scheduler and recomputes the numbers from raw inputs; the rules are in `docs/SCHEDULE_RULES.md`. Earlier: **M3
@@ -48,8 +50,9 @@ First run: `make setup` then `make gate`.
 | `db-reset` | Drop, migrate, and re-seed the dev database from `config/shop.toml` |
 | `api-types` | Regenerate the web's TypeScript types from the engine's OpenAPI schema |
 | `gate-selftest` | Proves the gate fails: plants deliberate errors in a throwaway copy and checks each is caught at the right step. Refuses to run on a dirty git tree |
-| `eval` | Run the evaluations and write `eval/results/RESULTS.md` (needs model access; see `eval/README.md`) |
+| `eval` | Run the evaluations (quote reading, disruption reading) and write `eval/results/RESULTS.md` and `DISRUPTIONS.md` (needs model access; see `eval/README.md`) |
 | `bench` | Scheduler benchmark against two baselines, every plan re-checked by the independent checker; writes `eval/results/BENCH.md` and fails if the checker disagrees (slow: 25 CP-SAT runs; `--quick` for a smoke run into `eval/results/quick`) |
+| `replan-bench` | Re-planning scenarios: lateness versus jobs moved, every re-plan checked; writes `eval/results/REPLAN.md` |
 
 ## Known limits
 

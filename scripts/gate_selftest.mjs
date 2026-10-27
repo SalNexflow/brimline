@@ -118,6 +118,13 @@ const MUTATIONS = [
     replace: "        if result.valid is None:",
     expect: "engine: tests",
   },
+  {
+    name: "AI summary no longer checked against the diff",
+    file: "services/engine/src/brimline_engine/planning/replan.py",
+    find: "known_ids = set(IDENTIFIER.findall(diff_text))",
+    replace: "known_ids = set(IDENTIFIER.findall(text))",
+    expect: "engine: tests",
+  },
 ];
 
 function sh(command, cwd, extraEnv = {}) {
