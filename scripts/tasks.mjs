@@ -205,6 +205,7 @@ const TASKS = {
         ["uv run --locked python -m brimline_engine.evals.quote_extract", ...process.argv.slice(3)].join(" "),
       ),
       step("disruption reading eval", ENGINE, "uv run --locked python -m brimline_engine.evals.disruption_parse"),
+      step("file checker eval", ENGINE, "uv run --locked python -m brimline_engine.evals.files"),
     ]),
   // Extra arguments pass through, e.g. node scripts/tasks.mjs bench --quick
   bench: () =>

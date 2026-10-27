@@ -1,0 +1,81 @@
+# File checker settings (M7): limits, check thresholds and the estimates that fill planning
+# fields (hard rule 8: config, not memory). Every threshold names its source and when it was
+# read. "Shop setting, assumed" means no published figure was found: it is our own choice, said
+# plainly, and easy to change here.
+#
+# Guidelines differ between printers, nozzles and materials; these are starting points for the
+# fictional shop, not universal limits.
+
+checked = 2026-10-28
+
+[limits]
+# Safety limits on what we read, not quality judgements.
+max_upload_bytes = 26_214_400         # 25 MiB per file. Shop setting, assumed.
+max_unzipped_bytes = 104_857_600      # 100 MiB inside a 3MF (stops zip bombs). Shop setting, assumed.
+max_triangles = 300_000               # larger meshes are refused with a clear message. Shop setting, assumed (numpy rays stay under a few seconds).
+wall_rays = 4_000                     # faces sampled for wall thickness; all faces when fewer
+wall_ray_tests = 20_000_000           # ray-to-box distance tests per file: a big mesh gets fewer rays (at least 200), so a check takes about a second (measured: 43,200 triangles, 0.9 s). Shop setting, assumed.
+
+[scale]
+# A part whose largest side is outside this range is probably in the wrong unit (inches, cm,
+# metres). We never rescale on our own: staff confirm the unit before the size is used.
+# Shop setting, assumed: the smallest parts the shop makes are clips around 5 mm; the largest
+# machine is 400 mm, so 2000 mm is far past anything printable.
+smallest_plausible_mm = 3.0
+largest_plausible_mm = 2000.0
+
+[walls]
+# Thinnest wall per process, in mm: below "fail" it will not print or machine reliably; below
+# "warn" it may, but staff should look.
+# The thin area that counts: thinner surface smaller than this is ignored (edges, ray noise).
+# Shop setting, assumed: a 2 x 2 mm patch.
+min_thin_area_mm2 = 4.0
+
+[walls.fdm]
+fail_mm = 0.8   # Shop setting, derived: two lines of our 0.4 mm nozzles. No published page verified for this exact figure.
+warn_mm = 1.0   # hlhrapid.com/knowledge/design-guide-fdm-3d-printing: supported walls at least 1.0 mm (unsupported 1.2 mm; jlc3dp.com/blog/how-to-design-3d-models-for-printing also says 1.2 mm), read 2026-10-28
+
+[walls.resin]
+fail_mm = 0.4   # wevolver.com/article/sla-3d-printing-design-guidelines-8-essential-tips: 0.4 mm supported walls, read 2026-10-28
+warn_mm = 0.6   # same page: 0.6 mm unsupported walls, read 2026-10-28
+
+[walls.cnc]
+fail_mm = 0.5   # rapiddirect.com/blog/cnc-thin-wall-machining-guide: aluminium 6061-T6 absolute limit 0.5 mm, read 2026-10-28
+warn_mm = 0.8   # same page: 0.8 mm "the safe floor for mass production", read 2026-10-28
+
+[overhangs]
+# A downward-facing surface steeper than this angle from vertical needs support. The share is
+# of the total surface, in the orientation the file was saved in; a warning only (supports cost
+# time and material, they do not stop a print). Not checked for CNC (milling has no overhangs).
+warn_share = 0.10                     # Shop setting, assumed: a tenth of the surface needing support is worth a look.
+[overhangs.max_from_vertical_deg]
+fdm = 45.0      # hlhrapid.com/knowledge/design-guide-fdm-3d-printing: "up to 45°" without support, read 2026-10-28
+resin = 60.0    # wevolver.com/article/sla-3d-printing-design-guidelines-8-essential-tips: at least 30° from horizontal (= 60° from vertical), read 2026-10-28
+
+[loose_parts]
+# Separate shells in one file: often a mistake, sometimes a plate of several parts. Warning.
+# A shell smaller than this volume is debris, also a warning. Shop setting, assumed.
+debris_mm3 = 1.0
+
+[estimates]
+# What the file fills on a quote line, labelled "estimate from file". Staff can change it.
+# grams per part = solid volume x density x fill (fdm prints walls plus sparse infill).
+fdm_fill = 0.5          # Shop setting, assumed: walls plus about 20 % infill use roughly half the solid volume for small parts.
+resin_fill = 1.0        # resin parts are solid
+# Print minutes per part (machine time only; CNC minutes are always entered by staff).
+fdm_mm3_per_minute = 300.0       # Shop setting, assumed: about 5 mm³/s of plastic on average, travel included.
+fdm_minimum_minutes = 5
+resin_layer_mm = 0.05            # common resin layer height. Shop setting, assumed.
+resin_seconds_per_layer = 9.0    # Shop setting, assumed. A resin layer takes the same time however much is filled, so time depends on height.
+
+[density_g_per_cm3]
+# Typical datasheet values (ASTM D792 / ISO 1183) found via search on 2026-10-28: PLA about
+# 1.23-1.25, PETG 1.25-1.27 (Push Plastic PETG datasheet: 1.27). TPU and resin: shop setting,
+# assumed from the typical range. Aluminium is not here: CNC grams come from bar stock, not the part.
+PLA-BLACK = 1.24
+PLA-WHITE = 1.24
+PETG-BLACK = 1.27
+PETG-ORANGE = 1.27
+TPU-BLACK = 1.21
+RESIN-GREY = 1.15
+RESIN-CLEAR = 1.15

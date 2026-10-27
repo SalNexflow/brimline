@@ -1,0 +1,2244 @@
+{
+ "date": "2026-10-27",
+ "scores": {
+  "dev (builder)": {
+   "n": 23,
+   "overall_agreement": 23,
+   "broken": 10,
+   "false_pass": 0,
+   "broken_as_warn": 0,
+   "labelled_pass": 5,
+   "false_alarm": 0,
+   "size_within_0_01_mm": 19,
+   "sized": 19,
+   "per_check": {
+    "parse": {
+     "agreement": 23,
+     "n": 23,
+     "labelled_fail": 4,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "units": {
+     "agreement": 23,
+     "n": 23,
+     "labelled_fail": 0,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "watertight": {
+     "agreement": 23,
+     "n": 23,
+     "labelled_fail": 2,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "fits": {
+     "agreement": 23,
+     "n": 23,
+     "labelled_fail": 2,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "walls": {
+     "agreement": 23,
+     "n": 23,
+     "labelled_fail": 2,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "overhangs": {
+     "agreement": 23,
+     "n": 23,
+     "labelled_fail": 0,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "loose_parts": {
+     "agreement": 23,
+     "n": 23,
+     "labelled_fail": 0,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    }
+   },
+   "slowest_seconds": 0.841,
+   "disagreements": []
+  },
+  "dev (blind)": {
+   "n": 12,
+   "overall_agreement": 12,
+   "broken": 6,
+   "false_pass": 0,
+   "broken_as_warn": 0,
+   "labelled_pass": 5,
+   "false_alarm": 0,
+   "size_within_0_01_mm": 11,
+   "sized": 11,
+   "per_check": {
+    "parse": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 1,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "units": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 0,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "watertight": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 2,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "fits": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 2,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "walls": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 1,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "overhangs": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 0,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "loose_parts": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 0,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    }
+   },
+   "slowest_seconds": 0.001,
+   "disagreements": []
+  },
+  "held out (blind)": {
+   "n": 12,
+   "overall_agreement": 12,
+   "broken": 4,
+   "false_pass": 0,
+   "broken_as_warn": 0,
+   "labelled_pass": 3,
+   "false_alarm": 0,
+   "size_within_0_01_mm": 11,
+   "sized": 11,
+   "per_check": {
+    "parse": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 1,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "units": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 0,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "watertight": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 2,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "fits": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 1,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "walls": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 0,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "overhangs": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 0,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    },
+    "loose_parts": {
+     "agreement": 12,
+     "n": 12,
+     "labelled_fail": 0,
+     "false_pass": 0,
+     "fail_as_warn": 0
+    }
+   },
+   "slowest_seconds": 0.001,
+   "disagreements": []
+  }
+ },
+ "rows": [
+  {
+   "id": "d01",
+   "file": "models/d01.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "valid",
+   "description": "40 mm cube",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    40,
+    40,
+    40
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d01.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {},
+   "got_size_mm": [
+    40.0,
+    40.0,
+    40.0
+   ],
+   "seconds": 0.002
+  },
+  {
+   "id": "d02",
+   "file": "models/d02.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "100 x 100 mm plate, 0.6 mm thick (under 0.8)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "fail",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    100,
+    100,
+    0.6
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d02.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "fail",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "walls": "20000 mm\u00b2 of surface is thinner than 0.8 mm (thinnest wall about 0.60 mm)"
+   },
+   "got_size_mm": [
+    100.0,
+    100.0,
+    0.6
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "d03",
+   "file": "models/d03.3mf",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "plate 0.9 mm thick (between 0.8 and 1.0)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "warn",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "warn",
+   "size_mm": [
+    100,
+    100,
+    0.9
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d03.3mf",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "warn",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "walls": "20000 mm\u00b2 of surface is thinner than 1.0 mm (thinnest wall about 0.90 mm)"
+   },
+   "got_size_mm": [
+    100.0,
+    100.0,
+    0.9
+   ],
+   "seconds": 0.013
+  },
+  {
+   "id": "d04",
+   "file": "models/d04.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "40 mm cube with one triangle missing (a hole)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    40,
+    40,
+    40
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d04.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "watertight": "not a closed surface: 3 open edges (holes)",
+    "walls": "wall thickness needs a closed surface"
+   },
+   "got_size_mm": [
+    40.0,
+    40.0,
+    40.0
+   ],
+   "seconds": 0.002
+  },
+  {
+   "id": "d05",
+   "file": "models/d05.stl",
+   "split": "dev",
+   "process": "resin",
+   "kind": "borderline",
+   "description": "30 mm cube, inside out",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "warn",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "warn",
+   "size_mm": [
+    30,
+    30,
+    30
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d05.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "warn",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "watertight": "closed, but inside out: every face points inwards"
+   },
+   "got_size_mm": [
+    30.0,
+    30.0,
+    30.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "d06",
+   "file": "models/d06.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "valid",
+   "description": "300 mm bar: fits only the large printer",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    300,
+    60,
+    20
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d06.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {},
+   "got_size_mm": [
+    300.0,
+    60.0,
+    20.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "d07",
+   "file": "models/d07.stl",
+   "split": "dev",
+   "process": "resin",
+   "kind": "broken",
+   "description": "the same 300 mm bar on resin (235 mm at most)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "fail",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    300,
+    60,
+    20
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d07.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "fail",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "fits": "300.00 x 60.00 x 20.00 mm fits no resin machine (largest 218 x 123 x 235 mm)"
+   },
+   "got_size_mm": [
+    300.0,
+    60.0,
+    20.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "d08",
+   "file": "models/d08.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "40 mm cube saved in metres (0.04): tiny; its 0.04 mm walls cover under 4 mm\u00b2",
+   "expected": {
+    "parse": "pass",
+    "units": "warn",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "warn",
+   "size_mm": [
+    0.04,
+    0.04,
+    0.04
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d08.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "warn",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "units": "only 0.04 x 0.04 x 0.04 mm: was the file saved in inches, cm or metres?"
+   },
+   "got_size_mm": [
+    0.03999999910593033,
+    0.03999999910593033,
+    0.03999999910593033
+   ],
+   "seconds": 0.002
+  },
+  {
+   "id": "d09",
+   "file": "models/d09.3mf",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "valid",
+   "description": "1.5 inch cube in a 3MF with unit inch: 38.1 mm",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    38.1,
+    38.1,
+    38.1
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d09.3mf",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {},
+   "got_size_mm": [
+    38.099999999999994,
+    38.099999999999994,
+    38.099999999999994
+   ],
+   "seconds": 0.01
+  },
+  {
+   "id": "d10",
+   "file": "models/d10.3mf",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "two 20 mm cubes 20 mm apart",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "overall": "warn",
+   "size_mm": [
+    60,
+    20,
+    20
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d10.3mf",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "loose_parts": "2 separate pieces: intended?"
+   },
+   "got_size_mm": [
+    60.0,
+    20.0,
+    20.0
+   ],
+   "seconds": 0.007
+  },
+  {
+   "id": "d11",
+   "file": "models/d11.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "T shape: underside of the bar is 800 of 5200 mm\u00b2 (15.4 %)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "warn",
+    "loose_parts": "pass"
+   },
+   "overall": "warn",
+   "size_mm": [
+    50,
+    20,
+    40
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d11.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "warn",
+    "loose_parts": "pass"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "overhangs": "15% of the surface faces down more than 45\u00b0 from vertical, as saved: needs support"
+   },
+   "got_size_mm": [
+    50.0,
+    20.0,
+    40.0
+   ],
+   "seconds": 0.002
+  },
+  {
+   "id": "d12",
+   "file": "models/d12.stl",
+   "split": "dev",
+   "process": "resin",
+   "kind": "borderline",
+   "description": "hollow 50 mm box, 0.5 mm walls (resin warn under 0.6); cavity ceiling 2401 of 29406 mm\u00b2 (8.2 %)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "warn",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "overall": "warn",
+   "size_mm": [
+    50,
+    50,
+    50
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d12.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "warn",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "walls": "29406 mm\u00b2 of surface is thinner than 0.6 mm (thinnest wall about 0.50 mm)",
+    "loose_parts": "2 separate pieces: intended?"
+   },
+   "got_size_mm": [
+    50.0,
+    50.0,
+    50.0
+   ],
+   "seconds": 0.002
+  },
+  {
+   "id": "d13",
+   "file": "models/d13.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "binary STL cut short",
+   "expected": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "overall": "fail",
+   "size_mm": null,
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d13.stl",
+   "author": "builder",
+   "got": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "parse": "this is not a readable STL: as binary STL its length does not match its triangle count (truncated or damaged), and it is not text STL",
+    "units": "the file could not be read",
+    "watertight": "the file could not be read",
+    "fits": "the file could not be read",
+    "walls": "the file could not be read",
+    "overhangs": "the file could not be read",
+    "loose_parts": "the file could not be read"
+   },
+   "got_size_mm": null,
+   "seconds": 0.001
+  },
+  {
+   "id": "d14",
+   "file": "models/d14.3mf",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "3MF with a DOCTYPE and ENTITY",
+   "expected": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "overall": "fail",
+   "size_mm": null,
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d14.3mf",
+   "author": "builder",
+   "got": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "parse": "this 3MF contains a DOCTYPE or ENTITY declaration, which is refused",
+    "units": "the file could not be read",
+    "watertight": "the file could not be read",
+    "fits": "the file could not be read",
+    "walls": "the file could not be read",
+    "overhangs": "the file could not be read",
+    "loose_parts": "the file could not be read"
+   },
+   "got_size_mm": null,
+   "seconds": 0.012
+  },
+  {
+   "id": "d15",
+   "file": "models/d15.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "40 mm cube with a fin on a top edge (edge used by three triangles)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    40,
+    40,
+    60
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d15.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "watertight": "not a closed surface: 2 open edges (holes), 1 edges shared by three or more triangles, 1 edges where a neighbouring triangle is flipped",
+    "walls": "wall thickness needs a closed surface"
+   },
+   "got_size_mm": [
+    40.0,
+    40.0,
+    60.0
+   ],
+   "seconds": 0.002
+  },
+  {
+   "id": "d16",
+   "file": "models/d16.stl",
+   "split": "dev",
+   "process": "cnc",
+   "kind": "valid",
+   "description": "100 x 50 x 20 mm block for the mill",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "skip",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    100,
+    50,
+    20
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d16.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "skip",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {
+    "overhangs": "milling has no overhangs"
+   },
+   "got_size_mm": [
+    100.0,
+    50.0,
+    20.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "d17",
+   "file": "models/d17.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "empty file",
+   "expected": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "overall": "fail",
+   "size_mm": null,
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d17.stl",
+   "author": "builder",
+   "got": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "parse": "the file is empty",
+    "units": "the file could not be read",
+    "watertight": "the file could not be read",
+    "fits": "the file could not be read",
+    "walls": "the file could not be read",
+    "overhangs": "the file could not be read",
+    "loose_parts": "the file could not be read"
+   },
+   "got_size_mm": null,
+   "seconds": 0.0
+  },
+  {
+   "id": "d18",
+   "file": "models/d18.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "text file named .stl",
+   "expected": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "overall": "fail",
+   "size_mm": null,
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d18.stl",
+   "author": "builder",
+   "got": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "parse": "this is not an STL file (too short, and not text STL)",
+    "units": "the file could not be read",
+    "watertight": "the file could not be read",
+    "fits": "the file could not be read",
+    "walls": "the file could not be read",
+    "overhangs": "the file could not be read",
+    "loose_parts": "the file could not be read"
+   },
+   "got_size_mm": null,
+   "seconds": 0.001
+  },
+  {
+   "id": "d19",
+   "file": "models/d19.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "400 mm bar: exactly the large printer's height, turned",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    400,
+    20,
+    20
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d19.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {},
+   "got_size_mm": [
+    400.0,
+    20.0,
+    20.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "d20",
+   "file": "models/d20.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "401 mm bar: 1 mm too long for any fdm printer",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "fail",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    401,
+    20,
+    20
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d20.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "fail",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "fits": "401.00 x 20.00 x 20.00 mm fits no fdm machine (largest 350 x 350 x 400 mm)"
+   },
+   "got_size_mm": [
+    401.0,
+    20.0,
+    20.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "d21",
+   "file": "models/d21.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "valid",
+   "description": "cylinder lying on its side, 60 mm across, 64 sides: curved underside is 1/4 of the round surface, below the 45\u00b0 line",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "warn",
+    "loose_parts": "pass"
+   },
+   "overall": "warn",
+   "size_mm": [
+    60,
+    40,
+    60
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d21.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "warn",
+    "loose_parts": "pass"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "overhangs": "14% of the surface faces down more than 45\u00b0 from vertical, as saved: needs support"
+   },
+   "got_size_mm": [
+    60.0,
+    40.0,
+    60.0
+   ],
+   "seconds": 0.013
+  },
+  {
+   "id": "d22",
+   "file": "models/d22.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "625 separate 2 mm cubes (7,500 triangles): walls 2 mm",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "overall": "warn",
+   "size_mm": [
+    98,
+    98,
+    2
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d22.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "loose_parts": "625 separate pieces: intended?"
+   },
+   "got_size_mm": [
+    98.0,
+    98.0,
+    2.0
+   ],
+   "seconds": 0.841
+  },
+  {
+   "id": "d23",
+   "file": "models/d23.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "625 separate 5 x 5 x 0.5 mm plates (7,500 triangles): walls 0.5 mm",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "fail",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "overall": "fail",
+   "size_mm": [
+    197,
+    197,
+    0.5
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d23.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "fail",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "walls": "30899 mm\u00b2 of surface is thinner than 0.8 mm (thinnest wall about 0.50 mm)",
+    "loose_parts": "625 separate pieces: intended?"
+   },
+   "got_size_mm": [
+    197.0,
+    197.0,
+    0.5
+   ],
+   "seconds": 0.772
+  },
+  {
+   "id": "b01",
+   "file": "models/b01.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "valid",
+   "description": "40 mm cube",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    40,
+    40,
+    40
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b01.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {},
+   "got_size_mm": [
+    40.0,
+    40.0,
+    40.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b02",
+   "file": "models/b02.stl",
+   "split": "dev",
+   "process": "cnc",
+   "kind": "valid",
+   "description": "block exactly the cnc build volume 400 x 300 x 150 (equal fits); overhangs skip for cnc",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "skip",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    400,
+    300,
+    150
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b02.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "skip",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {
+    "overhangs": "milling has no overhangs"
+   },
+   "got_size_mm": [
+    400.0,
+    300.0,
+    150.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b03",
+   "file": "models/b03.3mf",
+   "split": "dev",
+   "process": "resin",
+   "kind": "valid",
+   "description": "100 x 60 x 20 block, fits the resin printer",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    100,
+    60,
+    20
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b03.3mf",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {},
+   "got_size_mm": [
+    100.0,
+    60.0,
+    20.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b04",
+   "file": "models/b04.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "valid",
+   "description": "380 x 40 x 40 bar: too long for x, fits the 350 x 350 x 400 printer only after rotation (sorted sides)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    380,
+    40,
+    40
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b04.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {},
+   "got_size_mm": [
+    380.0,
+    40.0,
+    40.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b05",
+   "file": "models/b05.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "40 mm cube with one top triangle missing (open mesh)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    40,
+    40,
+    40
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b05.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "watertight": "not a closed surface: 3 open edges (holes)",
+    "walls": "wall thickness needs a closed surface"
+   },
+   "got_size_mm": [
+    40.0,
+    40.0,
+    40.0
+   ],
+   "seconds": 0.0
+  },
+  {
+   "id": "b06",
+   "file": "models/b06.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "40 mm cube with one top triangle flipped; the flipped face points down, 8.3 % of surface (under 10 %)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    40,
+    40,
+    40
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b06.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "watertight": "not a closed surface: 3 edges where a neighbouring triangle is flipped",
+    "walls": "wall thickness needs a closed surface"
+   },
+   "got_size_mm": [
+    40.0,
+    40.0,
+    40.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b07",
+   "file": "models/b07.3mf",
+   "split": "dev",
+   "process": "resin",
+   "kind": "broken",
+   "description": "3MF unit=inch, 10 x 3 x 3 in = 254 x 76.2 x 76.2 mm; 254 exceeds every resin side (235)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "fail",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    254,
+    76.2,
+    76.2
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b07.3mf",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "fail",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "fits": "254.00 x 76.20 x 76.20 mm fits no resin machine (largest 218 x 123 x 235 mm)"
+   },
+   "got_size_mm": [
+    254.0,
+    76.19999999999999,
+    76.19999999999999
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b08",
+   "file": "models/b08.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "binary STL truncated: header says 12 triangles, file holds 5.4",
+   "expected": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "overall": "fail",
+   "size_mm": null,
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b08.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "parse": "this is not a readable STL: as binary STL its length does not match its triangle count (truncated or damaged), and it is not text STL",
+    "units": "the file could not be read",
+    "watertight": "the file could not be read",
+    "fits": "the file could not be read",
+    "walls": "the file could not be read",
+    "overhangs": "the file could not be read",
+    "loose_parts": "the file could not be read"
+   },
+   "got_size_mm": null,
+   "seconds": 0.0
+  },
+  {
+   "id": "b09",
+   "file": "models/b09.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "40 x 40 x 0.81 mm plate: just above the fdm fail figure 0.8, below warn 1.0",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "warn",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "warn",
+   "size_mm": [
+    40,
+    40,
+    0.81
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b09.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "warn",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "walls": "3200 mm\u00b2 of surface is thinner than 1.0 mm (thinnest wall about 0.81 mm)"
+   },
+   "got_size_mm": [
+    40.0,
+    40.0,
+    0.8100000023841858
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b10",
+   "file": "models/b10.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "40 x 40 x 0.79 mm plate: just below the fdm fail figure 0.8",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "fail",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    40,
+    40,
+    0.79
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b10.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "fail",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "walls": "3200 mm\u00b2 of surface is thinner than 0.8 mm (thinnest wall about 0.79 mm)"
+   },
+   "got_size_mm": [
+    40.0,
+    40.0,
+    0.79
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b11",
+   "file": "models/b11.3mf",
+   "split": "dev",
+   "process": "resin",
+   "kind": "borderline",
+   "description": "T shape (stem 10 x 20, bar 20 x 5), 40 mm long: flat bar underside 9.5 % of surface (400 of 4200 mm2), just under 10 %",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    20,
+    40,
+    25
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b11.3mf",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {},
+   "got_size_mm": [
+    20.0,
+    40.0,
+    25.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b12",
+   "file": "models/b12.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "401 x 30 x 30 bar: 1 mm longer than the tallest fdm side (400)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "fail",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    401,
+    30,
+    30
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b12.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "fail",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "fits": "401.00 x 30.00 x 30.00 mm fits no fdm machine (largest 350 x 350 x 400 mm)"
+   },
+   "got_size_mm": [
+    401.0,
+    30.0,
+    30.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b13",
+   "file": "models/b13.3mf",
+   "split": "held_out",
+   "process": "cnc",
+   "kind": "valid",
+   "description": "3MF unit=centimeter, 5 x 4 x 3 cm = 50 x 40 x 30 mm block; overhangs skip for cnc",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "skip",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    50,
+    40,
+    30
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b13.3mf",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "skip",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {
+    "overhangs": "milling has no overhangs"
+   },
+   "got_size_mm": [
+    50.0,
+    40.0,
+    30.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b14",
+   "file": "models/b14.stl",
+   "split": "held_out",
+   "process": "resin",
+   "kind": "valid",
+   "description": "50 deg chamfered underside (25 % of surface); resin only counts beyond 60 deg, so 0 %",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    67.67,
+    40,
+    30
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b14.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {},
+   "got_size_mm": [
+    67.670144,
+    40.0,
+    30.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b15",
+   "file": "models/b15.stl",
+   "split": "held_out",
+   "process": "fdm",
+   "kind": "valid",
+   "description": "40 deg chamfered underside (25 % of surface) is within the fdm 45 deg limit, so 0 %",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "pass",
+   "size_mm": [
+    53.564,
+    40,
+    30
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b15.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "pass",
+   "reasons": {},
+   "got_size_mm": [
+    53.56398391723633,
+    40.0,
+    30.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b16",
+   "file": "models/b16.stl",
+   "split": "held_out",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "hollow 40 mm box, 0.9 mm shell (closed outer, reversed inner): wall warn; outer and inner shells share no vertex; cavity ceiling 7.9 % of surface",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "warn",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "overall": "warn",
+   "size_mm": [
+    40,
+    40,
+    40
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b16.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "warn",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "walls": "18355 mm\u00b2 of surface is thinner than 1.0 mm (thinnest wall about 0.90 mm)",
+    "loose_parts": "2 separate pieces: intended?"
+   },
+   "got_size_mm": [
+    40.0,
+    40.0,
+    40.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b17",
+   "file": "models/b17.stl",
+   "split": "held_out",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "40 mm cube with a vertical fin triangle on a top edge: that edge has three triangles",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    40,
+    40,
+    60
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b17.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "watertight": "not a closed surface: 2 open edges (holes), 1 edges shared by three or more triangles, 1 edges where a neighbouring triangle is flipped",
+    "walls": "wall thickness needs a closed surface"
+   },
+   "got_size_mm": [
+    40.0,
+    40.0,
+    60.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b18",
+   "file": "models/b18.3mf",
+   "split": "held_out",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "valid 30 mm cube, but the model XML contains a <!DOCTYPE> (refused)",
+   "expected": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "overall": "fail",
+   "size_mm": null,
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b18.3mf",
+   "author": "blind agent",
+   "got": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "parse": "this 3MF contains a DOCTYPE or ENTITY declaration, which is refused",
+    "units": "the file could not be read",
+    "watertight": "the file could not be read",
+    "fits": "the file could not be read",
+    "walls": "the file could not be read",
+    "overhangs": "the file could not be read",
+    "loose_parts": "the file could not be read"
+   },
+   "got_size_mm": null,
+   "seconds": 0.0
+  },
+  {
+   "id": "b19",
+   "file": "models/b19.stl",
+   "split": "held_out",
+   "process": "resin",
+   "kind": "broken",
+   "description": "130 mm cube: fits fdm, but two resin sides are 123 and 218, so it fits no resin printer",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "fail",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    130,
+    130,
+    130
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b19.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "fail",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "fits": "130.00 x 130.00 x 130.00 mm fits no resin machine (largest 218 x 123 x 235 mm)"
+   },
+   "got_size_mm": [
+    130.0,
+    130.0,
+    130.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b20",
+   "file": "models/b20.3mf",
+   "split": "held_out",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "30 mm cube with one side triangle listed twice (duplicate face)",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "fail",
+   "size_mm": [
+    30,
+    30,
+    30
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b20.3mf",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "watertight": "not a closed surface: 3 edges shared by three or more triangles, 3 edges where a neighbouring triangle is flipped",
+    "walls": "wall thickness needs a closed surface"
+   },
+   "got_size_mm": [
+    30.0,
+    30.0,
+    30.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b21",
+   "file": "models/b21.stl",
+   "split": "held_out",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "10 x 10 x 80 column, closed and consistent but every face points inwards; end faces are 2.9 % of surface either way",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "warn",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "overall": "warn",
+   "size_mm": [
+    10,
+    10,
+    80
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b21.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "warn",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "pass"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "watertight": "closed, but inside out: every face points inwards"
+   },
+   "got_size_mm": [
+    10.0,
+    10.0,
+    80.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b22",
+   "file": "models/b22.stl",
+   "split": "held_out",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "same 50 deg chamfer as b14 but fdm: underside beyond 45 deg is 25 % of surface",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "warn",
+    "loose_parts": "pass"
+   },
+   "overall": "warn",
+   "size_mm": [
+    67.67,
+    40,
+    30
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b22.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "warn",
+    "loose_parts": "pass"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "overhangs": "25% of the surface faces down more than 45\u00b0 from vertical, as saved: needs support"
+   },
+   "got_size_mm": [
+    67.6701431274414,
+    40.0,
+    30.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b23",
+   "file": "models/b23.stl",
+   "split": "held_out",
+   "process": "resin",
+   "kind": "borderline",
+   "description": "T shape as b11 but 80 mm long: bar underside 10.3 % of surface (800 of 7800 mm2), just over 10 %",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "warn",
+    "loose_parts": "pass"
+   },
+   "overall": "warn",
+   "size_mm": [
+    20,
+    80,
+    25
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b23.stl",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "warn",
+    "loose_parts": "pass"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "overhangs": "10% of the surface faces down more than 60\u00b0 from vertical, as saved: needs support"
+   },
+   "got_size_mm": [
+    20.0,
+    80.0,
+    25.0
+   ],
+   "seconds": 0.001
+  },
+  {
+   "id": "b24",
+   "file": "models/b24.3mf",
+   "split": "held_out",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "30 mm cube plus a 0.5 mm debris cube 5 mm away (second shell); debris surface 1.5 mm2 is under the 4 mm2 thin-wall minimum",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "overall": "warn",
+   "size_mm": [
+    35.5,
+    30,
+    30
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\blind\\models\\b24.3mf",
+   "author": "blind agent",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "loose_parts": "2 separate pieces, 1 of them tiny (under 1 mm\u00b3): intended?"
+   },
+   "got_size_mm": [
+    35.5,
+    30.0,
+    30.0
+   ],
+   "seconds": 0.001
+  }
+ ]
+}

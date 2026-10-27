@@ -1,0 +1,114 @@
+solid b12
+  facet normal 0.000000e+00 -1.000000e+00 -0.000000e+00
+    outer loop
+      vertex 200.500000 0.000000 15.000000
+      vertex 0.000000 0.000000 0.000000
+      vertex 401.000000 0.000000 0.000000
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 200.500000 30.000000 15.000000
+      vertex 401.000000 30.000000 0.000000
+      vertex 0.000000 30.000000 0.000000
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 401.000000 0.000000 0.000000
+      vertex 0.000000 0.000000 0.000000
+      vertex 0.000000 30.000000 0.000000
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 401.000000 0.000000 0.000000
+      vertex 0.000000 30.000000 0.000000
+      vertex 401.000000 30.000000 0.000000
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 200.500000 0.000000 15.000000
+      vertex 401.000000 0.000000 0.000000
+      vertex 401.000000 0.000000 30.000000
+    endloop
+  endfacet
+  facet normal -0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 200.500000 30.000000 15.000000
+      vertex 401.000000 30.000000 30.000000
+      vertex 401.000000 30.000000 0.000000
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 401.000000 0.000000 30.000000
+      vertex 401.000000 0.000000 0.000000
+      vertex 401.000000 30.000000 0.000000
+    endloop
+  endfacet
+  facet normal 1.000000e+00 -0.000000e+00 0.000000e+00
+    outer loop
+      vertex 401.000000 0.000000 30.000000
+      vertex 401.000000 30.000000 0.000000
+      vertex 401.000000 30.000000 30.000000
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 200.500000 0.000000 15.000000
+      vertex 401.000000 0.000000 30.000000
+      vertex 0.000000 0.000000 30.000000
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 -0.000000e+00
+    outer loop
+      vertex 200.500000 30.000000 15.000000
+      vertex 0.000000 30.000000 30.000000
+      vertex 401.000000 30.000000 30.000000
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 0.000000 0.000000 30.000000
+      vertex 401.000000 0.000000 30.000000
+      vertex 401.000000 30.000000 30.000000
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 0.000000 0.000000 30.000000
+      vertex 401.000000 30.000000 30.000000
+      vertex 0.000000 30.000000 30.000000
+    endloop
+  endfacet
+  facet normal -0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 200.500000 0.000000 15.000000
+      vertex 0.000000 0.000000 30.000000
+      vertex 0.000000 0.000000 0.000000
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 200.500000 30.000000 15.000000
+      vertex 0.000000 30.000000 0.000000
+      vertex 0.000000 30.000000 30.000000
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 0.000000 0.000000 0.000000
+      vertex 0.000000 0.000000 30.000000
+      vertex 0.000000 30.000000 30.000000
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 0.000000 0.000000 0.000000
+      vertex 0.000000 30.000000 30.000000
+      vertex 0.000000 30.000000 0.000000
+    endloop
+  endfacet
+endsolid b12
