@@ -768,8 +768,15 @@ def decide_quote(
                 rush=before.rush,
                 notes=before.notes,
                 created_by=actor.user_id,
+                # The quote knows machine minutes and post-processing; part size comes later.
                 jobs=[
-                    (line.part_name, line.quantity or 0, mats[line.material_code or ""][0])
+                    orders.NewJob(
+                        line.part_name,
+                        line.quantity or 0,
+                        mats[line.material_code or ""][0],
+                        line.minutes_per_part,
+                        tuple(line.post_processing),
+                    )
                     for line in before.lines
                 ],
             )

@@ -23,6 +23,8 @@ class Durations(_Strict):
     finish_base_minutes: int = Field(ge=0)
     finish_minutes_per_part: int = Field(ge=0)
     cool_down_minutes: dict[str, int]
+    # Minutes per part for each post-processing step; a job's post time is their sum.
+    post_process_minutes_per_part: dict[str, int] = Field(default_factory=dict)
 
 
 class Staff(_Strict):

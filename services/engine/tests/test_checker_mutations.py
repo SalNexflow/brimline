@@ -111,6 +111,7 @@ BARE_RULES = Rules(
     finish_base=BARE.finish_base_minutes,
     finish_per_part=BARE.finish_minutes_per_part,
     cool_down=dict(BARE.cool_down_minutes),
+    post_process={},
     staff=5,
     windows=((0, 10_000),),
     weights=Weights(**WEIGHTS.model_dump()),

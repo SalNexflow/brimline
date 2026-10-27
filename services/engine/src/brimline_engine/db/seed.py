@@ -100,10 +100,22 @@ def seed(owner_url: str, config: ShopConfig | None = None) -> None:
             ).fetchone()
             assert row is not None
             for line_no, line in enumerate(o.lines, start=1):
+                size = line.part_mm or (None, None, None)
                 conn.execute(
-                    "INSERT INTO jobs (order_id, line_no, part_name, quantity, material_id, created_at)"
-                    " VALUES (%s, %s, %s, %s, %s, %s)",
-                    (row[0], line_no, line.part, line.quantity, material_ids[line.material], at),
+                    "INSERT INTO jobs (order_id, line_no, part_name, quantity, material_id,"
+                    " minutes_per_part, part_x_mm, part_y_mm, part_z_mm, post_processing, created_at)"
+                    " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (
+                        row[0],
+                        line_no,
+                        line.part,
+                        line.quantity,
+                        material_ids[line.material],
+                        line.minutes_per_part,
+                        *size,
+                        list(line.post),
+                        at,
+                    ),
                 )
 
 

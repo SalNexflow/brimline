@@ -37,7 +37,20 @@ def instance_with_everything() -> Instance:
     inst = generate(3, 20, load_shop_config(), cfg)
     # Make sure the fields a generated instance may leave at a default are exercised too.
     first = inst.jobs[0]
-    odd = Job(first.id, 99, first.material, first.process, (1, 2, 3), 7, 11, 5, -40, True, 321)
+    odd = Job(
+        first.id,
+        99,
+        first.material,
+        first.process,
+        (1, 2, 3),
+        7,
+        11,
+        5,
+        -40,
+        True,
+        321,
+        ("sanding",),
+    )
     return Instance(
         inst.name,
         inst.horizon,
@@ -89,7 +102,7 @@ def test_the_test_knows_every_field() -> None:
     assert [f.name for f in fields(Fixed)] == ["job_id", "machine", "start", "end"]
     assert [f.name for f in fields(JobPlan)] == ["job_id", "machine", "slots"]
     assert [f.name for f in fields(Slot)] == ["kind", "start", "end"]
-    assert len(fields(Job)) == 11
+    assert len(fields(Job)) == 12
 
 
 def test_the_checker_reads_back_exactly_what_was_exported() -> None:

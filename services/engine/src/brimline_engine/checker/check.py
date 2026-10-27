@@ -98,6 +98,19 @@ def instance_problems(inst: Instance, r: Rules) -> list[Violation]:
             )
         if j.post_minutes_per_part < 0 or min(j.part_mm) < 1:
             out.append(Violation("bad_instance", j.id, "negative post time or part size below 1"))
+        if j.post_processing is not None:
+            unknown = [k for k in j.post_processing if k not in r.post_process]
+            minutes = sum(r.post_process.get(k, 0) for k in j.post_processing)
+            if unknown or minutes != j.post_minutes_per_part:
+                out.append(
+                    Violation(
+                        "bad_instance",
+                        j.id,
+                        f"post steps {list(j.post_processing)} take {minutes} min per part in"
+                        f" the config, the document says {j.post_minutes_per_part}"
+                        + (f"; unknown steps {unknown}" if unknown else ""),
+                    )
+                )
     if inst.horizon < 1:
         out.append(Violation("bad_instance", None, f"horizon {inst.horizon} is not positive"))
     # The plan was made for these shifts and this staff; they must be what the config says, or

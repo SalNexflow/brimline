@@ -37,6 +37,7 @@ class Job:
     due: int
     rush: bool
     release: int
+    post_processing: tuple[str, ...] | None  # when given, the checker recomputes post minutes
 
 
 @dataclass(frozen=True)
@@ -145,6 +146,9 @@ def _job(d: object, where: str) -> Job:
         due=_get(d, "due", int, where),
         rush=_get(d, "rush", bool, where),
         release=_get(d, "release", int, where),
+        post_processing=_strs(d, "post_processing", where)
+        if isinstance(d, dict) and d.get("post_processing") is not None
+        else None,
     )
 
 

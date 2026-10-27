@@ -87,6 +87,26 @@ TABLE: list[tuple[Actor, Action, OrderTarget | None, bool]] = [
     (CUSTOMER_1, "quote.approve", OWN, False),
     (CUSTOMER_1, "price_rules.read", None, False),
     (CUSTOMER_1, "price_rules.write", None, False),
+    # M5 production board. The planner plans and approves (hard rule 7: a human approves);
+    # the operator works the queues; staff (front desk) may look at the plan; customers never.
+    (PLANNER, "schedule.read", None, True),
+    (PLANNER, "schedule.plan", None, True),
+    (PLANNER, "schedule.approve", None, True),
+    (PLANNER, "queue.read", None, True),
+    (PLANNER, "task.update", None, False),
+    (OPERATOR, "schedule.read", None, True),
+    (OPERATOR, "queue.read", None, True),
+    (OPERATOR, "task.update", None, True),
+    (OPERATOR, "schedule.plan", None, False),
+    (OPERATOR, "schedule.approve", None, False),
+    (STAFF, "schedule.read", None, True),
+    (STAFF, "schedule.plan", None, False),
+    (STAFF, "schedule.approve", None, False),
+    (STAFF, "queue.read", None, False),
+    (STAFF, "task.update", None, False),
+    (CUSTOMER_1, "schedule.read", None, False),
+    (CUSTOMER_1, "queue.read", None, False),
+    (CUSTOMER_1, "task.update", None, False),
 ]
 
 
@@ -142,6 +162,7 @@ def test_capabilities_per_role() -> None:
         "quote.list",
         "quote.read",
         "quote.submit",
+        "schedule.read",
     ]
     assert capabilities(PLANNER) == [
         "material.list",
@@ -149,10 +170,21 @@ def test_capabilities_per_role() -> None:
         "order.list",
         "order.read",
         "price_rules.read",
+        "queue.read",
         "quote.list",
         "quote.read",
+        "schedule.approve",
+        "schedule.plan",
+        "schedule.read",
     ]
-    assert capabilities(OPERATOR) == ["material.list", "order.list", "order.read"]
+    assert capabilities(OPERATOR) == [
+        "material.list",
+        "order.list",
+        "order.read",
+        "queue.read",
+        "schedule.read",
+        "task.update",
+    ]
     assert capabilities(CUSTOMER_1) == [
         "material.list",
         "order.create",

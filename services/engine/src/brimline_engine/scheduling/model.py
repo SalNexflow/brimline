@@ -40,6 +40,10 @@ class Job:
     due: int  # minute by which the job should be packed
     rush: bool
     release: int = 0  # minute the material is on hand; the machine task cannot start earlier
+    # The post-processing steps asked for (raw input), when known: post_minutes_per_part is then
+    # their configured minutes added up, and the checker recomputes that sum. None when the
+    # minutes are given directly (generated instances).
+    post_processing: tuple[str, ...] | None = None
 
     def __post_init__(self) -> None:
         # Every job has real machine work; a zero-length machine task would break every method.

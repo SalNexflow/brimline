@@ -22,6 +22,11 @@ Action = Literal[
     "quote.approve",
     "price_rules.read",
     "price_rules.write",
+    "schedule.read",
+    "schedule.plan",
+    "schedule.approve",
+    "queue.read",
+    "task.update",
 ]
 
 
@@ -57,6 +62,7 @@ _ANY_TARGET: dict[str, frozenset[str]] = {
             "quote.approve",
             "price_rules.read",
             "price_rules.write",
+            "schedule.read",
         }
     ),
     "planner": frozenset(
@@ -68,9 +74,15 @@ _ANY_TARGET: dict[str, frozenset[str]] = {
             "quote.list",
             "quote.read",
             "price_rules.read",
+            "schedule.read",
+            "schedule.plan",
+            "schedule.approve",
+            "queue.read",
         }
     ),
-    "operator": frozenset({"order.list", "order.read", "material.list"}),
+    "operator": frozenset(
+        {"order.list", "order.read", "material.list", "schedule.read", "queue.read", "task.update"}
+    ),
 }
 
 # Actions a role may take only on targets that belong to its own customer.

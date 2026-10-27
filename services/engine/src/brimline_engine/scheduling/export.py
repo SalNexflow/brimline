@@ -36,6 +36,7 @@ def job_doc(j: Job) -> dict[str, Any]:
         "due": j.due,
         "rush": j.rush,
         "release": j.release,
+        "post_processing": None if j.post_processing is None else list(j.post_processing),
     }
 
 

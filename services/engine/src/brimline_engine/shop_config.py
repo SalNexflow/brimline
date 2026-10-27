@@ -74,6 +74,10 @@ class OrderLine(_Strict):
     part: str
     quantity: int = Field(gt=0)
     material: str
+    # What the scheduler needs; optional, so a line can be seeded as "cannot plan yet".
+    minutes_per_part: int | None = Field(default=None, gt=0)
+    part_mm: tuple[int, int, int] | None = None
+    post: list[PostProcess] = []
 
 
 class Order(_Strict):

@@ -184,13 +184,16 @@ rush_multiplier_percent = 150
 post_process_cents_per_part = { sanding = 200, painting = 350, assembly = 500 }
 
 # A few existing orders so the lists are not empty and customer separation can be tested.
+# Seeded orders. Each line carries what the scheduler needs (M5): machine minutes per part, the
+# part's size in mm (x, y, z) and any post-processing steps. A line without them is shown on the
+# board as "cannot plan", never guessed (the last order has one on purpose).
 [[orders]]
 customer = "C-HARBOR"
 created_by = "U-STAFF"
 due_date = 2026-10-30
 lines = [
-    { part = "Robot chassis plate", quantity = 4, material = "PETG-BLACK" },
-    { part = "Wheel hub", quantity = 8, material = "PLA-BLACK" },
+    { part = "Robot chassis plate", quantity = 4, material = "PETG-BLACK", minutes_per_part = 95, part_mm = [180, 120, 6] },
+    { part = "Wheel hub", quantity = 8, material = "PLA-BLACK", minutes_per_part = 35, part_mm = [60, 60, 25] },
 ]
 
 [[orders]]
@@ -199,10 +202,54 @@ created_by = "U-STAFF"
 due_date = 2026-10-27
 rush = true
 notes = "Competition on Saturday."
-lines = [{ part = "Sensor bracket", quantity = 10, material = "PLA-WHITE" }]
+lines = [{ part = "Sensor bracket", quantity = 10, material = "PLA-WHITE", minutes_per_part = 18, part_mm = [40, 30, 15], post = ["sanding"] }]
 
 [[orders]]
 customer = "C-WILLOW"
 created_by = "U-STAFF"
 due_date = 2026-11-03
-lines = [{ part = "Model tray", quantity = 6, material = "RESIN-GREY" }]
+lines = [{ part = "Model tray", quantity = 6, material = "RESIN-GREY", minutes_per_part = 40, part_mm = [120, 80, 20] }]
+
+[[orders]]
+customer = "C-COPPER"
+created_by = "U-STAFF"
+due_date = 2026-11-02
+lines = [
+    { part = "Helmet visor frame", quantity = 2, material = "PETG-ORANGE", minutes_per_part = 240, part_mm = [240, 200, 90], post = ["sanding", "painting"] },
+    { part = "Gauntlet plate", quantity = 6, material = "PLA-WHITE", minutes_per_part = 55, part_mm = [120, 90, 30], post = ["painting"] },
+]
+
+[[orders]]
+customer = "C-TALLOW"
+created_by = "U-STAFF"
+due_date = 2026-10-29
+lines = [
+    { part = "Chain guide", quantity = 4, material = "AL-6061", minutes_per_part = 45, part_mm = [90, 40, 12] },
+    { part = "Bottle cage clip", quantity = 12, material = "TPU-BLACK", minutes_per_part = 12, part_mm = [50, 30, 10] },
+]
+
+[[orders]]
+customer = "C-WILLOW"
+created_by = "U-STAFF"
+due_date = 2026-10-28
+rush = true
+lines = [{ part = "Night guard", quantity = 8, material = "RESIN-CLEAR", minutes_per_part = 30, part_mm = [70, 60, 20], post = ["sanding"] }]
+
+[[orders]]
+customer = "C-HARBOR"
+created_by = "U-STAFF"
+due_date = 2026-11-05
+lines = [
+    { part = "Arena wall panel", quantity = 2, material = "PLA-BLACK", minutes_per_part = 300, part_mm = [320, 300, 8] },
+    { part = "Cable clip", quantity = 20, material = "PLA-BLACK", minutes_per_part = 6, part_mm = [30, 15, 10] },
+]
+
+[[orders]]
+customer = "C-COPPER"
+created_by = "U-STAFF"
+due_date = 2026-11-04
+notes = "Hilt size to be confirmed by the customer."
+lines = [
+    { part = "Display stand", quantity = 1, material = "PETG-BLACK", minutes_per_part = 420, part_mm = [300, 300, 60], post = ["assembly"] },
+    { part = "Prop sword hilt", quantity = 1, material = "PLA-BLACK", minutes_per_part = 150 },
+]

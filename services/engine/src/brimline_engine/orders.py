@@ -2,7 +2,7 @@
 can() and order_scope(), so no caller can forget to (hard rule 4). All SQL is parameterised."""
 
 from datetime import date, datetime
-from typing import Any, Literal
+from typing import Any, Literal, NamedTuple
 
 import psycopg
 from psycopg.rows import class_row
@@ -13,6 +13,17 @@ from brimline_engine.permissions import Actor, OrderTarget, can, order_scope
 from brimline_engine.text import SafeText
 
 CREATE_ENDPOINT = "POST /orders"
+
+
+class NewJob(NamedTuple):
+    """One order line to insert. Planning fields are optional: a job without them is shown as
+    "cannot plan" until they are known (part size is not known for quoted orders yet)."""
+
+    part_name: str
+    quantity: int
+    material_id: int
+    minutes_per_part: int | None = None
+    post_processing: tuple[str, ...] = ()
 
 
 class NotFoundError(Exception):
@@ -189,10 +200,10 @@ def insert_order(
     rush: bool,
     notes: str,
     created_by: int,
-    jobs: list[tuple[str, int, int]],
+    jobs: list[NewJob],
 ) -> tuple[int, str]:
-    """Insert an order and one job per (part name, quantity, material id). No checks: callers
-    have already checked permissions and inputs, inside their own transaction."""
+    """Insert an order and one job per line. No checks: callers have already checked
+    permissions and inputs, inside their own transaction."""
     order = conn.execute(
         "INSERT INTO orders (customer_id, due_date, rush, notes, created_by)"
         " VALUES (%s, %s, %s, %s, %s) RETURNING id, order_number",
@@ -200,11 +211,19 @@ def insert_order(
     ).fetchone()
     assert order is not None
     order_id, order_number = int(order[0]), str(order[1])
-    for line_no, (part_name, quantity, material_id) in enumerate(jobs, start=1):
+    for line_no, line in enumerate(jobs, start=1):
         conn.execute(
-            "INSERT INTO jobs (order_id, line_no, part_name, quantity, material_id)"
-            " VALUES (%s, %s, %s, %s, %s)",
-            (order_id, line_no, part_name, quantity, material_id),
+            "INSERT INTO jobs (order_id, line_no, part_name, quantity, material_id,"
+            " minutes_per_part, post_processing) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            (
+                order_id,
+                line_no,
+                line.part_name,
+                line.quantity,
+                line.material_id,
+                line.minutes_per_part,
+                list(line.post_processing),
+            ),
         )
     return order_id, order_number
 
@@ -259,7 +278,7 @@ def create_order(
             notes=body.notes,
             created_by=actor.user_id,
             jobs=[
-                (line.part_name, line.quantity, materials[line.material_code])
+                NewJob(line.part_name, line.quantity, materials[line.material_code])
                 for line in body.lines
             ],
         )

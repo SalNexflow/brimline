@@ -48,7 +48,7 @@ def test_seeding_twice_produces_identical_data(settings: Settings) -> None:
     first = _fresh_seed_and_dump(settings)
     second = _fresh_seed_and_dump(settings)
     assert first == second
-    assert len(first["orders"]) == 3  # sanity: the comparison is not between two empty dumps
+    assert len(first["orders"]) == 8  # sanity: the comparison is not between two empty dumps
 
 
 def test_seed_numbers_orders_from_bl_0001(owner_conn: psycopg.Connection) -> None:

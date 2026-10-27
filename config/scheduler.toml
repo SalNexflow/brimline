@@ -11,6 +11,8 @@ changeover_minutes = 30         # extra, between consecutive jobs of different m
 finish_base_minutes = 10        # quality check and packing, per job
 finish_minutes_per_part = 1     # ... plus this per part
 cool_down_minutes = { fdm = 20, resin = 45, cnc = 0 }   # part stays on the machine
+# Hands-on minutes per part for each post-processing step a customer can ask for (quote lines).
+post_process_minutes_per_part = { sanding = 4, painting = 6, assembly = 3 }
 
 [staff]
 people_per_shift = 2            # manual tasks running at the same time

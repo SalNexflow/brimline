@@ -36,6 +36,7 @@ class Rules:
     finish_base: int
     finish_per_part: int
     cool_down: dict[str, int]
+    post_process: dict[str, int]  # minutes per part for each post-processing step
     staff: int
     windows: tuple[tuple[int, int], ...]  # staffed [start, end) minutes, sorted
     weights: Weights
@@ -73,6 +74,10 @@ def rules_from_toml(data: dict[str, Any]) -> Rules:
         finish_base=_int(d, "finish_base_minutes"),
         finish_per_part=_int(d, "finish_minutes_per_part"),
         cool_down={k: _int(d["cool_down_minutes"], k) for k in d["cool_down_minutes"]},
+        post_process={
+            k: _int(d["post_process_minutes_per_part"], k)
+            for k in d.get("post_process_minutes_per_part", {})
+        },
         staff=_int(data["staff"], "people_per_shift"),
         windows=windows(s["weekdays"], _int(s, "horizon_days")),
         weights=Weights(

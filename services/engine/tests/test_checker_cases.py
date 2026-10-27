@@ -592,3 +592,33 @@ def test_utilisation_counts_only_time_from_minute_zero() -> None:
     r = check_document(doc([job("A", minutes_per_part=1100)], [p], fixed=fixed), RULES)
     assert r.valid
     assert r.metrics is not None and r.metrics.utilisation == pytest.approx(100 / 330)
+
+
+# --- M5: post-processing steps are raw input ----------------------------------------------------
+
+POST_TOML = TOML | {
+    "durations": TOML["durations"]
+    | {"post_process_minutes_per_part": {"sanding": 4, "painting": 6}}
+}
+
+
+def test_post_minutes_must_match_the_configured_steps() -> None:
+    # Sanding 4 + painting 6 = 10 minutes per part; the document claims 7.
+    rules = rules_from_toml(POST_TOML)
+    j = job("A", post_minutes_per_part=7, post_processing=["sanding", "painting"])
+    assert codes(doc([j], [], unscheduled=("A",)), rules) == {"bad_instance"}
+
+
+def test_matching_post_minutes_are_accepted() -> None:
+    rules = rules_from_toml(POST_TOML)
+    j = job("A", post_minutes_per_part=10, post_processing=["sanding", "painting"])
+    p = plan(
+        "A", "M1", ("prep", 0, 10), ("machine", 10, 110), ("post", 110, 120), ("finish", 120, 130)
+    )
+    assert codes(doc([j], [p]), rules) == set()
+
+
+def test_an_unknown_post_step_is_refused() -> None:
+    rules = rules_from_toml(POST_TOML)
+    j = job("A", post_minutes_per_part=0, post_processing=["gilding"])
+    assert codes(doc([j], [], unscheduled=("A",)), rules) == {"bad_instance"}
