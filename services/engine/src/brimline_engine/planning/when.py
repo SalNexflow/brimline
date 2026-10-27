@@ -99,6 +99,7 @@ VAGUE = {
     "shortly",
     "afternoon",
     "evening",
+    "tonight",
     "unknown",
     "später",
     "bald",
@@ -116,8 +117,18 @@ VAGUE = {
     "idk",
     "?",
 }
+# Said as several words; each becomes "morning" before anything else is read.
+MORNING_PHRASES = (
+    "de la mañana",
+    "de la manana",
+    "por la mañana",
+    "por la manana",
+    "in the morning",
+    "du matin",
+    "le matin",
+)
 NOW = {"now", "jetzt", "sofort", "ahora", "maintenant", "immediately", "right"}
-TODAY = {"today", "heute", "hoy", "aujourd'hui", "aujourdhui", "tonight"}
+TODAY = {"today", "heute", "hoy", "aujourd'hui", "aujourdhui"}
 TOMORROW = {"tomorrow", "tmrw", "tmr", "morgen", "mañana", "manana", "demain"}
 MORNING = {"morning", "früh", "frueh", "vormittag", "matin"}
 END_OF_DAY = {
@@ -221,11 +232,13 @@ def _valid(y: int, m: int, d: int) -> date | None:
         return None
 
 
-def _future_year(month: int, day: int, today: date) -> date | None:
-    """The next such date that is not in the past (a message about last week makes no sense)."""
-    for year in (today.year, today.year + 1):
+def _nearest(month: int, day: int, today: date, past_ok: bool) -> date | None:
+    """A date without a year: the next one not in the past, or, for when something started
+    (past_ok), the most recent one not in the future."""
+    years = (today.year - 1, today.year) if past_ok else (today.year, today.year + 1)
+    for year in reversed(years) if past_ok else years:
         found = _valid(year, month, day)
-        if found is not None and found >= today:
+        if found is not None and (found <= today if past_ok else found >= today):
             return found
     return None
 
@@ -237,7 +250,7 @@ def _take(pattern: str, text: str) -> tuple[re.Match[str] | None, str]:
     return m, (text[: m.start()] + " " + text[m.end() :])
 
 
-def _parse(phrase: str, today: date) -> _Parts | str:
+def _parse(phrase: str, today: date, past_ok: bool = False) -> _Parts | str:
     """The parts of a phrase, or the reason it cannot be read."""
     text = " " + phrase.lower().replace(",", " ").replace(";", " ") + " "
     parts = _Parts()
@@ -271,13 +284,27 @@ def _parse(phrase: str, today: date) -> _Parts | str:
     if m is not None:
         parts.relative = timedelta(minutes=30)
 
-    # Numeric dates: "12/11", "12/11/2026", "03.11.", "03.11.2026", and "3.11" when both numbers
-    # could be a day or a month. "17.30" or "12.30 Uhr" is a time, read further down.
+    # Morning phrases first, so "de la mañana" is not read as "tomorrow" and "heute morgen"
+    # (this morning) not as "tomorrow" (review of M6).
+    for spoken in MORNING_PHRASES:
+        text = text.replace(spoken, " morning ")
+    text = re.sub(
+        r"\b(heute|" + "|".join(sorted(WEEKDAYS, key=len, reverse=True)) + r")\s+morgen\b",
+        r"\1 morning",
+        text,
+    )
+
+    def set_day(found: date, source: str) -> str | None:
+        if parts.day is not None and parts.day != found:
+            return f"'{phrase}' names two different days ({parts.day:%a %d %b} and {found:%a %d %b}, {source})"
+        parts.day = found
+        return None
+
+    # Numeric dates, only where they cannot be a time: "12/11", "12/11/2026", "03.11.",
+    # "03.11.2026". "3.11" or "10.10" without a final dot could be a date or a time: refused.
     m, text = _take(r"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?(?=\s)", text)
     if m is None:
         m, text = _take(r"\b(\d{1,2})\.(\d{1,2})\.(\d{2,4})?(?=\s)", text)
-    if m is None:
-        m, text = _take(r"\b(0?[1-9]|1[0-2])\.(0?[1-9]|1[0-2])(?=\s)(?!\s*(?:uhr|h)\b)", text)
     if m is not None:
         a, b = int(m.group(1)), int(m.group(2))
         year = int(m.group(3)) if (m.lastindex or 0) >= 3 and m.group(3) else None
@@ -285,56 +312,65 @@ def _parse(phrase: str, today: date) -> _Parts | str:
             year += 2000
 
         def reading(day_: int, month: int) -> date | None:
-            return _valid(year, month, day_) if year else _future_year(month, day_, today)
+            return _valid(year, month, day_) if year else _nearest(month, day_, today, past_ok)
 
-        day_first, month_first = reading(a, b), reading(b, a)
-        found = {d for d in (day_first, month_first) if d is not None}
+        found = {d for d in (reading(a, b), reading(b, a)) if d is not None}
         if not found:
             return f"'{m.group(0).strip()}' is not a date"
         if len(found) == 2:
             parts.days = tuple(sorted(found))
-        else:
-            parts.day = found.pop()
+        elif (problem := set_day(found.pop(), "date")) is not None:
+            return problem
+    if re.search(r"\b(0?[1-9]|1[0-2])\.(0?[1-9]|1[0-2])(?=\s)(?!\s*(?:uhr|h)\b)", text):
+        return f"'{phrase}' could be a date or a time; write it as 10/11 or 10:10"
     month_names = "|".join(sorted(map(re.escape, MONTHS), key=len, reverse=True))
     m, text = _take(rf"\b(\d{{1,2}})\.?\s*(?:de\s+)?({month_names})\.?(?:\s+(\d{{4}}))?\b", text)
     if m is None:
-        m2, text = _take(rf"\b({month_names})\.?\s+(\d{{1,2}})(?:st|nd|rd|th)?\b", text)
-        if m2 is not None:
-            parts.day = _future_year(MONTHS[m2.group(1)], int(m2.group(2)), today)
-            if parts.day is None:
-                return f"'{m2.group(0).strip()}' is not a date"
+        m, text = _take(rf"\b({month_names})\.?\s+(\d{{1,2}})(?:st|nd|rd|th)?\b", text)
+        if m is not None:
+            month, day_, year_txt = MONTHS[m.group(1)], int(m.group(2)), None
     else:
-        month, day_ = MONTHS[m.group(2)], int(m.group(1))
-        parts.day = (
-            _valid(int(m.group(3)), month, day_) if m.group(3) else _future_year(month, day_, today)
+        month, day_, year_txt = MONTHS[m.group(2)], int(m.group(1)), m.group(3)
+    if m is not None:
+        found_day = (
+            _valid(int(year_txt), month, day_)
+            if year_txt
+            else _nearest(month, day_, today, past_ok)
         )
-        if parts.day is None:
+        if found_day is None:
             return f"'{m.group(0).strip()}' is not a date"
+        if (problem := set_day(found_day, "date")) is not None:
+            return problem
 
-    # Clock times: "17:00", "17.30", "5pm", "5 p.m.", "17 uhr", "17h", "17h30", "9 am".
+    # A day of the month on its own ("le 3", "el 12", "the 3rd") is not a time.
+    if re.search(r"\b(?:le|el|the|den|der|am|du)\s+\d{1,2}(?:st|nd|rd|th|er|\.)?(?=\s)", text):
+        return f"'{phrase}' gives a day of the month without the month"
+
+    # Clock times: "17:00", "17.30", "5pm", "5 p.m.", "17 uhr", "17h", "17h30", "9 am". Without
+    # am/pm, 1 to 7 o'clock means the afternoon (the shop is closed at night) unless a morning
+    # word says otherwise; decided after the words are read, so "tomorrow morning at 7" is 07:00.
+    hour: int | None = None
+    minute = 0
+    explicit = False
     m, text = _take(r"\b(\d{1,2})\s*(?:[:.h]\s*(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)(?=\s)", text)
     if m is not None:
         hour, minute = int(m.group(1)), int(m.group(2) or 0)
-        pm = m.group(3).startswith("p")
         if not 1 <= hour <= 12 or minute > 59:
             return f"'{m.group(0).strip()}' is not a time"
-        parts.clock = time((hour % 12) + (12 if pm else 0), minute)
+        hour = (hour % 12) + (12 if m.group(3).startswith("p") else 0)
+        explicit = True
     else:
         m, text = _take(r"\b(\d{1,2})\s*(?::|h|\.)\s*(\d{2})\b", text)
         if m is None:
             m, text = _take(r"\b(\d{1,2})\s*(?:uhr|h)\b", text)
+            explicit = m is not None  # "7 Uhr" is 07:00 as written
         if m is None:
             m, text = _take(r"(?<=\s)(\d{1,2})(?=\s)", text)
-            if m is not None and int(m.group(1)) <= 7:
-                # "till 3": a bare hour the shop cannot mean at night is the afternoon.
-                parts.clock = time(int(m.group(1)) + 12, 0)
-                m = None
         if m is not None:
             hour = int(m.group(1))
             minute = int(m.group(2)) if m.lastindex and m.lastindex >= 2 and m.group(2) else 0
-            if hour > 23 or minute > 59:
+            if hour > 23 or minute > 59 or (hour == 0 and not explicit and minute == 0):
                 return f"'{m.group(0).strip()}' is not a time"
-            parts.clock = time(hour, minute)
 
     words = [w.strip(".!") for w in text.split()]
     leftover = []
@@ -346,14 +382,22 @@ def _parse(phrase: str, today: date) -> _Parts | str:
         if w in NOW:
             parts.now = True
         elif w in TODAY:
-            parts.day = parts.day or today
+            if (problem := set_day(today, "today")) is not None:
+                return problem
         elif w in TOMORROW:
-            parts.day = today + timedelta(days=1)
+            if (problem := set_day(today + timedelta(days=1), "tomorrow")) is not None:
+                return problem
         elif w in WEEKDAYS:
-            ahead = (WEEKDAYS[w] - today.weekday() - 1) % 7 + 1  # strictly after today
-            parts.day = today + timedelta(days=ahead)
+            if parts.day is not None:  # a weekday next to a date must agree with it
+                if parts.day.weekday() != WEEKDAYS[w]:
+                    return f"'{phrase}': {parts.day:%d %b} is not a {w}"
+                continue
+            if past_ok:  # when something started: the most recent such day, today included
+                parts.day = today - timedelta(days=(today.weekday() - WEEKDAYS[w]) % 7)
+            else:  # strictly after today
+                parts.day = today + timedelta(days=(WEEKDAYS[w] - today.weekday() - 1) % 7 + 1)
         elif w in NOON:
-            parts.clock = time(12, 0)
+            hour, minute, explicit = 12, 0, True
         elif w in MORNING:
             parts.morning = True
         elif w in END_OF_DAY:
@@ -364,6 +408,12 @@ def _parse(phrase: str, today: date) -> _Parts | str:
             leftover.append(w)
     if leftover:
         return f"cannot read '{' '.join(leftover)}' in '{phrase}'"
+    if hour is not None:
+        if not explicit and 1 <= hour <= 7 and not parts.morning:
+            hour += 12  # "till 3", "back at 3:30": the afternoon
+        if parts.morning and hour >= 12:
+            return f"'{phrase}' says morning but gives {hour}:{minute:02d}"
+        parts.clock = time(hour, minute)
     return parts
 
 
@@ -387,7 +437,7 @@ def resolve(
         return Resolved("none")
     zone = ZoneInfo(tz)
     local = received.astimezone(zone)
-    parsed = _parse(phrase, local.date())
+    parsed = _parse(phrase, local.date(), past_ok)
     if isinstance(parsed, str):
         return Resolved.unknown(parsed)
     p = parsed
@@ -418,4 +468,8 @@ def resolve(
         moment = at(local.date())
         if moment <= local and not past_ok:  # already passed today: the same time tomorrow
             moment = at(local.date() + timedelta(days=1))
+    if past_ok and moment > local:
+        return Resolved.unknown(f"'{phrase}' is after the message was sent")
+    if not past_ok and moment <= local:
+        return Resolved.unknown(f"'{phrase}' is already in the past")
     return Resolved("time", moment.astimezone(ZoneInfo("UTC")))

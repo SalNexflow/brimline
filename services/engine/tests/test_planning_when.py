@@ -78,7 +78,7 @@ def test_phrases_resolve_to_the_moment_they_mean(phrase: str, expected: datetime
     assert (r.kind, r.at) == ("time", expected), r.note
 
 
-@pytest.mark.parametrize("phrase", ["12/11", "03.11.", "5/6", "3.11"])
+@pytest.mark.parametrize("phrase", ["12/11", "03.11.", "5/6"])
 def test_a_date_valid_in_two_readings_needs_confirmation(phrase: str) -> None:
     # 12/11 is 12 November or 11 December; nothing is chosen.
     r = resolve(phrase, RECEIVED, TZ, SHIFTS)
@@ -120,3 +120,70 @@ def test_a_start_time_in_the_past_stays_today() -> None:
     # "down since 15:00", received at 15:20: it went down 20 minutes ago, not tomorrow.
     r = resolve("since 15:00", RECEIVED, TZ, SHIFTS, past_ok=True)
     assert r.at == berlin(11, 3, 15)
+
+
+# --- Found by the fresh-context review of M6: these were read as wrong times ------------------
+
+
+@pytest.mark.parametrize(
+    ("phrase", "expected"),
+    [
+        # A morning word keeps an early hour in the morning.
+        ("tomorrow morning at 7", berlin(11, 4, 7)),
+        ("demain matin à 6", berlin(11, 4, 6)),
+        ("morgen früh um 6", berlin(11, 4, 6)),
+        ("mañana a las 6 de la mañana", berlin(11, 4, 6)),
+        # Without one, 1 to 7 o'clock is the afternoon in both forms.
+        ("back at 3:30", berlin(11, 3, 15, 30)),
+        ("until 5:30", berlin(11, 3, 17, 30)),
+        ("bis 7 Uhr", berlin(11, 4, 7)),  # "Uhr" is the hour as written; 07:00 has passed
+        # "morgen" after a day word means morning.
+        ("bis Montag morgen", berlin(11, 9, 8)),
+        # Times written with a dot.
+        ("bis 17.30", berlin(11, 3, 17, 30)),
+        ("bis 9.05 Uhr", berlin(11, 4, 9, 5)),
+        # A weekday that agrees with the date.
+        ("Thursday 5 November", berlin(11, 5, 8)),
+    ],
+)
+def test_review_cases_resolve_to_what_was_meant(phrase: str, expected: datetime) -> None:
+    r = resolve(phrase, RECEIVED, TZ, SHIFTS)
+    assert (r.kind, r.at) == ("time", expected), r.note
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "until 10.10",  # a date or 10:10?
+        "3.11",
+        "le 3",  # a day of the month without the month
+        "el 12",
+        "Friday 3 November",  # 3 Nov is a Tuesday
+        "tomorrow 15 Nov",  # two different days
+        "until tonight",
+        "till 0",
+        "heute morgen um 14",  # morning, but 14:00
+        "12/11/2025",  # in the past
+    ],
+)
+def test_review_cases_are_refused_not_guessed(phrase: str) -> None:
+    r = resolve(phrase, RECEIVED, TZ, SHIFTS)
+    assert r.kind != "time", (phrase, r.at)
+
+
+@pytest.mark.parametrize(
+    ("phrase", "expected"),
+    [
+        ("since monday", berlin(11, 2, 8)),  # the most recent Monday
+        ("seit 25.10.", berlin(10, 25, 8)),  # only one valid reading; last month, not next year
+        ("since 9am", berlin(11, 3, 9)),
+    ],
+)
+def test_a_start_looks_backwards(phrase: str, expected: datetime) -> None:
+    r = resolve(phrase, RECEIVED, TZ, SHIFTS, past_ok=True)
+    assert (r.kind, r.at) == ("time", expected), r.note
+
+
+def test_a_start_after_the_message_is_refused() -> None:
+    # Received at 15:20: "since 4" is 16:00 today, after the message was sent.
+    assert resolve("since 4", RECEIVED, TZ, SHIFTS, past_ok=True).kind == "unknown"

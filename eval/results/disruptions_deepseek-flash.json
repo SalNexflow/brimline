@@ -2,7 +2,7 @@
   "model": "deepseek-flash",
   "prompt_version": "disruption-parse-v1",
   "split": "all",
-  "generated_at": "2026-10-27T14:58:57+00:00",
+  "generated_at": "2026-10-27T15:34:50+00:00",
   "summary": {
     "dev": {
       "items": 24,
