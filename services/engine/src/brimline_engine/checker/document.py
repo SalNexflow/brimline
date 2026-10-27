@@ -49,6 +49,13 @@ class Fixed:
 
 
 @dataclass(frozen=True)
+class Downtime:
+    machine: str
+    start: int
+    end: int
+
+
+@dataclass(frozen=True)
 class Instance:
     name: str
     horizon: int
@@ -56,6 +63,7 @@ class Instance:
     jobs: tuple[Job, ...]
     fixed: tuple[Fixed, ...]
     plan_start: int  # the moment of planning; 0 when the document does not say
+    downtimes: tuple[Downtime, ...]  # machines that cannot be used; none when not given
     # The shifts and staff the plan was made for. Optional: when given, the checker compares
     # them with its own reading of config/scheduler.toml instead of trusting them.
     shifts: tuple[tuple[int, int], ...] | None
@@ -164,6 +172,15 @@ def _fixed(d: object, where: str) -> Fixed:
     )
 
 
+def _downtime(d: object, where: str) -> Downtime:
+    _only(d, {"machine", "start", "end"}, where)
+    return Downtime(
+        machine=_get(d, "machine", str, where),
+        start=_get(d, "start", int, where),
+        end=_get(d, "end", int, where),
+    )
+
+
 def _task(d: object, where: str) -> Task:
     _only(d, {"kind", "start", "end"}, where)
     kind = _get(d, "kind", str, where)
@@ -206,7 +223,17 @@ def parse(doc: object) -> Document:
     plan = _get(doc, "plan", dict, "document")
     _only(
         inst,
-        {"name", "horizon", "machines", "jobs", "fixed", "shifts", "staff", "plan_start"},
+        {
+            "name",
+            "horizon",
+            "machines",
+            "jobs",
+            "fixed",
+            "shifts",
+            "staff",
+            "plan_start",
+            "downtimes",
+        },
         "instance",
     )
     _only(plan, {"method", "jobs", "unscheduled"}, "plan")
@@ -222,6 +249,12 @@ def parse(doc: object) -> Document:
             jobs=tuple(_job(j, f"jobs[{i}]") for i, j in enumerate(jobs)),
             fixed=tuple(_fixed(f, f"fixed[{i}]") for i, f in enumerate(fixed)),
             plan_start=_get(inst, "plan_start", int, "instance") if "plan_start" in inst else 0,
+            downtimes=tuple(
+                _downtime(d, f"downtimes[{i}]")
+                for i, d in enumerate(_get(inst, "downtimes", list, "instance"))
+            )
+            if "downtimes" in inst
+            else (),
             shifts=_shifts(inst),
             staff=_get(inst, "staff", int, "instance") if "staff" in inst else None,
         ),

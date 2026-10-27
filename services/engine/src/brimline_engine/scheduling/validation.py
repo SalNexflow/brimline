@@ -35,6 +35,17 @@ def check_instance(instance: Instance, d: Durations) -> None:
         by_machine.setdefault(fixed.machine, []).append(
             (fixed.start, fixed.start + duration, fixed.job_id)
         )
+    for down in instance.downtimes:
+        if down.machine not in machines:
+            raise InstanceError(f"downtime on unknown machine {down.machine}")
+        if down.end <= down.start:
+            raise InstanceError(f"downtime on {down.machine} ends before it starts")
+        for start, end, job_id in by_machine.get(down.machine, []):
+            if start < down.end and down.start < end:
+                raise InstanceError(
+                    f"fixed task {job_id} runs on {down.machine} while it is down; "
+                    "a lost print must not be fixed"
+                )
     for code, tasks in by_machine.items():
         tasks.sort()
         for (_, end, a), (start, _, b) in pairwise(tasks):

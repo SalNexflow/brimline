@@ -146,6 +146,20 @@ def instance_problems(inst: Instance, r: Rules) -> list[Violation]:
             continue
         length = durations(jobs[f.job_id], r, f)["machine"]
         fixed_runs.setdefault(f.machine, []).append((f.start, f.start + length, f.job_id))
+    for down in inst.downtimes:
+        if down.machine not in codes or down.end <= down.start:
+            out.append(Violation("bad_instance", None, f"impossible downtime {down}"))
+            continue
+        for start, end, job_id in fixed_runs.get(down.machine, []):
+            if start < down.end and down.start < end:
+                out.append(
+                    Violation(
+                        "bad_instance",
+                        job_id,
+                        f"fixed task {start}-{end} runs on {down.machine} while it is down"
+                        f" ({down.start}-{down.end})",
+                    )
+                )
     for machine, runs in fixed_runs.items():
         runs.sort()
         for (_, end, a), (start, _, b) in pairwise(runs):
@@ -357,6 +371,18 @@ def _witness(
     fx: Fixed | None,
 ) -> str | None:
     """A placement of this one job alone (ignoring staff), or None. See SCHEDULE_RULES.md."""
+    # A downtime blocks like a task of the same material (no changeover needed around it).
+    runs = {
+        code: [
+            *items,
+            *(
+                _Run("down", d.start, d.end, job.material, True)
+                for d in inst.downtimes
+                if d.machine == code
+            ),
+        ]
+        for code, items in {**{m.code: [] for m in inst.machines}, **runs}.items()
+    }
     d = durations(job, r, fx)
     if fx is not None:
         machine, start = fx.machine, fx.start
@@ -453,6 +479,17 @@ def _check_plan(inst: Instance, plan: Plan, r: Rules) -> CheckResult:
             runs.setdefault(f.machine, []).append(_Run(job.id, f.start, end, job.material, True))
     out += _timeline_problems(runs, r)
     out += _staff_problems(manual, r)
+    # R19: nothing runs on a machine while it is down (fixed tasks are checked as facts above).
+    for down in inst.downtimes:
+        for run in runs.get(down.machine, []):
+            if not run.fixed and run.start < down.end and down.start < run.end:
+                out.append(
+                    Violation(
+                        "machine_down",
+                        run.job,
+                        f"{run.start}-{run.end} on {down.machine}, down {down.start}-{down.end}",
+                    )
+                )
 
     warnings = []
     for job_id in unscheduled:

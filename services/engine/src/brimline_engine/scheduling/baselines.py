@@ -21,7 +21,9 @@ from brimline_engine.scheduling.durations import eligible_machines, job_duration
 from brimline_engine.scheduling.model import Fixed, Instance, Job, JobPlan, Schedule, Slot, TaskKind
 from brimline_engine.scheduling.validation import check_instance
 
-Busy = list[tuple[int, int, str]]  # (start, end, material) of machine tasks already placed
+# (start, end, material) of what is on a machine already; material None for a downtime, which
+# needs no changeover before or after it.
+Busy = list[tuple[int, int, str | None]]
 
 
 @dataclass
@@ -58,7 +60,7 @@ def _earliest_machine_gap(
         end = start + duration
         clash = None
         for s, e, other in busy:
-            gap = d.changeover_minutes if other != material else 0
+            gap = d.changeover_minutes if other is not None and other != material else 0
             if not (end + gap <= s or start >= e + gap):
                 clash = e + gap
                 break
@@ -138,6 +140,8 @@ def list_schedule(instance: Instance, order: list[Job], d: Durations, method: st
     state = _State(
         machines={m.code: [] for m in instance.machines}, lanes=[[] for _ in range(instance.staff)]
     )
+    for down in instance.downtimes:
+        state.machines[down.machine].append((down.start, down.end, None))
     fixed = {f.job_id: f for f in instance.fixed}
     # Fixed tasks are already on their machines, so they are placed before anything else.
     ordered = [j for j in order if j.id in fixed] + [j for j in order if j.id not in fixed]

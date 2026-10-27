@@ -344,6 +344,19 @@ def before_plan_start(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
     return out
 
 
+def into_downtime(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
+    """Declare a machine down for one minute in the middle of a task planned on it."""
+    if (p := _pick(doc, rng, free_only=True)) is None:
+        return None
+    out, pj = p
+    t = _task(pj, "machine")
+    assert t is not None
+    out["instance"].setdefault("downtimes", []).append(
+        {"machine": pj["machine"], "start": t["start"], "end": t["start"] + 1}
+    )
+    return out
+
+
 def move_fixed(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
     out = copy.deepcopy(doc)
     fixed = _fixed_ids(out)
@@ -396,6 +409,7 @@ OPERATORS: dict[str, tuple[str, Operator]] = {
     "staff_overload": ("staff_overload", staff_overload),
     "staff_overload_one_minute": ("staff_overload", staff_overload_one_minute),
     "before_plan_start": ("before_plan_start", before_plan_start),
+    "into_downtime": ("machine_down", into_downtime),
     "move_fixed": ("fixed_moved", move_fixed),
     "shrink_horizon": ("past_horizon", shrink_horizon),
 }

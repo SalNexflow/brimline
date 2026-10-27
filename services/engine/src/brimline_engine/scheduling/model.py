@@ -64,6 +64,26 @@ class Fixed:
 
 
 @dataclass(frozen=True)
+class Downtime:
+    """A machine cannot be used from start to end (a breakdown, maintenance). Nothing may run
+    on it then; it needs no changeover before or after."""
+
+    machine: str
+    start: int
+    end: int
+
+
+@dataclass(frozen=True)
+class Previous:
+    """Where the approved plan had a job, so a re-plan can avoid moving it without need."""
+
+    job_id: str
+    machine: str
+    start: int  # of the machine task
+    completion: int  # the finish the shop has told the customer (docs/DECISIONS.md D84)
+
+
+@dataclass(frozen=True)
 class Instance:
     name: str
     horizon: int
@@ -73,6 +93,8 @@ class Instance:
     staff: int
     fixed: tuple[Fixed, ...] = ()
     plan_start: int = 0  # the moment of planning: nothing that is not fixed may start earlier
+    downtimes: tuple[Downtime, ...] = ()
+    previous: tuple[Previous, ...] = ()  # the approved plan, when re-planning
 
 
 @dataclass(frozen=True)

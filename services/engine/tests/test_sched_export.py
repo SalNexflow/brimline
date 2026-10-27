@@ -11,10 +11,19 @@ from brimline_engine.scheduling.baselines import edd
 from brimline_engine.scheduling.config import load_scheduler_config
 from brimline_engine.scheduling.export import FORMAT, document
 from brimline_engine.scheduling.generator import generate
-from brimline_engine.scheduling.model import Fixed, Instance, Job, JobPlan, Machine, Slot
+from brimline_engine.scheduling.model import (
+    Downtime,
+    Fixed,
+    Instance,
+    Job,
+    JobPlan,
+    Machine,
+    Slot,
+)
 from brimline_engine.shop_config import load_shop_config
 
-NOT_EXPORTED: set[str] = set()  # every Instance field goes into the document
+# `previous` (the approved plan, for re-planning costs) is not a validity input: not exported.
+NOT_EXPORTED: set[str] = {"previous"}
 
 
 def plain(value: object) -> Any:
@@ -60,6 +69,7 @@ def instance_with_everything() -> Instance:
         inst.staff,
         (Fixed(inst.jobs[1].id, inst.machines[0].code, 12, 400),),
         plan_start=5,
+        downtimes=(Downtime(inst.machines[1].code, 2000, 2100),),
     )
 
 
@@ -74,7 +84,7 @@ def test_every_raw_field_reaches_the_json_unchanged() -> None:
     for f in fields(Instance):
         if f.name in NOT_EXPORTED:
             assert f.name not in d
-        elif f.name not in {"machines", "jobs", "fixed"}:
+        elif f.name not in {"machines", "jobs", "fixed", "downtimes"}:
             assert d[f.name] == plain(getattr(inst, f.name)), f.name
     assert len(d["machines"]) == len(inst.machines)
     for m, md in zip(inst.machines, d["machines"], strict=True):
@@ -84,6 +94,8 @@ def test_every_raw_field_reaches_the_json_unchanged() -> None:
         assert_same(j, jd)
     assert len(d["fixed"]) == 1
     assert_same(inst.fixed[0], d["fixed"][0])
+    assert len(d["downtimes"]) == 1
+    assert_same(inst.downtimes[0], d["downtimes"][0])
 
     p = doc["plan"]
     assert p["method"] == schedule.method
@@ -112,12 +124,13 @@ def test_the_checker_reads_back_exactly_what_was_exported() -> None:
     schedule = edd(inst, cfg.durations)
     parsed = parse(json.loads(json.dumps(document(inst, schedule))))
     for f in fields(Instance):
-        if f.name not in NOT_EXPORTED | {"machines", "jobs", "fixed"}:
+        if f.name not in NOT_EXPORTED | {"machines", "jobs", "fixed", "downtimes"}:
             assert getattr(parsed.instance, f.name) == getattr(inst, f.name), f.name
     for ours, theirs in [
         *zip(inst.machines, parsed.instance.machines, strict=True),
         *zip(inst.jobs, parsed.instance.jobs, strict=True),
         *zip(inst.fixed, parsed.instance.fixed, strict=True),
+        *zip(inst.downtimes, parsed.instance.downtimes, strict=True),
     ]:
         for f in fields(ours):  # type: ignore[arg-type]
             assert getattr(theirs, f.name) == getattr(ours, f.name), f.name

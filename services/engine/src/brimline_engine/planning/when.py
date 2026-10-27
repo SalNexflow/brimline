@@ -40,28 +40,110 @@ class Resolved:
 # --- Words --------------------------------------------------------------------------------------
 
 FILLER = {
-    "until", "till", "til", "untill", "by", "at", "around", "about", "approx", "approximately",
-    "ca", "from", "since", "seit", "desde", "depuis", "on", "the", "of", "o'clock", "oclock", "back", "done", "ready",
-    "bis", "um", "ab", "gegen", "etwa", "am", "uhr",
-    "hasta", "a", "las", "la", "el", "de", "del", "sobre", "para",
-    "jusqu'à", "jusqu'a", "jusqu", "à", "vers", "le", "du", "pour", "dès",
+    "until",
+    "till",
+    "til",
+    "untill",
+    "by",
+    "at",
+    "around",
+    "about",
+    "approx",
+    "approximately",
+    "ca",
+    "from",
+    "since",
+    "seit",
+    "desde",
+    "depuis",
+    "on",
+    "the",
+    "of",
+    "o'clock",
+    "oclock",
+    "back",
+    "done",
+    "ready",
+    "bis",
+    "um",
+    "ab",
+    "gegen",
+    "etwa",
+    "am",
+    "uhr",
+    "hasta",
+    "a",
+    "las",
+    "la",
+    "el",
+    "de",
+    "del",
+    "sobre",
+    "para",
+    "jusqu'à",
+    "jusqu'a",
+    "jusqu",
+    "à",
+    "vers",
+    "le",
+    "du",
+    "pour",
+    "dès",
 }
 VAGUE = {
-    "later", "soon", "while", "sometime", "asap", "shortly", "afternoon", "evening", "unknown",
-    "später", "bald", "nachmittag", "abend", "luego", "pronto", "tarde", "bientôt", "plus",
-    "tard", "après-midi", "soir", "tbd", "idk", "?",
+    "later",
+    "soon",
+    "while",
+    "sometime",
+    "asap",
+    "shortly",
+    "afternoon",
+    "evening",
+    "unknown",
+    "später",
+    "bald",
+    "nachmittag",
+    "abend",
+    "luego",
+    "pronto",
+    "tarde",
+    "bientôt",
+    "plus",
+    "tard",
+    "après-midi",
+    "soir",
+    "tbd",
+    "idk",
+    "?",
 }
 NOW = {"now", "jetzt", "sofort", "ahora", "maintenant", "immediately", "right"}
 TODAY = {"today", "heute", "hoy", "aujourd'hui", "aujourdhui", "tonight"}
 TOMORROW = {"tomorrow", "tmrw", "tmr", "morgen", "mañana", "manana", "demain"}
 MORNING = {"morning", "früh", "frueh", "vormittag", "matin"}
 END_OF_DAY = {
-    "eod", "close", "closing", "feierabend", "dienstschluss", "schichtende", "cierre", "fermeture",
+    "eod",
+    "close",
+    "closing",
+    "feierabend",
+    "dienstschluss",
+    "schichtende",
+    "cierre",
+    "fermeture",
 }
 END_OF_DAY_PHRASES = (
-    "end of day", "end of the day", "end of shift", "end of the shift", "close of business",
-    "fin del día", "fin del dia", "fin de journée", "fin de journee", "fin de la journée",
-    "fin de la journee", "ende des tages", "tagesende",
+    "end of day",
+    "end of the day",
+    "end of shift",
+    "end of the shift",
+    "close of business",
+    "fin del día",
+    "fin del dia",
+    "fin de journée",
+    "fin de journee",
+    "fin de la journée",
+    "fin de la journee",
+    "ende des tages",
+    "tagesende",
 )
 NOON = {"noon", "midday", "mittag", "mittags", "mediodía", "mediodia", "midi"}
 WEEKDAYS: dict[str, int] = {}
@@ -99,8 +181,22 @@ for i, names in enumerate(
     for name in names:
         MONTHS[name] = i
 WORD_NUMBERS = {
-    "a": 1, "an": 1, "one": 1, "eine": 1, "einer": 1, "una": 1, "un": 1, "une": 1,
-    "two": 2, "zwei": 2, "dos": 2, "deux": 2, "three": 3, "drei": 3, "tres": 3, "trois": 3,
+    "a": 1,
+    "an": 1,
+    "one": 1,
+    "eine": 1,
+    "einer": 1,
+    "una": 1,
+    "un": 1,
+    "une": 1,
+    "two": 2,
+    "zwei": 2,
+    "dos": 2,
+    "deux": 2,
+    "three": 3,
+    "drei": 3,
+    "tres": 3,
+    "trois": 3,
 }
 
 
@@ -146,10 +242,10 @@ def _parse(phrase: str, today: date) -> _Parts | str:
     text = " " + phrase.lower().replace(",", " ").replace(";", " ") + " "
     parts = _Parts()
 
-    for words in END_OF_DAY_PHRASES:
-        if words in text:
+    for ending in END_OF_DAY_PHRASES:
+        if ending in text:
             parts.end_of_day = True
-            text = text.replace(words, " ")
+            text = text.replace(ending, " ")
 
     # "in 2 hours", "in 30 min", "in einer Stunde", "dans 2 heures", "en 2 horas"
     m, text = _take(
@@ -163,7 +259,9 @@ def _parse(phrase: str, today: date) -> _Parts | str:
             return f"cannot read the number in '{m.group(0).strip()}'"
         unit = 1 if m.group(2).startswith("m") else 60  # minutes, or hours in any language
         parts.relative = timedelta(minutes=count * unit)
-    m, text = _take(r"\b(?:in\s+)?(?:half an hour|einer halben stunde|media hora|une demi-heure)\b", text)
+    m, text = _take(
+        r"\b(?:in\s+)?(?:half an hour|einer halben stunde|media hora|une demi-heure)\b", text
+    )
     if m is not None:
         parts.relative = timedelta(minutes=30)
 
@@ -201,7 +299,9 @@ def _parse(phrase: str, today: date) -> _Parts | str:
                 return f"'{m2.group(0).strip()}' is not a date"
     else:
         month, day_ = MONTHS[m.group(2)], int(m.group(1))
-        parts.day = _valid(int(m.group(3)), month, day_) if m.group(3) else _future_year(month, day_, today)
+        parts.day = (
+            _valid(int(m.group(3)), month, day_) if m.group(3) else _future_year(month, day_, today)
+        )
         if parts.day is None:
             return f"'{m.group(0).strip()}' is not a date"
 

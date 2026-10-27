@@ -51,6 +51,13 @@ class Solver(_Strict):
     deterministic_time_seconds: float = Field(gt=0)
 
 
+class Replan(_Strict):
+    moved_job: int = Field(ge=0)
+    slip_per_minute: int = Field(ge=0)
+    overrun_margin_minutes: int = Field(ge=1)
+    running_print_lost_when_machine_down: bool
+
+
 class SchedulerConfig(_Strict):
     checked: date
     durations: Durations
@@ -58,6 +65,7 @@ class SchedulerConfig(_Strict):
     shifts: Shifts
     weights: Weights
     solver: Solver
+    replan: Replan
 
 
 def load_scheduler_config(path: Path = SCHEDULER_CONFIG_PATH) -> SchedulerConfig:

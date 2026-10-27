@@ -49,6 +49,9 @@ def instance_doc(instance: Instance) -> dict[str, Any]:
         "name": instance.name,
         "horizon": instance.horizon,
         "plan_start": instance.plan_start,
+        "downtimes": [
+            {"machine": d.machine, "start": d.start, "end": d.end} for d in instance.downtimes
+        ],
         "machines": [machine_doc(m) for m in instance.machines],
         "jobs": [job_doc(j) for j in instance.jobs],
         "fixed": [fixed_doc(f) for f in instance.fixed],

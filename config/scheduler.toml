@@ -37,3 +37,18 @@ rush_multiplier = 3
 random_seed = 7
 workers = 1                          # one worker + deterministic time = repeatable results
 deterministic_time_seconds = 20.0    # CP-SAT's machine-independent work budget, roughly seconds
+
+# Re-planning after a disruption (M6). Moving work that people already planned around has a cost:
+# each job whose machine or start changes costs `moved_job`, and each minute a job now finishes
+# later than the approved plan said costs `slip_per_minute` (the approved plan's finish is the
+# date the shop has told the customer; docs/DECISIONS.md). Same scale as [weights].
+[replan]
+moved_job = 300                          # about half an hour of lateness
+slip_per_minute = 5                      # half the weight of a minute past the due date
+# A print still running past its planned length is assumed to need this much longer, shown on
+# the board as an estimate until a planner says when it will really finish (print_overrun).
+overrun_margin_minutes = 60
+# When a machine goes down while a print is running on it, the print is treated as lost and
+# planned again from the start. Set to false to assume the print survives and the downtime
+# starts when it ends. Stated in every diff it affects.
+running_print_lost_when_machine_down = true

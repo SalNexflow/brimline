@@ -622,3 +622,44 @@ def test_an_unknown_post_step_is_refused() -> None:
     rules = rules_from_toml(POST_TOML)
     j = job("A", post_minutes_per_part=0, post_processing=["gilding"])
     assert codes(doc([j], [], unscheduled=("A",)), rules) == {"bad_instance"}
+
+
+# --- M6: machines that are down (R19) -----------------------------------------------------------
+
+
+def down(machine: str, start: int, end: int) -> dict[str, Any]:
+    return {"machine": machine, "start": start, "end": end}
+
+
+def with_downtimes(d: dict[str, Any], *downs: dict[str, Any]) -> dict[str, Any]:
+    d["instance"]["downtimes"] = list(downs)
+    return d
+
+
+def test_a_task_on_a_machine_while_it_is_down() -> None:
+    # M1 is down 100-200; A's machine task runs 10-110, overlapping by 10 minutes.
+    assert codes(with_downtimes(doc([job("A")], [A_OK]), down("M1", 100, 200))) == {"machine_down"}
+
+
+def test_a_task_ending_when_the_downtime_starts_is_fine() -> None:
+    assert codes(with_downtimes(doc([job("A")], [A_OK]), down("M1", 110, 200))) == set()
+
+
+def test_a_downtime_on_another_machine_does_not_matter() -> None:
+    assert codes(with_downtimes(doc([job("A")], [A_OK]), down("M2", 0, 500))) == set()
+
+
+def test_a_fixed_task_inside_a_downtime_makes_the_instance_impossible() -> None:
+    fixed = ({"job_id": "A", "machine": "M1", "start": 0},)
+    p = plan("A", "M1", ("machine", 0, 100), ("finish", 100, 110))
+    d = with_downtimes(doc([job("A")], [p], fixed=fixed), down("M1", 50, 60))
+    assert codes(d) == {"bad_instance"}
+
+
+def test_an_unscheduled_job_is_not_suspicious_when_its_only_machine_is_down() -> None:
+    d = with_downtimes(
+        doc([job("A"), job("B")], [A_OK], unscheduled=("B",), machines=(M1,)),
+        down("M1", 120, 7 * 1440),
+    )
+    r = check_document(d, RULES)
+    assert r.valid and r.warnings == ()

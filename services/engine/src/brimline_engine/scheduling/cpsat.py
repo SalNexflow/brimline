@@ -37,6 +37,7 @@ from brimline_engine.scheduling.model import (
     Instance,
     Job,
     JobPlan,
+    Previous,
     Schedule,
     Slot,
     TaskKind,
@@ -89,6 +90,8 @@ class _JobVars:
     on: dict[str, cp_model.IntVar] = field(default_factory=dict)  # machine code -> literal
     tardiness: cp_model.IntVar | None = None
     late: cp_model.IntVar | None = None
+    moved: cp_model.IntVar | None = None  # re-planning only
+    slip: cp_model.IntVar | None = None
 
     def end(self, kind: TaskKind) -> cp_model.LinearExprT:
         return self.starts[kind] + self.durations[kind]
@@ -184,6 +187,7 @@ def solve(
 ) -> Schedule:
     check_instance(instance, cfg.durations)
     w = weights or cfg.weights
+    previous = {p.job_id: p for p in instance.previous}
     model = cp_model.CpModel()
     horizon = instance.horizon
     co_time = cfg.durations.changeover_minutes
@@ -217,6 +221,11 @@ def solve(
                         jv.starts[kind], jv.durations[kind], jv.scheduled, f"{kind}i_{jv.job.id}"
                     )
                 )
+    # A machine that is down takes nothing in that window (no changeover gap needed around it).
+    for i, down in enumerate(instance.downtimes):
+        intervals.setdefault(down.machine, []).append(
+            model.new_fixed_size_interval_var(down.start, down.end - down.start, f"down_{i}")
+        )
     for code_intervals in intervals.values():
         model.add_no_overlap(code_intervals)
     if manual_intervals:
@@ -254,12 +263,15 @@ def solve(
             w.tardiness_per_minute * multiplier * jv.tardiness,
             w.unscheduled_job * (1 - jv.scheduled),
         ]
+        prev = previous.get(jv.job.id)
+        if prev is not None and jv.fixed_start is None:
+            objective += _stability(model, jv, prev, completion, finish_ub, cfg)
     objective += [w.changeover * term for term in changeover_terms]
     objective.append(w.finish_time_per_minute * extras.finish)
     model.minimize(sum(objective))
 
     if hint is not None:
-        _add_hint(model, all_vars, extras, hint)
+        _add_hint(model, all_vars, extras, hint, previous)
 
     solver = cp_model.CpSolver()
     solver.parameters.random_seed = cfg.solver.random_seed
@@ -340,8 +352,35 @@ def _simple_changeovers(
     return sum(used.values()) - machine_used
 
 
+def _stability(
+    model: cp_model.CpModel,
+    jv: "_JobVars",
+    prev: Previous,
+    completion: cp_model.LinearExprT,
+    finish_ub: int,
+    cfg: SchedulerConfig,
+) -> list[cp_model.LinearExprT]:
+    """Re-planning costs: the job moved (other machine or start), and minutes it now finishes
+    after the approved plan's finish (docs/DECISIONS.md D84)."""
+    jv.moved = model.new_bool_var(f"moved_{jv.job.id}")
+    same = jv.on.get(prev.machine)
+    if same is None:
+        model.add(jv.moved == 1)  # its machine can no longer take it
+    else:
+        model.add(same == 1).only_enforce_if(~jv.moved)
+        model.add(jv.starts["machine"] == prev.start).only_enforce_if(~jv.moved)
+        model.add(jv.scheduled == 1).only_enforce_if(~jv.moved)
+    jv.slip = model.new_int_var(0, max(0, finish_ub - prev.completion), f"slip_{jv.job.id}")
+    model.add(jv.slip >= completion - prev.completion).only_enforce_if(jv.scheduled)
+    return [cfg.replan.moved_job * jv.moved, cfg.replan.slip_per_minute * jv.slip]
+
+
 def _add_hint(
-    model: cp_model.CpModel, all_vars: list[_JobVars], extras: _Extras, hint: Schedule
+    model: cp_model.CpModel,
+    all_vars: list[_JobVars],
+    extras: _Extras,
+    hint: Schedule,
+    previous: dict[str, Previous],
 ) -> None:
     """A value for every variable, from the hint schedule, so CP-SAT starts from a complete
     solution instead of having to repair a partial one (finding from the M3 review)."""
@@ -372,6 +411,20 @@ def _add_hint(
         assert jv.tardiness is not None and jv.late is not None
         model.add_hint(jv.tardiness, tardiness)
         model.add_hint(jv.late, tardiness > 0)
+        prev = previous.get(jv.job.id)
+        if jv.moved is not None and jv.slip is not None and prev is not None:
+            slot = plan.slot("machine") if plan is not None else None
+            same = (
+                slot is not None
+                and plan is not None
+                and (plan.machine, slot.start)
+                == (
+                    prev.machine,
+                    prev.start,
+                )
+            )
+            model.add_hint(jv.moved, not same)
+            model.add_hint(jv.slip, max(0, plan.completion - prev.completion) if plan else 0)
     model.add_hint(extras.finish, finish)
     for a, b, code, a_first in extras.order:
         if machine_of.get(a) == code and machine_of.get(b) == code and a in starts and b in starts:
