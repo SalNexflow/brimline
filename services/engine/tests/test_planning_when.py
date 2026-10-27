@@ -65,6 +65,12 @@ def berlin(month: int, day: int, hour: int, minute: int = 0) -> datetime:
         ("in einer Stunde", RECEIVED.astimezone(UTC) + timedelta(hours=1)),
         ("dans 2 heures", RECEIVED.astimezone(UTC) + timedelta(hours=2)),
         ("now", RECEIVED.astimezone(UTC)),
+        # "Another" and "more" (found on the dev set: d10, "needs another 2 hours").
+        ("another 2 hours", RECEIVED.astimezone(UTC) + timedelta(hours=2)),
+        ("2 more hours", RECEIVED.astimezone(UTC) + timedelta(hours=2)),
+        ("noch 2 Stunden", RECEIVED.astimezone(UTC) + timedelta(hours=2)),
+        ("encore 2 heures", RECEIVED.astimezone(UTC) + timedelta(hours=2)),
+        ("another 45 min", RECEIVED.astimezone(UTC) + timedelta(minutes=45)),
     ],
 )
 def test_phrases_resolve_to_the_moment_they_mean(phrase: str, expected: datetime) -> None:

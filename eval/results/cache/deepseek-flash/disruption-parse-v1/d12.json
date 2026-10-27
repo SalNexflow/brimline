@@ -1,0 +1,44 @@
+{
+  "id": "d12",
+  "message_sha256": "41e3a057f4712f1d9218862d6d969a2fbc6e19acab2fd19b5f632aeffd99ff7f",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:56:57+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "machine_down",
+        "machine": "CNC-1",
+        "material": null,
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "12 de noviembre"
+      }
+    ],
+    "unclear": false,
+    "unclear_reason": "",
+    "question_for_planner": "",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 176,
+      "output_tokens": 173,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 269,
+    "latency_ms": 1515,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"machine_down\",\"machine\":\"CNC-1\",\"material\":null,\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"12 de noviembre\"}],\"unclear\":false,\"unclear_reason\":\"\",\"question_for_planner\":\"\",\"injection_suspected\":false}"
+    ]
+  }
+}

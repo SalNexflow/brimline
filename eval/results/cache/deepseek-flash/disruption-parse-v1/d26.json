@@ -1,0 +1,44 @@
+{
+  "id": "d26",
+  "message_sha256": "620d7ea7ced80cc78fe4ea4cb8c6745cca435dae57077bae501c82fbeb87bf3e",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:58:42+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "print_overrun",
+        "machine": "FDM-4",
+        "material": null,
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "7pm"
+      }
+    ],
+    "unclear": false,
+    "unclear_reason": "",
+    "question_for_planner": "",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 178,
+      "output_tokens": 99,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 181,
+    "latency_ms": 985,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"print_overrun\",\"machine\":\"FDM-4\",\"material\":null,\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"7pm\"}],\"unclear\":false,\"unclear_reason\":\"\",\"question_for_planner\":\"\",\"injection_suspected\":false}"
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "d33",
+  "message_sha256": "ef07a9710949e40681009dbc0f08abdc9e84c4e17e77604e658e9b34e66822c9",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:58:53+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "cancellation",
+        "machine": null,
+        "material": null,
+        "order": "BL-0004",
+        "line": 1,
+        "from_phrase": null,
+        "until_phrase": null
+      }
+    ],
+    "unclear": true,
+    "unclear_reason": "The cancellation is clear, but 'resin printer 2' does not match exactly one catalog machine (only RESIN-1 is listed), so the machine_down event was omitted.",
+    "question_for_planner": "Which machine code should be used for 'resin printer 2', or did you mean RESIN-1?",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 191,
+      "output_tokens": 301,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 427,
+    "latency_ms": 2094,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"cancellation\",\"machine\":null,\"material\":null,\"order\":\"BL-0004\",\"line\":1,\"from_phrase\":null,\"until_phrase\":null}],\"unclear\":true,\"unclear_reason\":\"The cancellation is clear, but 'resin printer 2' does not match exactly one catalog machine (only RESIN-1 is listed), so the machine_down event was omitted.\",\"question_for_planner\":\"Which machine code should be used for 'resin printer 2', or did you mean RESIN-1?\",\"injection_suspected\":false}"
+    ]
+  }
+}

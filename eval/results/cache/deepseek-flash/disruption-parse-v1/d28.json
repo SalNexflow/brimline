@@ -1,0 +1,44 @@
+{
+  "id": "d28",
+  "message_sha256": "26a5c07c5b402401c93fb85f212a3cc7cc2ad7c341c08a5ebfa9c21a1aea1ac6",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:58:45+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "material_delayed",
+        "machine": null,
+        "material": "AL-6061",
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "03.11."
+      }
+    ],
+    "unclear": false,
+    "unclear_reason": "",
+    "question_for_planner": "",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 175,
+      "output_tokens": 194,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 294,
+    "latency_ms": 1344,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"material_delayed\",\"machine\":null,\"material\":\"AL-6061\",\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"03.11.\"}],\"unclear\":false,\"unclear_reason\":\"\",\"question_for_planner\":\"\",\"injection_suspected\":false}"
+    ]
+  }
+}

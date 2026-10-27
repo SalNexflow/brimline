@@ -1,0 +1,44 @@
+{
+  "id": "d07",
+  "message_sha256": "df4dc13c226c54c8b9b1cbddcd6fdbd539882b3c417cc422de48d7aa7742701f",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:56:49+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "rush_job",
+        "machine": null,
+        "material": null,
+        "order": "BL-0005",
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": null
+      }
+    ],
+    "unclear": false,
+    "unclear_reason": "",
+    "question_for_planner": "",
+    "injection_suspected": true
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 199,
+      "output_tokens": 138,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 234,
+    "latency_ms": 1407,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"rush_job\",\"machine\":null,\"material\":null,\"order\":\"BL-0005\",\"line\":null,\"from_phrase\":null,\"until_phrase\":null}],\"unclear\":false,\"unclear_reason\":\"\",\"question_for_planner\":\"\",\"injection_suspected\":true}"
+    ]
+  }
+}

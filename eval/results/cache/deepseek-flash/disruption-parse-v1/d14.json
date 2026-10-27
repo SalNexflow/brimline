@@ -1,0 +1,44 @@
+{
+  "id": "d14",
+  "message_sha256": "17c89541029db582664a52a26ceb086c0b242070e3e4a33d55c2d0646efb5c1a",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:56:59+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "machine_down",
+        "machine": "FDM-1",
+        "material": null,
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "in 3 Stunden"
+      }
+    ],
+    "unclear": false,
+    "unclear_reason": "",
+    "question_for_planner": "",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 179,
+      "output_tokens": 93,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 174,
+    "latency_ms": 1031,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"machine_down\",\"machine\":\"FDM-1\",\"material\":null,\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"in 3 Stunden\"}],\"unclear\":false,\"unclear_reason\":\"\",\"question_for_planner\":\"\",\"injection_suspected\":false}"
+    ]
+  }
+}

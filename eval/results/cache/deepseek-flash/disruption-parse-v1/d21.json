@@ -1,0 +1,44 @@
+{
+  "id": "d21",
+  "message_sha256": "39ba90a7b8eeb161f1d4015f0e58d5b9c449e4348f865283c87891da17d7ae5a",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:57:09+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "material_delayed",
+        "machine": null,
+        "material": "RESIN-GREY",
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "25/11"
+      }
+    ],
+    "unclear": false,
+    "unclear_reason": "",
+    "question_for_planner": "",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 176,
+      "output_tokens": 95,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 175,
+    "latency_ms": 844,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"material_delayed\",\"machine\":null,\"material\":\"RESIN-GREY\",\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"25/11\"}],\"unclear\":false,\"unclear_reason\":\"\",\"question_for_planner\":\"\",\"injection_suspected\":false}"
+    ]
+  }
+}

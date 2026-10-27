@@ -1,0 +1,44 @@
+{
+  "id": "d13",
+  "message_sha256": "2a37777dad0a9bd070bc2a3be57e20dd0e47173dfe3f78244bb36d6c684b0993",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:56:58+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "material_delayed",
+        "machine": null,
+        "material": "RESIN-CLEAR",
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "jeudi"
+      }
+    ],
+    "unclear": false,
+    "unclear_reason": "",
+    "question_for_planner": "",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 183,
+      "output_tokens": 134,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 224,
+    "latency_ms": 1813,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"material_delayed\",\"machine\":null,\"material\":\"RESIN-CLEAR\",\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"jeudi\"}],\"unclear\":false,\"unclear_reason\":\"\",\"question_for_planner\":\"\",\"injection_suspected\":false}"
+    ]
+  }
+}

@@ -1,0 +1,1096 @@
+{
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "split": "all",
+  "generated_at": "2026-10-27T14:58:57+00:00",
+  "summary": {
+    "dev": {
+      "items": 24,
+      "all_correct": 1.0,
+      "events_correct": 1.0,
+      "unclear_correct": 1.0,
+      "injection_correct": 1.0,
+      "event_recall": 1.0,
+      "event_precision": 1.0,
+      "codes_right_share": 1.0,
+      "unsafe_cancellations": 0
+    },
+    "heldout": {
+      "items": 12,
+      "all_correct": 0.9166666666666666,
+      "events_correct": 1.0,
+      "unclear_correct": 0.9166666666666666,
+      "injection_correct": 1.0,
+      "event_recall": 1.0,
+      "event_precision": 1.0,
+      "codes_right_share": 1.0,
+      "unsafe_cancellations": 0
+    }
+  },
+  "cost_usd": 0.00987,
+  "items": [
+    {
+      "id": "d01",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "FDM-3",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-02T16:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 575
+    },
+    {
+      "id": "d02",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "FDM-2",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-03T13:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 237
+    },
+    {
+      "id": "d03",
+      "split": "dev",
+      "prediction": {
+        "events": [],
+        "unclear": true,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 0,
+        "events_predicted": 0,
+        "events_exact": 0,
+        "events_codes_right": 0
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 193
+    },
+    {
+      "id": "d04",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "CNC-1",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": "2026-11-02T14:00:00+00:00",
+            "until": "2026-11-03T07:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 182
+    },
+    {
+      "id": "d05",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "material_delayed",
+            "machine": null,
+            "material": "PETG-ORANGE",
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-09T07:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 163
+    },
+    {
+      "id": "d06",
+      "split": "dev",
+      "prediction": {
+        "events": [],
+        "unclear": true,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 0,
+        "events_predicted": 0,
+        "events_exact": 0,
+        "events_codes_right": 0
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 208
+    },
+    {
+      "id": "d07",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "rush_job",
+            "machine": null,
+            "material": null,
+            "order": "BL-0005",
+            "line": null,
+            "from": null,
+            "until": null
+          }
+        ],
+        "unclear": false,
+        "injection": true
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 234
+    },
+    {
+      "id": "d08",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "cancellation",
+            "machine": null,
+            "material": null,
+            "order": "BL-0005",
+            "line": 2,
+            "from": null,
+            "until": null
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 205
+    },
+    {
+      "id": "d09",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "cancellation",
+            "machine": null,
+            "material": null,
+            "order": "BL-0008",
+            "line": null,
+            "from": null,
+            "until": null
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 192
+    },
+    {
+      "id": "d10",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "print_overrun",
+            "machine": "FDM-2",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-03T15:45:00+01:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 226
+    },
+    {
+      "id": "d11",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "FDM-4",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-05T16:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 563
+    },
+    {
+      "id": "d12",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "CNC-1",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-12T07:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 269
+    },
+    {
+      "id": "d13",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "material_delayed",
+            "machine": null,
+            "material": "RESIN-CLEAR",
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-05T07:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 224
+    },
+    {
+      "id": "d14",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "FDM-1",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-04T13:10:00+01:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 174
+    },
+    {
+      "id": "d15",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "CNC-1",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-02T16:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 281
+    },
+    {
+      "id": "d16",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "FDM-1",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": null
+          }
+        ],
+        "unclear": true,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 423
+    },
+    {
+      "id": "d17",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "FDM-3",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-06T11:00:00+00:00"
+          },
+          {
+            "type": "rush_job",
+            "machine": null,
+            "material": null,
+            "order": "BL-0007",
+            "line": null,
+            "from": null,
+            "until": null
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 2,
+        "events_predicted": 2,
+        "events_exact": 2,
+        "events_codes_right": 2
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 300
+    },
+    {
+      "id": "d18",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "FDM-4",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-06T07:00:00+00:00"
+          },
+          {
+            "type": "material_delayed",
+            "machine": null,
+            "material": "TPU-BLACK",
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-10T07:00:00+00:00"
+          },
+          {
+            "type": "cancellation",
+            "machine": null,
+            "material": null,
+            "order": "BL-0007",
+            "line": 2,
+            "from": null,
+            "until": null
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 3,
+        "events_predicted": 3,
+        "events_exact": 3,
+        "events_codes_right": 3
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 353
+    },
+    {
+      "id": "d19",
+      "split": "dev",
+      "prediction": {
+        "events": [],
+        "unclear": true,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 0,
+        "events_predicted": 0,
+        "events_exact": 0,
+        "events_codes_right": 0
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 199
+    },
+    {
+      "id": "d20",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "material_delayed",
+            "machine": null,
+            "material": "AL-6061",
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "NEEDS_CONFIRMATION"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 177
+    },
+    {
+      "id": "d21",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "material_delayed",
+            "machine": null,
+            "material": "RESIN-GREY",
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-25T07:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 175
+    },
+    {
+      "id": "d22",
+      "split": "dev",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "FDM-2",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-06T14:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": true
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 336
+    },
+    {
+      "id": "d23",
+      "split": "dev",
+      "prediction": {
+        "events": [],
+        "unclear": true,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 0,
+        "events_predicted": 0,
+        "events_exact": 0,
+        "events_codes_right": 0
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 156
+    },
+    {
+      "id": "d24",
+      "split": "dev",
+      "prediction": {
+        "events": [],
+        "unclear": true,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 0,
+        "events_predicted": 0,
+        "events_exact": 0,
+        "events_codes_right": 0
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 263
+    },
+    {
+      "id": "d25",
+      "split": "heldout",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "FDM-4",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-07T12:00:00+00:00"
+          }
+        ],
+        "unclear": true,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": false,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 539
+    },
+    {
+      "id": "d26",
+      "split": "heldout",
+      "prediction": {
+        "events": [
+          {
+            "type": "print_overrun",
+            "machine": "FDM-4",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-06T18:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 181
+    },
+    {
+      "id": "d27",
+      "split": "heldout",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "RESIN-1",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-09T09:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 299
+    },
+    {
+      "id": "d28",
+      "split": "heldout",
+      "prediction": {
+        "events": [
+          {
+            "type": "material_delayed",
+            "machine": null,
+            "material": "AL-6061",
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "NEEDS_CONFIRMATION"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 294
+    },
+    {
+      "id": "d29",
+      "split": "heldout",
+      "prediction": {
+        "events": [],
+        "unclear": true,
+        "injection": true
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 0,
+        "events_predicted": 0,
+        "events_exact": 0,
+        "events_codes_right": 0
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 187
+    },
+    {
+      "id": "d30",
+      "split": "heldout",
+      "prediction": {
+        "events": [],
+        "unclear": true,
+        "injection": true
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 0,
+        "events_predicted": 0,
+        "events_exact": 0,
+        "events_codes_right": 0
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 345
+    },
+    {
+      "id": "d31",
+      "split": "heldout",
+      "prediction": {
+        "events": [
+          {
+            "type": "print_overrun",
+            "machine": "FDM-1",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-03T15:50:00+01:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 271
+    },
+    {
+      "id": "d32",
+      "split": "heldout",
+      "prediction": {
+        "events": [],
+        "unclear": true,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 0,
+        "events_predicted": 0,
+        "events_exact": 0,
+        "events_codes_right": 0
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 216
+    },
+    {
+      "id": "d33",
+      "split": "heldout",
+      "prediction": {
+        "events": [
+          {
+            "type": "cancellation",
+            "machine": null,
+            "material": null,
+            "order": "BL-0004",
+            "line": 1,
+            "from": null,
+            "until": null
+          }
+        ],
+        "unclear": true,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 427
+    },
+    {
+      "id": "d34",
+      "split": "heldout",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "CNC-1",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-05T10:00:00+00:00"
+          }
+        ],
+        "unclear": true,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 429
+    },
+    {
+      "id": "d35",
+      "split": "heldout",
+      "prediction": {
+        "events": [
+          {
+            "type": "material_delayed",
+            "machine": null,
+            "material": "PLA-WHITE",
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-10T07:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 160
+    },
+    {
+      "id": "d36",
+      "split": "heldout",
+      "prediction": {
+        "events": [
+          {
+            "type": "machine_down",
+            "machine": "FDM-2",
+            "material": null,
+            "order": null,
+            "line": null,
+            "from": null,
+            "until": "2026-11-05T08:00:00+00:00"
+          }
+        ],
+        "unclear": false,
+        "injection": false
+      },
+      "score": {
+        "events_correct": true,
+        "unclear_correct": true,
+        "injection_correct": true,
+        "unsafe": 0,
+        "events_expected": 1,
+        "events_predicted": 1,
+        "events_exact": 1,
+        "events_codes_right": 1
+      },
+      "outcome": "valid",
+      "cost_micro_usd": 214
+    }
+  ]
+}

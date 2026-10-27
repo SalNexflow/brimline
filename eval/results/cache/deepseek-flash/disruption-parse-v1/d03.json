@@ -1,0 +1,34 @@
+{
+  "id": "d03",
+  "message_sha256": "c6b59c5b32859740b74d326151732213cff5db2e0a88b9eb438176df781c5c4d",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:56:44+00:00",
+  "parsed": {
+    "events": [],
+    "unclear": true,
+    "unclear_reason": "Message is a general safety announcement, not about a machine, material or order disruption.",
+    "question_for_planner": "Is there any machine, material or order issue you'd like me to record? This message contains no schedulable event.",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 178,
+      "output_tokens": 109,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 193,
+    "latency_ms": 1344,
+    "error": null,
+    "raw_replies": [
+      "{\"events\": [], \"unclear\": true, \"unclear_reason\": \"Message is a general safety announcement, not about a machine, material or order disruption.\", \"question_for_planner\": \"Is there any machine, material or order issue you'd like me to record? This message contains no schedulable event.\", \"injection_suspected\": false}"
+    ]
+  }
+}

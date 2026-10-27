@@ -1,0 +1,44 @@
+{
+  "id": "d25",
+  "message_sha256": "9babeb3605e42fbdd1b83bdb2ba57123e8f99569aca326692fb424a1a97b00ff",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:58:41+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "machine_down",
+        "machine": "FDM-4",
+        "material": null,
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "close"
+      }
+    ],
+    "unclear": true,
+    "unclear_reason": "FDM-4 is identified, but 'back by close' is not a definite time, so the end of the downtime cannot be pinned down.",
+    "question_for_planner": "What time will FDM-4 be back up (e.g. a clock time or 'end of shift')?",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 174,
+      "output_tokens": 399,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 539,
+    "latency_ms": 3047,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"machine_down\",\"machine\":\"FDM-4\",\"material\":null,\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"close\"}],\"unclear\":true,\"unclear_reason\":\"FDM-4 is identified, but 'back by close' is not a definite time, so the end of the downtime cannot be pinned down.\",\"question_for_planner\":\"What time will FDM-4 be back up (e.g. a clock time or 'end of shift')?\",\"injection_suspected\":false}"
+    ]
+  }
+}

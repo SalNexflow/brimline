@@ -1,0 +1,44 @@
+{
+  "id": "d27",
+  "message_sha256": "5ec11c743e53f87d75915d7f6467b6efd42f470a2fd8fd9bcb45c6e5cfef38ae",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:58:44+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "machine_down",
+        "machine": "RESIN-1",
+        "material": null,
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "el lunes a las 10"
+      }
+    ],
+    "unclear": false,
+    "unclear_reason": "",
+    "question_for_planner": "",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 184,
+      "output_tokens": 196,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 299,
+    "latency_ms": 2219,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"machine_down\",\"machine\":\"RESIN-1\",\"material\":null,\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"el lunes a las 10\"}],\"unclear\":false,\"unclear_reason\":\"\",\"question_for_planner\":\"\",\"injection_suspected\":false}"
+    ]
+  }
+}

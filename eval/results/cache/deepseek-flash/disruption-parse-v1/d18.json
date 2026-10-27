@@ -1,0 +1,62 @@
+{
+  "id": "d18",
+  "message_sha256": "fc77bb1dcdb9c4ebc2fe40c10a1127eb21f72de7c3452e805582b6d7dd46aace",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:57:06+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "machine_down",
+        "machine": "FDM-4",
+        "material": null,
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "Friday"
+      },
+      {
+        "type": "material_delayed",
+        "machine": null,
+        "material": "TPU-BLACK",
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "10 Nov"
+      },
+      {
+        "type": "cancellation",
+        "machine": null,
+        "material": null,
+        "order": "BL-0007",
+        "line": 2,
+        "from_phrase": null,
+        "until_phrase": null
+      }
+    ],
+    "unclear": false,
+    "unclear_reason": "",
+    "question_for_planner": "",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 194,
+      "output_tokens": 239,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 353,
+    "latency_ms": 1781,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"machine_down\",\"machine\":\"FDM-4\",\"material\":null,\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"Friday\"},{\"type\":\"material_delayed\",\"machine\":null,\"material\":\"TPU-BLACK\",\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"10 Nov\"},{\"type\":\"cancellation\",\"machine\":null,\"material\":null,\"order\":\"BL-0007\",\"line\":2,\"from_phrase\":null,\"until_phrase\":null}],\"unclear\":false,\"unclear_reason\":\"\",\"question_for_planner\":\"\",\"injection_suspected\":false}"
+    ]
+  }
+}

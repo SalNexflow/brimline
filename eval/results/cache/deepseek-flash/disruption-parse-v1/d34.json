@@ -1,0 +1,44 @@
+{
+  "id": "d34",
+  "message_sha256": "0590200ef176f46c02b607650402dad308e5b97a1caa29a88232e6a254b75626",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:58:55+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "machine_down",
+        "machine": "CNC-1",
+        "material": null,
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": "11"
+      }
+    ],
+    "unclear": true,
+    "unclear_reason": "PLA matches two catalog materials (PLA black and PLA white), so the material delay could not be identified.",
+    "question_for_planner": "Which PLA colour is delayed: black or white?",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 178,
+      "output_tokens": 306,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 429,
+    "latency_ms": 1844,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"machine_down\",\"machine\":\"CNC-1\",\"material\":null,\"order\":null,\"line\":null,\"from_phrase\":null,\"until_phrase\":\"11\"}],\"unclear\":true,\"unclear_reason\":\"PLA matches two catalog materials (PLA black and PLA white), so the material delay could not be identified.\",\"question_for_planner\":\"Which PLA colour is delayed: black or white?\",\"injection_suspected\":false}"
+    ]
+  }
+}

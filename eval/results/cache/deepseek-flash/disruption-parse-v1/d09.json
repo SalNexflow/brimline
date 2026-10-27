@@ -1,0 +1,44 @@
+{
+  "id": "d09",
+  "message_sha256": "7cc4a4263cf58dbb983cf68b9e45814be7afaa4fcdc4ffd71b7c25dfeccc7011",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:56:51+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "cancellation",
+        "machine": null,
+        "material": null,
+        "order": "BL-0008",
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": null
+      }
+    ],
+    "unclear": false,
+    "unclear_reason": "",
+    "question_for_planner": "",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 183,
+      "output_tokens": 107,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 192,
+    "latency_ms": 1016,
+    "error": null,
+    "raw_replies": [
+      "{\"events\":[{\"type\":\"cancellation\",\"machine\":null,\"material\":null,\"order\":\"BL-0008\",\"line\":null,\"from_phrase\":null,\"until_phrase\":null}],\"unclear\":false,\"unclear_reason\":\"\",\"question_for_planner\":\"\",\"injection_suspected\":false}"
+    ]
+  }
+}

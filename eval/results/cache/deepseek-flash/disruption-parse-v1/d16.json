@@ -1,0 +1,44 @@
+{
+  "id": "d16",
+  "message_sha256": "99dfd588c62f9430b45dd20fcfe64c81fab7dab6de102aa709390e8e3de69350",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:57:03+00:00",
+  "parsed": {
+    "events": [
+      {
+        "type": "machine_down",
+        "machine": "FDM-1",
+        "material": null,
+        "order": null,
+        "line": null,
+        "from_phrase": null,
+        "until_phrase": null
+      }
+    ],
+    "unclear": true,
+    "unclear_reason": "Printer 1 is confirmed down, but the message gives two contradicting return times (2pm from Jonas, 4pm from Mira) with no final answer, so no until_phrase can be set.",
+    "question_for_planner": "Which time is correct for FDM printer 1 coming back: 2pm or 4pm?",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 190,
+      "output_tokens": 298,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 423,
+    "latency_ms": 2328,
+    "error": null,
+    "raw_replies": [
+      "{\"events\": [{\"type\": \"machine_down\", \"machine\": \"FDM-1\", \"material\": null, \"order\": null, \"line\": null, \"from_phrase\": null, \"until_phrase\": null}], \"unclear\": true, \"unclear_reason\": \"Printer 1 is confirmed down, but the message gives two contradicting return times (2pm from Jonas, 4pm from Mira) with no final answer, so no until_phrase can be set.\", \"question_for_planner\": \"Which time is correct for FDM printer 1 coming back: 2pm or 4pm?\", \"injection_suspected\": false}"
+    ]
+  }
+}

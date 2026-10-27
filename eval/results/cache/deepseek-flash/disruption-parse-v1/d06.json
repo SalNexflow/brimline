@@ -1,0 +1,34 @@
+{
+  "id": "d06",
+  "message_sha256": "f13f0614c39cb697cecd5352e00a10d5f74c039d3f57eca0172b411aff7f28dc",
+  "model": "deepseek-flash",
+  "prompt_version": "disruption-parse-v1",
+  "called_at": "2026-10-27T14:56:48+00:00",
+  "parsed": {
+    "events": [],
+    "unclear": true,
+    "unclear_reason": "The material \"PLA\" is ambiguous: the catalog has PLA-BLACK and PLA-WHITE, so no single material can be identified.",
+    "question_for_planner": "Which PLA do you mean, PLA black or PLA white?",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "disruption_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "disruption-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 172,
+      "output_tokens": 123,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 208,
+    "latency_ms": 1078,
+    "error": null,
+    "raw_replies": [
+      "{\"events\": [], \"unclear\": true, \"unclear_reason\": \"The material \\\"PLA\\\" is ambiguous: the catalog has PLA-BLACK and PLA-WHITE, so no single material can be identified.\", \"question_for_planner\": \"Which PLA do you mean, PLA black or PLA white?\", \"injection_suspected\": false}"
+    ]
+  }
+}
