@@ -565,3 +565,53 @@ blockquote.message {
     content: none;
   }
 }
+
+/* --- Disruptions and re-planning (M6) ------------------------------------------------------- */
+
+.warning-box {
+  border: 2px solid var(--color-warn-fg);
+  background: var(--color-warn-bg);
+  color: var(--color-warn-fg);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+
+.warning-box ul {
+  margin: 0.25rem 0 0;
+}
+
+.disruptions,
+.diff {
+  margin: 1.5rem 0;
+}
+
+.disruption {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+}
+
+.event-editor fieldset {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 32rem;
+}
+
+.choice {
+  font-family: monospace;
+  margin-right: 0.75rem;
+}
+
+.summary {
+  border-left: 4px solid var(--color-accent);
+  padding: 0.25rem 0 0.25rem 1rem;
+  margin: 0.75rem 0;
+}
+
+.summary-source {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}

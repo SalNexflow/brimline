@@ -39,7 +39,7 @@ test("a planner plans the day and approves it; an operator completes a job", asy
   await expectAccessible(page);
 
   await page.getByRole("button", { name: "Approve plan" }).click();
-  await expect(page.getByRole("heading", { name: "Approved plan" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Approved plan", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Draft plan, waiting for approval" })).toHaveCount(0);
 
   await page.getByRole("button", { name: "Sign out" }).click();

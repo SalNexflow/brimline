@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { boardWindow, formatShopTime, lanes, materialToken, percentAt, startOfShopDay } from "./timeline";
+import {
+  boardWindow,
+  formatShopTime,
+  lanes,
+  materialToken,
+  percentAt,
+  shopLocalToUtc,
+  startOfShopDay,
+  utcToShopLocal,
+} from "./timeline";
 
 const TZ = "Europe/Berlin";
 const at = (iso: string) => new Date(iso);
@@ -71,5 +80,22 @@ describe("materialToken", () => {
 describe("formatShopTime", () => {
   it("shows shop time, not the viewer's", () => {
     expect(formatShopTime("2026-10-26T09:15:00Z", TZ)).toBe("Mon 26 Oct, 10:15");
+  });
+});
+
+describe("shop time in date-time fields", () => {
+  it("shows a UTC instant in shop time and reads it back", () => {
+    // 16:00 UTC on Mon 26 Oct 2026 is 17:00 in Berlin (winter time).
+    expect(utcToShopLocal("2026-10-26T16:00:00Z", TZ)).toBe("2026-10-26T17:00");
+    expect(shopLocalToUtc("2026-10-26T17:00", TZ)).toBe("2026-10-26T16:00:00.000Z");
+  });
+
+  it("uses summer time before the change", () => {
+    // 17:00 Berlin on Fri 23 Oct 2026 is UTC+2: 15:00 UTC.
+    expect(shopLocalToUtc("2026-10-23T17:00", TZ)).toBe("2026-10-23T15:00:00.000Z");
+  });
+
+  it("refuses something that is not a time", () => {
+    expect(shopLocalToUtc("tomorrow", TZ)).toBeNull();
   });
 });

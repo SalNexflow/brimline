@@ -96,6 +96,95 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/disruptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Disruptions */
+        get: operations["list_disruptions_disruptions_get"];
+        put?: never;
+        /**
+         * Read Disruption
+         * @description Read a planner's message into events for review. Nothing is planned or changed yet.
+         */
+        post: operations["read_disruption_disruptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/disruptions/by-hand": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enter Disruption */
+        post: operations["enter_disruption_disruptions_by_hand_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/disruptions/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Disruption Catalog */
+        get: operations["disruption_catalog_disruptions_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/disruptions/{disruption_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Disruption */
+        post: operations["confirm_disruption_disruptions__disruption_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/disruptions/{disruption_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss Disruption */
+        post: operations["dismiss_disruption_disruptions__disruption_id__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -471,6 +560,8 @@ export interface components {
             approved: components["schemas"]["ScheduleOut"] | null;
             /** Can Plan */
             can_plan: boolean;
+            /** Disruptions */
+            disruptions: components["schemas"]["DisruptionOut"][];
             draft: components["schemas"]["ScheduleOut"] | null;
             run: components["schemas"]["PlanningRun"] | null;
             /** Time Zone */
@@ -502,6 +593,25 @@ export interface components {
             status: string;
             /** Task Id */
             task_id: number | null;
+        };
+        /** CatalogItem */
+        CatalogItem: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+        };
+        /**
+         * CatalogOut
+         * @description The choices for entering or correcting events by hand.
+         */
+        CatalogOut: {
+            /** Machines */
+            machines: components["schemas"]["CatalogItem"][];
+            /** Materials */
+            materials: components["schemas"]["CatalogItem"][];
+            /** Orders */
+            orders: components["schemas"]["OrderItem"][];
         };
         /** CheckIssue */
         CheckIssue: {
@@ -576,6 +686,71 @@ export interface components {
              * @enum {string}
              */
             role: "staff" | "planner" | "operator" | "customer";
+        };
+        /** DisruptionOut */
+        DisruptionOut: {
+            /** Choices */
+            choices: {
+                [key: string]: string[];
+            };
+            /** Events */
+            events: components["schemas"]["Event"][];
+            /** Id */
+            id: number;
+            /** Issues */
+            issues: string[];
+            /** Message */
+            message: string;
+            /** Notes */
+            notes: string[];
+            /** Question */
+            question: string;
+            /**
+             * Read By
+             * @enum {string}
+             */
+            read_by: "model" | "hand" | "nobody";
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "review" | "pending" | "applied" | "dismissed";
+            /** Warnings */
+            warnings: string[];
+        };
+        /**
+         * Event
+         * @description One disruption, with times resolved by code. This is what the planner reviews (and may
+         *     edit, or enter by hand) and what a re-plan applies.
+         */
+        Event: {
+            /** Ends At */
+            ends_at?: string | null;
+            /** Line */
+            line?: number | null;
+            /** Machine */
+            machine?: string | null;
+            /** Material */
+            material?: string | null;
+            /** Order */
+            order?: string | null;
+            /** Starts At */
+            starts_at?: string | null;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "machine_down" | "material_delayed" | "rush_job" | "cancellation" | "print_overrun";
+        };
+        /** EventsIn */
+        EventsIn: {
+            /** Events */
+            events: components["schemas"]["Event"][];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -657,6 +832,11 @@ export interface components {
              */
             role: "staff" | "planner" | "operator" | "customer";
         };
+        /** MessageIn */
+        MessageIn: {
+            /** Message */
+            message: string;
+        };
         /** OrderCreate */
         OrderCreate: {
             /** Customer Code */
@@ -712,6 +892,15 @@ export interface components {
              * @enum {string}
              */
             status: "open" | "in_production" | "done" | "cancelled";
+        };
+        /** OrderItem */
+        OrderItem: {
+            /** Lines */
+            lines: number;
+            /** Name */
+            name: string;
+            /** Number */
+            number: string;
         };
         /** OrderLineIn */
         OrderLineIn: {
@@ -1108,6 +1297,12 @@ export interface components {
             decided_at: string | null;
             /** Decided By Name */
             decided_by_name: string | null;
+            /** Diff */
+            diff: {
+                [key: string]: unknown;
+            } | null;
+            /** Disruption Ids */
+            disruption_ids: number[];
             /**
              * Horizon End
              * Format: date-time
@@ -1137,6 +1332,10 @@ export interface components {
              * @enum {string}
              */
             status: "draft" | "approved" | "superseded" | "discarded";
+            /** Summary */
+            summary: {
+                [key: string]: unknown;
+            } | null;
             /** Tasks */
             tasks: components["schemas"]["BoardTask"][];
             /** Unplannable */
@@ -1319,6 +1518,214 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CustomerOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_disruptions_disruptions_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisruptionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_disruption_disruptions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisruptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    enter_disruption_disruptions_by_hand_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisruptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    disruption_catalog_disruptions_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_disruption_disruptions__disruption_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                disruption_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisruptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_disruption_disruptions__disruption_id__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                disruption_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */

@@ -15,6 +15,7 @@
     "api-types": "node scripts/tasks.mjs api-types",
     "eval": "node scripts/tasks.mjs eval",
     "bench": "node scripts/tasks.mjs bench",
+    "replan-bench": "node scripts/tasks.mjs replan-bench",
     "gate-selftest": "node scripts/tasks.mjs gate-selftest"
   }
 }

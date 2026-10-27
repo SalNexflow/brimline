@@ -99,6 +99,7 @@ def compute_diff(
     m_after = after_check.metrics
     m_before = before_check.metrics if before_check is not None else None
     return {
+        "compared": before is not None,  # False for a first plan: nothing to compare against
         "events": events,
         "totals": {
             "jobs_planned": len(new),

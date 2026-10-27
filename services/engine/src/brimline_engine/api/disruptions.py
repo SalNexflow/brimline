@@ -47,6 +47,14 @@ def list_disruptions(conn: Conn, user: CurrentUser) -> list[d.DisruptionOut]:
         raise _http_error(exc) from None
 
 
+@router.get("/disruptions/catalog")
+def disruption_catalog(conn: Conn, user: CurrentUser) -> d.CatalogOut:
+    try:
+        return d.catalog_out(conn, user.actor)
+    except tuple(ERRORS) as exc:
+        raise _http_error(exc) from None
+
+
 @router.post("/disruptions", status_code=201, response_model=d.DisruptionOut)
 def read_disruption(
     body: d.MessageIn,

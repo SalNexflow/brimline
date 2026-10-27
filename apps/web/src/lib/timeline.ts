@@ -108,3 +108,20 @@ export function formatDuration(minutes: number): string {
   const m = Math.round(minutes % 60);
   return h ? `${h} h ${m} min` : `${m} min`;
 }
+
+/** A UTC instant as the value of a datetime-local input showing shop time ("2026-11-03T17:00"). */
+export function utcToShopLocal(instant: string | Date, timeZone: string): string {
+  const wall = new Date(wallAsUtc(new Date(instant).getTime(), timeZone));
+  return wall.toISOString().slice(0, 16);
+}
+
+/** A datetime-local value typed in shop time, as a UTC ISO string; null if it is not a time.
+ * In the hour that happens twice when clocks go back, the first one is meant. */
+export function shopLocalToUtc(local: string, timeZone: string): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(local);
+  if (!m) return null;
+  const wall = Date.UTC(+m[1]!, +m[2]! - 1, +m[3]!, +m[4]!, +m[5]!);
+  let guess = wall - (wallAsUtc(wall, timeZone) - wall);
+  guess = wall - (wallAsUtc(guess, timeZone) - guess);
+  return new Date(guess).toISOString();
+}

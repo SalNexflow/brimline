@@ -387,3 +387,33 @@ def dismiss(
             conn, user_id=actor.user_id, endpoint=endpoint, key=key, response=response
         )
         return response, False
+
+
+class CatalogItem(BaseModel):
+    code: str
+    name: str
+
+
+class OrderItem(BaseModel):
+    number: str
+    name: str
+    lines: int
+
+
+class CatalogOut(BaseModel):
+    """The choices for entering or correcting events by hand."""
+
+    machines: list[CatalogItem]
+    materials: list[CatalogItem]
+    orders: list[OrderItem]
+
+
+def catalog_out(conn: psycopg.Connection, actor: Actor) -> CatalogOut:
+    if not can(actor, "disruption.report"):
+        raise ForbiddenError("disruption.report")
+    cat, machines, materials, orders = catalog(conn)
+    return CatalogOut(
+        machines=[CatalogItem(code=c, name=n) for c, n, _ in machines],
+        materials=[CatalogItem(code=c, name=n) for c, n in materials],
+        orders=[OrderItem(number=c, name=n, lines=cat.orders[c]) for c, n in orders],
+    )

@@ -3,7 +3,7 @@
 // behaves the same in PowerShell, Git Bash, and CI (GNU make on Windows picks a different shell
 // depending on where it is started; Node does not). See docs/DECISIONS.md D3.
 //
-// Usage: node scripts/tasks.mjs <setup|dev|gate|test|db-reset|api-types|eval|bench|gate-selftest>
+// Usage: node scripts/tasks.mjs <setup|dev|gate|test|db-reset|api-types|eval|bench|replan-bench|gate-selftest>
 
 import { spawn, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -204,6 +204,7 @@ const TASKS = {
         ENGINE,
         ["uv run --locked python -m brimline_engine.evals.quote_extract", ...process.argv.slice(3)].join(" "),
       ),
+      step("disruption reading eval", ENGINE, "uv run --locked python -m brimline_engine.evals.disruption_parse"),
     ]),
   // Extra arguments pass through, e.g. node scripts/tasks.mjs bench --quick
   bench: () =>
@@ -212,6 +213,15 @@ const TASKS = {
         "scheduler benchmark",
         ENGINE,
         ["uv run --locked python -m brimline_engine.scheduling.bench", ...process.argv.slice(3)].join(" "),
+      ),
+    ]),
+  // Re-planning scenarios: lateness versus jobs moved (eval/results/REPLAN.md)
+  "replan-bench": () =>
+    runSteps("replan-bench", [
+      step(
+        "re-planning scenarios",
+        ENGINE,
+        ["uv run --locked python -m brimline_engine.scheduling.replan_bench", ...process.argv.slice(3)].join(" "),
       ),
     ]),
   "gate-selftest": () =>

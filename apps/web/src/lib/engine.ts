@@ -24,6 +24,9 @@ export type BoardJob = components["schemas"]["BoardJob"];
 export type PlanningRun = components["schemas"]["PlanningRun"];
 export type Queues = components["schemas"]["QueuesOut"];
 export type QueueTask = components["schemas"]["QueueTask"];
+export type Disruption = components["schemas"]["DisruptionOut"];
+export type DisruptionEvent = components["schemas"]["Event"];
+export type DisruptionCatalog = components["schemas"]["CatalogOut"];
 
 function baseUrl(): string {
   const url = process.env.ENGINE_URL;

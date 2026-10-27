@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { signedInEngine, type PlanningRun, type Schedule } from "@/lib/engine";
 import { formatShopTime } from "@/lib/timeline";
 
+import { DiffView, DisruptionCard } from "./disruption-view";
+import { EventEditor, ReportForm } from "./disruption-forms";
 import { AutoRefresh, DecisionForm, PlanDayForm } from "./forms";
 import { ScheduleView } from "./schedule-view";
 
@@ -91,13 +93,42 @@ async function BoardContent() {
   const now = new Date();
   if (!board) return <p>You do not have access to the board.</p>;
   const tz = board.time_zone;
+  const catalog = board.can_plan ? (await client.GET("/disruptions/catalog")).data : undefined;
+  const pending = board.disruptions.filter((d) => d.status === "pending").length;
   const run = board.run;
   const busy = run !== null && (run.status === "queued" || run.status === "running");
   return (
     <>
       <AutoRefresh active={busy} />
       {board.can_plan ? <PlanDayForm idempotencyKey={crypto.randomUUID()} busy={busy} /> : null}
+      {pending > 0 ? (
+        <p className="notice">
+          {pending} confirmed disruption{pending === 1 ? "" : "s"} will be included the next time you press Plan day.
+        </p>
+      ) : null}
       {run ? <RunProgress run={run} now={now} /> : null}
+
+      {board.can_plan && catalog ? (
+        <section aria-labelledby="disruptions-heading" className="disruptions">
+          <h2 id="disruptions-heading">Something went wrong?</h2>
+          <ReportForm idempotencyKey={crypto.randomUUID()} />
+          {board.disruptions.map((d) => (
+            <DisruptionCard key={d.id} d={d} catalog={catalog} timeZone={tz} />
+          ))}
+          <details>
+            <summary>Enter a disruption by hand</summary>
+            <EventEditor
+              disruptionId={null}
+              events={[]}
+              choices={{}}
+              catalog={catalog}
+              timeZone={tz}
+              idempotencyKey={crypto.randomUUID()}
+              submitLabel="Save these events"
+            />
+          </details>
+        </section>
+      ) : null}
 
       {board.draft ? (
         <section aria-labelledby="draft-heading" className="schedule">
@@ -112,6 +143,7 @@ async function BoardContent() {
               reason={approveReason(board.draft)}
             />
           ) : null}
+          <DiffView schedule={board.draft} />
           <ScheduleView schedule={board.draft} timeZone={tz} now={now} />
         </section>
       ) : null}
