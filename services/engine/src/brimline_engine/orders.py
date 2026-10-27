@@ -17,13 +17,14 @@ CREATE_ENDPOINT = "POST /orders"
 
 class NewJob(NamedTuple):
     """One order line to insert. Planning fields are optional: a job without them is shown as
-    "cannot plan" until they are known (part size is not known for quoted orders yet)."""
+    "cannot plan" until they are known (a part size comes from a checked file or staff)."""
 
     part_name: str
     quantity: int
     material_id: int
     minutes_per_part: int | None = None
     post_processing: tuple[str, ...] = ()
+    part_mm: tuple[int, int, int] | None = None
 
 
 class NotFoundError(Exception):
@@ -214,7 +215,8 @@ def insert_order(
     for line_no, line in enumerate(jobs, start=1):
         conn.execute(
             "INSERT INTO jobs (order_id, line_no, part_name, quantity, material_id,"
-            " minutes_per_part, post_processing) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            " minutes_per_part, post_processing, part_x_mm, part_y_mm, part_z_mm)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (
                 order_id,
                 line_no,
@@ -223,6 +225,7 @@ def insert_order(
                 line.material_id,
                 line.minutes_per_part,
                 list(line.post_processing),
+                *(line.part_mm or (None, None, None)),
             ),
         )
     return order_id, order_number

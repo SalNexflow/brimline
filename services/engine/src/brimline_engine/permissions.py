@@ -28,6 +28,10 @@ Action = Literal[
     "queue.read",
     "task.update",
     "disruption.report",
+    "file.upload",
+    "file.read",
+    "file.override",
+    "file.attach_job",
 ]
 
 
@@ -64,6 +68,10 @@ _ANY_TARGET: dict[str, frozenset[str]] = {
             "price_rules.read",
             "price_rules.write",
             "schedule.read",
+            "file.upload",
+            "file.read",
+            "file.override",
+            "file.attach_job",
         }
     ),
     "planner": frozenset(
@@ -80,10 +88,22 @@ _ANY_TARGET: dict[str, frozenset[str]] = {
             "schedule.approve",
             "queue.read",
             "disruption.report",
+            "file.upload",
+            "file.read",
+            "file.override",
+            "file.attach_job",
         }
     ),
     "operator": frozenset(
-        {"order.list", "order.read", "material.list", "schedule.read", "queue.read", "task.update"}
+        {
+            "order.list",
+            "order.read",
+            "material.list",
+            "schedule.read",
+            "queue.read",
+            "task.update",
+            "file.read",
+        }
     ),
 }
 
@@ -98,6 +118,8 @@ _OWN_TARGET: dict[str, frozenset[str]] = {
             "quote.list",
             "quote.read",
             "quote.submit",
+            "file.upload",
+            "file.read",
         }
     ),
 }

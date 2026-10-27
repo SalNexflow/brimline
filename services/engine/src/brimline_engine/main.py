@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from brimline_engine.api import (
     auth,
     disruptions,
+    files,
     orders,
     planning,
     price_rules,
@@ -52,6 +53,7 @@ app.include_router(price_rules.router)
 app.include_router(quotes.router)
 app.include_router(planning.router)
 app.include_router(disruptions.router)
+app.include_router(files.router)
 
 
 class Health(BaseModel):

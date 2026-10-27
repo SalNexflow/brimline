@@ -112,6 +112,26 @@ TABLE: list[tuple[Actor, Action, OrderTarget | None, bool]] = [
     (OPERATOR, "disruption.report", None, False),
     (STAFF, "disruption.report", None, False),
     (CUSTOMER_1, "disruption.report", None, False),
+    # M7: model files. Customers upload and read files for their own quotes only; operators read
+    # (to see a part before printing); staff and planners upload, and accept a warning with a
+    # reason. Nobody can override a failed check (enforced in files/service.py, not here).
+    (STAFF, "file.upload", OTHER, True),
+    (STAFF, "file.override", OTHER, True),
+    (PLANNER, "file.upload", OTHER, True),
+    (PLANNER, "file.override", OTHER, True),
+    (OPERATOR, "file.read", OTHER, True),
+    (OPERATOR, "file.upload", OTHER, False),
+    (OPERATOR, "file.override", OTHER, False),
+    (CUSTOMER_1, "file.upload", OWN, True),
+    (CUSTOMER_1, "file.upload", OTHER, False),
+    (CUSTOMER_1, "file.read", OWN, True),
+    (CUSTOMER_1, "file.read", OTHER, False),
+    (CUSTOMER_1, "file.override", OWN, False),
+    # Attaching a file to a job on the board changes what gets planned: shop staff only.
+    (STAFF, "file.attach_job", OTHER, True),
+    (PLANNER, "file.attach_job", OTHER, True),
+    (OPERATOR, "file.attach_job", OTHER, False),
+    (CUSTOMER_1, "file.attach_job", OWN, False),
 ]
 
 
@@ -155,6 +175,10 @@ def test_order_scope_limits_customers_to_their_own_orders() -> None:
 def test_capabilities_per_role() -> None:
     assert capabilities(STAFF) == [
         "customer.list",
+        "file.attach_job",
+        "file.override",
+        "file.read",
+        "file.upload",
         "material.list",
         "order.create",
         "order.history.read",
@@ -171,6 +195,10 @@ def test_capabilities_per_role() -> None:
     ]
     assert capabilities(PLANNER) == [
         "disruption.report",
+        "file.attach_job",
+        "file.override",
+        "file.read",
+        "file.upload",
         "material.list",
         "order.history.read",
         "order.list",
@@ -184,6 +212,7 @@ def test_capabilities_per_role() -> None:
         "schedule.read",
     ]
     assert capabilities(OPERATOR) == [
+        "file.read",
         "material.list",
         "order.list",
         "order.read",
@@ -192,6 +221,8 @@ def test_capabilities_per_role() -> None:
         "task.update",
     ]
     assert capabilities(CUSTOMER_1) == [
+        "file.read",
+        "file.upload",
         "material.list",
         "order.create",
         "order.list",

@@ -5,12 +5,14 @@ What decides what:
   the model     part descriptions, quantities, material codes, the due-date *rule*, flags
   code          the due date (dates.resolve_due), what is missing, every price (pricing.py)
   staff         grams and minutes per part, corrections, approval
+  the file      part size, and estimates of grams and minutes, measured by code (M7, files/);
+                a file never overwrites a value staff entered
 """
 
 from collections.abc import Callable
 from dataclasses import asdict
 from datetime import date, datetime
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 import psycopg
 from psycopg.types.json import Jsonb
@@ -31,7 +33,8 @@ SUBMIT_ENDPOINT = "POST /quote-requests"
 EDIT_ENDPOINT = "PUT /quotes"
 DECIDE_ENDPOINT = "POST /quotes/decide"
 
-Source = Literal["ai", "staff", "missing"]
+Source = Literal["ai", "staff", "file", "missing"]
+PartMm = tuple[int, int, int]
 Extractor = Callable[[str], GatewayResult[QuoteDraft]]
 
 
@@ -63,6 +66,14 @@ class QuoteLineEdit(BaseModel):
     material_code: SafeText | None = Field(default=None, max_length=50)
     grams_per_part: int | None = Field(default=None, ge=1, le=100_000)
     minutes_per_part: int | None = Field(default=None, ge=1, le=100_000)
+    part_mm: (
+        tuple[
+            Annotated[int, Field(ge=1, le=5000)],
+            Annotated[int, Field(ge=1, le=5000)],
+            Annotated[int, Field(ge=1, le=5000)],
+        ]
+        | None
+    ) = None
     post_processing: list[PostProcess] = Field(default_factory=list, max_length=3)
 
 
@@ -88,9 +99,19 @@ class QuoteLineOut(BaseModel):
     material_as_written: str | None
     grams_per_part: int | None
     minutes_per_part: int | None
+    part_mm: PartMm | None = None
     post_processing: list[str]
     sources: dict[str, Source]
     uncertain: list[str]
+
+
+class LineFile(BaseModel):
+    """The latest file uploaded for a quote line, as the quote page shows it."""
+
+    line_no: int
+    file_number: str
+    filename: str
+    overall: Literal["pass", "warn", "fail"]  # after staff overrides of warnings
 
 
 class LinePriceOut(BaseModel):
@@ -152,6 +173,8 @@ class QuoteDetail(BaseModel):
     order_number: str | None
     can_edit: bool
     can_decide: bool
+    files: list[LineFile] = []
+    can_upload: bool = False
 
 
 # --- Helpers ----------------------------------------------------------------------------------
@@ -228,8 +251,8 @@ def _write_lines(
     for line in lines:
         conn.execute(
             "INSERT INTO quote_lines (quote_id, line_no, part_name, quantity, material_id, material_as_written,"
-            " grams_per_part, minutes_per_part, post_processing, sources, uncertain)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            " grams_per_part, minutes_per_part, part_x_mm, part_y_mm, part_z_mm, post_processing,"
+            " sources, uncertain) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (
                 quote_id,
                 line.line_no,
@@ -239,6 +262,7 @@ def _write_lines(
                 line.material_as_written,
                 line.grams_per_part,
                 line.minutes_per_part,
+                *(line.part_mm or (None, None, None)),
                 line.post_processing,
                 Jsonb(line.sources),
                 line.uncertain,
@@ -272,6 +296,7 @@ def lines_from_draft(
                 "material": _source(line.material_code),
                 "grams_per_part": "missing",
                 "minutes_per_part": "missing",
+                "part_mm": "missing",
                 "post_processing": "ai",
             },
             uncertain=list(line.uncertain),
@@ -310,7 +335,8 @@ def _find(conn: psycopg.Connection, actor: Actor, quote_number: str) -> tuple[An
 def _lines(conn: psycopg.Connection, quote_id: int) -> list[QuoteLineOut]:
     rows = conn.execute(
         "SELECT l.line_no, l.part_name, l.quantity, m.code, m.name, l.material_as_written,"
-        "       l.grams_per_part, l.minutes_per_part, l.post_processing, l.sources, l.uncertain"
+        "       l.grams_per_part, l.minutes_per_part, l.part_x_mm, l.part_y_mm, l.part_z_mm,"
+        "       l.post_processing, l.sources, l.uncertain"
         " FROM quote_lines l LEFT JOIN materials m ON m.id = l.material_id"
         " WHERE l.quote_id = %s ORDER BY l.line_no",
         (quote_id,),
@@ -328,7 +354,43 @@ def _lines(conn: psycopg.Connection, quote_id: int) -> list[QuoteLineOut]:
         "sources",
         "uncertain",
     )
-    return [QuoteLineOut.model_validate(dict(zip(fields, r, strict=True))) for r in rows]
+    out = []
+    for r in rows:
+        values: dict[str, Any] = dict(zip(fields, (*r[:8], *r[11:]), strict=True))
+        size = r[8:11]
+        values["part_mm"] = tuple(size) if None not in size else None
+        out.append(QuoteLineOut.model_validate(values))
+    return out
+
+
+def effective_overall(
+    report: dict[str, Any], overridden: list[str]
+) -> Literal["pass", "warn", "fail"]:
+    """Overall after staff accepted some warnings. A fail can never be overridden."""
+    statuses = {
+        "pass" if c["status"] == "warn" and c["name"] in overridden else c["status"]
+        for c in report["checks"]
+    }
+    return "fail" if "fail" in statuses else "warn" if "warn" in statuses else "pass"
+
+
+def line_files(conn: psycopg.Connection, quote_id: int) -> list[LineFile]:
+    """The latest file of each line, with warnings staff accepted counted as passed."""
+    rows = conn.execute(
+        "SELECT DISTINCT ON (f.quote_line) f.quote_line, f.file_number, f.filename, f.report,"
+        "       (SELECT array_agg(o.check_name) FROM file_overrides o WHERE o.file_id = f.id)"
+        " FROM files f WHERE f.quote_id = %s ORDER BY f.quote_line, f.id DESC",
+        (quote_id,),
+    ).fetchall()
+    return [
+        LineFile(
+            line_no=r[0],
+            file_number=r[1],
+            filename=r[2],
+            overall=effective_overall(r[3], r[4] or []),
+        )
+        for r in rows
+    ]
 
 
 def get_quote(conn: psycopg.Connection, actor: Actor, quote_number: str) -> QuoteDetail:
@@ -401,6 +463,8 @@ def get_quote(conn: psycopg.Connection, actor: Actor, quote_number: str) -> Quot
         order_number=order_number,
         can_edit=status == "draft" and can(actor, "quote.edit", target),
         can_decide=status == "draft" and can(actor, "quote.approve", target),
+        files=line_files(conn, qid),
+        can_upload=status == "draft" and can(actor, "file.upload", target),
     )
 
 
@@ -619,6 +683,7 @@ def edit_quote(
                     material_as_written=prev.material_as_written if prev else None,
                     grams_per_part=edit.grams_per_part,
                     minutes_per_part=edit.minutes_per_part,
+                    part_mm=edit.part_mm,
                     post_processing=list(dict.fromkeys(edit.post_processing)),
                     sources={
                         "part_name": source(
@@ -639,6 +704,11 @@ def edit_quote(
                             "minutes_per_part",
                             edit.minutes_per_part,
                             prev.minutes_per_part if prev else None,
+                        ),
+                        "part_mm": source(
+                            "part_mm",
+                            edit.part_mm,
+                            prev.part_mm if prev else None,
                         ),
                         "post_processing": source(
                             "post_processing",
@@ -697,6 +767,70 @@ def edit_quote(
         return idempotency.StoredResponse(200, after.model_dump(mode="json")), False
 
 
+FILE_FIELDS = {
+    "part_mm": "part size",
+    "grams_per_part": "grams per part",
+    "minutes_per_part": "minutes per part",
+}
+
+
+def apply_file_values(
+    conn: psycopg.Connection, quote_id: int, line_no: int, values: dict[str, Any], today: date
+) -> list[str]:
+    """Fill a draft line from a checked file (measured by code, M7) and price it again. A field
+    staff entered stays as it is; a field an earlier file filled is replaced, or cleared when the
+    new file cannot give it. Returns what changed, in plain words. The caller audit-logs it."""
+    row = conn.execute(
+        "SELECT status, due_date, rush FROM quotes WHERE id = %s FOR UPDATE", (quote_id,)
+    ).fetchone()
+    assert row is not None
+    if row[0] != "draft":
+        raise InvalidQuoteError(f"the quote is {row[0]}; its lines can no longer change")
+    lines = _lines(conn, quote_id)
+    line = next((x for x in lines if x.line_no == line_no), None)
+    if line is None:
+        raise InvalidQuoteError(f"the quote has no line {line_no}")
+    update: dict[str, Any] = {}
+    sources = dict(line.sources)
+    notes = []
+    for field, label in FILE_FIELDS.items():
+        value, current = values.get(field), getattr(line, field)
+        source = line.sources.get(field, "missing")
+        if source in ("missing", "file"):
+            if value is not None:
+                update[field], sources[field] = value, "file"
+                notes.append(f"line {line_no} {label}: {_show(value)} from the file")
+            elif source == "file":
+                update[field], sources[field] = None, "missing"
+                notes.append(f"line {line_no} {label}: cleared (this file does not give it)")
+        elif value is not None and value != current:
+            notes.append(
+                f"line {line_no} {label}: kept {_show(current)} entered by staff"
+                f" (the file gives {_show(value)})"
+            )
+    if not update:
+        return notes
+    lines = [
+        x.model_copy(update=update | {"sources": sources}) if x.line_no == line_no else x
+        for x in lines
+    ]
+    mats = _materials(conn)
+    rule_set_id, price = _price(conn, lines, row[2], today, mats)
+    conn.execute(
+        "UPDATE quotes SET missing = %s, price_rule_set_id = %s, price = %s, updated_at = now()"
+        " WHERE id = %s",
+        (Jsonb(compute_missing(lines, row[1])), rule_set_id, Jsonb(price), quote_id),
+    )
+    _write_lines(conn, quote_id, lines, mats)
+    return notes
+
+
+def _show(value: object) -> str:
+    if isinstance(value, tuple | list):
+        return " x ".join(map(str, value)) + " mm"
+    return str(value)
+
+
 def decide_quote(
     conn: psycopg.Connection,
     actor: Actor,
@@ -734,6 +868,13 @@ def decide_quote(
             assert before.due_date is not None
             if before.due_date < today:
                 raise InvalidQuoteError(f"due date {before.due_date} is before today ({today})")
+            failed = [f for f in line_files(conn, qid) if f.overall == "fail"]
+            if failed:
+                raise InvalidQuoteError(
+                    "cannot approve while a file failed its checks: "
+                    + "; ".join(f"line {f.line_no}: {f.file_number}" for f in failed)
+                    + " (upload a fixed file)"
+                )
             # Price again with the rules in effect today: approval locks today's price.
             mats = _materials(conn)
             rule_set_id, price = _price(conn, before.lines, before.rush, today, mats)
@@ -746,7 +887,7 @@ def decide_quote(
                 rush=before.rush,
                 notes=before.notes,
                 created_by=actor.user_id,
-                # The quote knows machine minutes and post-processing; part size comes later.
+                # Machine minutes, post-processing and (from a file, or staff) the part size.
                 jobs=[
                     orders.NewJob(
                         line.part_name,
@@ -754,6 +895,7 @@ def decide_quote(
                         mats[line.material_code or ""][0],
                         line.minutes_per_part,
                         tuple(line.post_processing),
+                        line.part_mm,
                     )
                     for line in before.lines
                 ],

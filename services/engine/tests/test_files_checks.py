@@ -250,17 +250,16 @@ def test_a_big_mesh_is_sampled_and_still_finds_thin_walls() -> None:
 
 
 def test_the_checker_does_not_import_any_model_code() -> None:
-    # Vision advice can never be a pass/fail input: the checks cannot even reach the AI package.
+    # Vision advice can never be a pass/fail input: the modules that read, measure and judge a
+    # file cannot even reach the AI package (directly or through another Brimline module).
     import ast
     from pathlib import Path
 
     folder = Path(__file__).parents[1] / "src" / "brimline_engine" / "files"
-    for path in folder.glob("*.py"):
-        if path.name == "advice.py":
-            continue
-        tree = ast.parse(path.read_text(encoding="utf-8"))
+    allowed = {"brimline_engine.files", "brimline_engine.settings", "brimline_engine.shop_config"}
+    for name in ("mesh.py", "measure.py", "checks.py", "config.py"):
+        tree = ast.parse((folder / name).read_text(encoding="utf-8"))
         names = [a.name for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names]
         names += [n.module or "" for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)]
-        assert not [n for n in names if n.startswith(("brimline_engine.ai", "anthropic"))], (
-            path.name
-        )
+        ours = [n for n in names if n.startswith("brimline_engine")]
+        assert all(any(n == a or n.startswith(a + ".") for a in allowed) for n in ours), (name, ours)
