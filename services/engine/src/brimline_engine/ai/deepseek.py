@@ -61,6 +61,8 @@ class DeepSeekClient:
     ) -> ModelReply:
         if not self._api_key:
             raise ModelUnavailableError("DEEPSEEK_API_KEY is not set")
+        if any(t.images for t in turns):
+            raise ModelUnavailableError("the DeepSeek models we use cannot read images")
         body = {
             "model": model,
             "messages": [

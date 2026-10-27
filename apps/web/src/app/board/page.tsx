@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { signedInEngine, type PlanningRun, type Schedule } from "@/lib/engine";
+import { can, signedInEngine, type PlanningRun, type Schedule } from "@/lib/engine";
 import { formatShopTime } from "@/lib/timeline";
 
 import { DiffView, DisruptionCard } from "./disruption-view";
@@ -88,8 +88,9 @@ export default function BoardPage() {
 }
 
 async function BoardContent() {
-  const { client } = await signedInEngine();
+  const { client, me } = await signedInEngine();
   const { data: board } = await client.GET("/board");
+  const canAttach = can(me, "file.attach_job");
   const now = new Date();
   if (!board) return <p>You do not have access to the board.</p>;
   const tz = board.time_zone;
@@ -145,7 +146,7 @@ async function BoardContent() {
             />
           ) : null}
           <DiffView schedule={board.draft} />
-          <ScheduleView schedule={board.draft} timeZone={tz} now={now} />
+          <ScheduleView schedule={board.draft} timeZone={tz} now={now} canAttach={canAttach} />
         </section>
       ) : null}
 
@@ -153,7 +154,7 @@ async function BoardContent() {
         <section aria-labelledby="approved-heading" className="schedule">
           <h2 id="approved-heading">Approved plan</h2>
           <Header s={board.approved} timeZone={tz} />
-          <ScheduleView schedule={board.approved} timeZone={tz} now={now} />
+          <ScheduleView schedule={board.approved} timeZone={tz} now={now} canAttach={canAttach} />
         </section>
       ) : null}
 

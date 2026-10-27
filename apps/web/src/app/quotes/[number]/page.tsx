@@ -76,12 +76,20 @@ async function Quote({ params }: Pick<PageProps<"/quotes/[number]">, "params">) 
       ) : null}
 
       <Gaps quote={quote} />
+      <Files quote={quote} />
       <Price quote={quote} />
 
       {quote.can_edit ? (
         <>
           <h2>Review</h2>
-          <ReviewForm quote={quote} materials={materials} editKey={crypto.randomUUID()} />
+          {/* Keyed by the lines' content: Next keeps a visited page mounted, and a file uploaded
+              elsewhere must not leave this form showing the old values. */}
+          <ReviewForm
+            key={JSON.stringify(quote.lines)}
+            quote={quote}
+            materials={materials}
+            editKey={crypto.randomUUID()}
+          />
         </>
       ) : (
         <ReadOnlyLines quote={quote} />
@@ -94,6 +102,44 @@ async function Quote({ params }: Pick<PageProps<"/quotes/[number]">, "params">) 
         </>
       ) : null}
     </>
+  );
+}
+
+/** The latest model file per line, checked by code; a failed file blocks approval. */
+function Files({ quote }: { quote: QuoteDetail }) {
+  if (quote.lines.length === 0 || (quote.files.length === 0 && !quote.can_upload)) return null;
+  const byLine = new Map(quote.files.map((f) => [f.line_no, f]));
+  const label = { pass: "Pass", warn: "Warning", fail: "Fail" } as const;
+  return (
+    <section aria-labelledby="files-heading">
+      <h2 id="files-heading">Model files</h2>
+      <ul>
+        {quote.lines.map((line) => {
+          const f = byLine.get(line.line_no);
+          return (
+            <li key={line.line_no}>
+              Line {line.line_no} {line.part_name}:{" "}
+              {f ? (
+                <>
+                  <Link href={`/files/${f.file_number}`}>{f.filename}</Link>{" "}
+                  <span className={`check check-${f.overall}`}>{label[f.overall]}</span>
+                </>
+              ) : (
+                <span className="muted">no file yet</span>
+              )}
+              {quote.can_upload ? (
+                <>
+                  {" "}
+                  <Link href={`/files/new?quote=${quote.quote_number}&line=${line.line_no}`}>
+                    {f ? "Upload a new version" : "Upload a model file"}
+                  </Link>
+                </>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

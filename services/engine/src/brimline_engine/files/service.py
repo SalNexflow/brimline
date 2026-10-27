@@ -14,15 +14,20 @@ from psycopg.types.json import Jsonb
 from pydantic import BaseModel, Field
 
 from brimline_engine import audit, idempotency, quotes
+from brimline_engine.ai.calls import record_call
+from brimline_engine.ai.gateway import ModelClient
+from brimline_engine.files import advice
 from brimline_engine.files.checks import PlanningValues, Report, check_file, planning_values
-from brimline_engine.files.config import FilesConfig
-from brimline_engine.files.mesh import UNITS_MM
+from brimline_engine.files.config import FilesConfig, files_config
+from brimline_engine.files.mesh import UNITS_MM, ParseError, read_mesh
+from brimline_engine.files.preview import render_png
 from brimline_engine.permissions import Action, Actor, OrderTarget, can, order_scope
 from brimline_engine.shop_config import Process, load_shop_config
 from brimline_engine.text import SafeText
 
 UPLOAD_ENDPOINT = "POST /files"
 OVERRIDE_ENDPOINT = "POST /files/override"
+ADVICE_ENDPOINT = "POST /files/advice"
 
 
 class NotFoundError(Exception):
@@ -71,7 +76,7 @@ class FileOut(BaseModel):
     report: Report
     overall: Literal["pass", "warn", "fail"]  # after accepted warnings; a fail stays a fail
     planning: PlanningValues
-    applied: list[str]  # what the upload filled in, in plain words
+    applied: list[str]  # what this request did (filled in, or why there is no advice)
     overrides: list[OverrideOut]
     advice: list[AdviceOut]  # AI advice: shown as advice, never read by any check
     uploaded_by: str
@@ -307,7 +312,7 @@ def _apply(
                 (*values.part_mm, file_id, where.job_id),
             )
             notes.append(f"part size {shown} from {number}")
-        elif tuple(size) != values.part_mm:
+        elif list(size) != values.part_mm:
             notes.append(
                 f"kept the part size {' x '.join(map(str, size))} mm (the file gives {shown})"
             )
@@ -463,7 +468,7 @@ def get_file(conn: psycopg.Connection, actor: Actor, file_number: str) -> FileOu
         uploaded_by=r["display_name"],
         uploaded_at=r["created_at"],
         can_override=may_override,
-        can_ask_advice=may_override,
+        can_ask_advice=may_override and files_config().advice.enabled,
     )
 
 
@@ -486,3 +491,75 @@ def latest_job_files(conn: psycopg.Connection, actor: Actor) -> dict[str, dict[s
         r[0]: {"file_number": r[1], "overall": quotes.effective_overall(r[2], r[3] or [])}
         for r in rows
     }
+
+
+def preview_png(
+    conn: psycopg.Connection, actor: Actor, file_number: str, cfg: FilesConfig
+) -> bytes:
+    """Three shaded views of the file, or NotFound when it cannot be read."""
+    r = _file_row(conn, actor, file_number)
+    try:
+        mesh = read_mesh(bytes(r["content"]), str(r["filename"]), cfg.limits, str(r["unit"]))
+    except ParseError as e:
+        raise NotFoundError(file_number) from e
+    if len(mesh.faces) == 0:
+        raise NotFoundError(file_number)
+    return render_png(mesh)
+
+
+def ask_advice(
+    conn: psycopg.Connection,
+    actor: Actor,
+    file_number: str,
+    key: str,
+    cfg: FilesConfig,
+    client: ModelClient | None,
+    mode: str,
+) -> tuple[idempotency.StoredResponse, bool]:
+    """Ask a vision model for advice on the preview (staff or planner, on request). Advice is
+    stored apart and shown as advice; it changes no check, no verdict and no planning field."""
+    endpoint = f"{ADVICE_ENDPOINT}/{file_number}"
+    with conn.transaction():
+        stored = idempotency.claim(
+            conn, user_id=actor.user_id, endpoint=endpoint, key=key, req_hash="advice"
+        )
+        if stored is not None:
+            return idempotency.StoredResponse(
+                stored.status, get_file(conn, actor, file_number).model_dump(mode="json")
+            ), True
+        r = _file_row(conn, actor, file_number)
+        _require(actor, "file.override", int(r["customer_id"]))
+        if not cfg.advice.enabled:
+            raise ConflictError("vision advice is off (config/files.toml [advice])")
+        if client is None:
+            raise ConflictError("AI is off (AI_MODE)")
+        png = preview_png(conn, actor, file_number, cfg)
+        result = advice.ask(client, mode, Report.model_validate(r["report"]), png)
+        call_id = record_call(conn, result.record, actor.user_id)
+        notes: list[str] = []
+        if result.value is None:
+            notes.append(f"no advice: the model call ended {result.record.outcome!r}")
+        else:
+            conn.execute(
+                "INSERT INTO file_advice (file_id, ai_call_id, advice) VALUES (%s, %s, %s)",
+                (r["id"], call_id, Jsonb(result.value.model_dump(mode="json"))),
+            )
+        audit.record(
+            conn,
+            actor_user_id=actor.user_id,
+            action="file.advice",
+            entity_type="file",
+            entity_id=file_number,
+            before=None,
+            after={"ai_call_id": call_id, "advice": result.value.advice if result.value else None},
+            idempotency_key=key,
+        )
+        idempotency.store(
+            conn,
+            user_id=actor.user_id,
+            endpoint=endpoint,
+            key=key,
+            response=idempotency.StoredResponse(200, {"file_number": file_number}),
+        )
+        out = get_file(conn, actor, file_number).model_copy(update={"applied": notes})
+        return idempotency.StoredResponse(200, out.model_dump(mode="json")), False

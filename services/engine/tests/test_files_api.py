@@ -4,6 +4,7 @@ only with a reason. Expected numbers come from geometry (a 40 mm cube is 64 cm³
 config's stated formulas, worked out by hand in the comments."""
 
 import uuid
+from collections.abc import Iterator
 from typing import Any
 
 import psycopg
@@ -17,6 +18,23 @@ from tests.test_quotes_api import COMPLETE_EDIT, decide, edit, submit
 CUBE = s.binary_stl(s.box(40, 40, 40))
 OPEN_CUBE = s.binary_stl(s.box(40, 40, 40)[1:])
 METRES = s.binary_stl(s.box(0.04, 0.04, 0.04))  # a 40 mm cube saved in metres
+
+
+@pytest.fixture(autouse=True, scope="module")
+def leave_no_plannable_jobs(test_database: str, owner_url: str) -> Iterator[None]:
+    """Files here give new jobs a size and minutes, so they would be planned by the planning
+    tests that run later and change their seeded scenarios (their reset re-opens every order).
+    Take the size off the jobs made here, so those tests list them as "cannot plan" and leave
+    them out, as they do for every other module's orders."""
+    with psycopg.connect(owner_url) as conn:
+        row = conn.execute("SELECT coalesce(max(id), 0) FROM orders").fetchone()
+    assert row is not None
+    yield
+    with psycopg.connect(owner_url) as conn:
+        conn.execute(
+            "UPDATE jobs SET part_x_mm = NULL, part_y_mm = NULL, part_z_mm = NULL WHERE order_id > %s",
+            (row[0],),
+        )
 
 
 def key() -> dict[str, str]:
@@ -288,3 +306,53 @@ def test_customers_read_only_their_own_files(client: TestClient) -> None:
 def test_file_rows_cannot_be_rewritten(app_url: str, query: str) -> None:
     with psycopg.connect(app_url) as conn, pytest.raises(psycopg.errors.Error):
         conn.execute(query.encode())
+
+
+# --- Preview and optional advice ----------------------------------------------------------------
+
+
+def test_the_preview_is_a_png_of_three_views(client: TestClient) -> None:
+    order = new_order(client)
+    f = upload(client, "U-PLANNER", CUBE, order=order).json()
+    r = client.get(f"/files/{f['file_number']}/preview.png", headers=login(client, "U-PLANNER"))
+    assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+    assert r.content[:8] == b"\x89PNG\r\n\x1a\n"
+    width, height = int.from_bytes(r.content[16:20], "big"), int.from_bytes(r.content[20:24], "big")
+    assert (width, height) == (3 * 220 + 2 * 10, 220)
+
+
+def test_advice_is_off_unless_switched_on(client: TestClient) -> None:
+    order = new_order(client)
+    f = upload(client, "U-PLANNER", CUBE, order=order).json()
+    assert f["can_ask_advice"] is False
+    r = client.post(f"/files/{f['file_number']}/advice", headers=login(client, "U-PLANNER") | key())
+    assert r.status_code == 409 and "advice is off" in r.json()["detail"]
+
+
+def test_advice_is_stored_apart_and_changes_no_check(
+    client: TestClient, owner_url: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from brimline_engine.api import files as files_api
+    from brimline_engine.files.config import files_config
+
+    on = files_config().model_copy(
+        update={"advice": files_config().advice.model_copy(update={"enabled": True})}
+    )
+    monkeypatch.setattr(files_api, "files_config", lambda: on)
+    order = new_order(client)
+    f = upload(client, "U-PLANNER", METRES, order=order).json()  # a unit warning
+    r = client.post(f"/files/{f['file_number']}/advice", headers=login(client, "U-PLANNER") | key())
+    assert r.status_code == 200, r.text
+    after = r.json()
+    assert after["advice"][0]["advice"] == ["Print it on its largest flat face to avoid supports."]
+    # Same report, same verdict, same planning values: advice is never a pass/fail input.
+    assert (after["report"], after["overall"], after["planning"]) == (
+        f["report"],
+        f["overall"],
+        f["planning"],
+    )
+    assert job_row(owner_url, order)[:3] == (None, None, None)
+    op = client.post(
+        f"/files/{f['file_number']}/advice", headers=login(client, "U-OPERATOR") | key()
+    )
+    assert op.status_code == 403

@@ -10,6 +10,7 @@
 It never writes to the database; callers store the CallRecord (see brimline_engine.ai.calls).
 """
 
+import base64
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -19,6 +20,7 @@ from typing import Any, Literal, Protocol
 import anthropic
 from anthropic.types import (
     AssistantMessageParam,
+    ImageBlockParam,
     MessageParam,
     OutputConfigParam,
     TextBlockParam,
@@ -62,6 +64,7 @@ class ModelReply:
 class Turn:
     role: Literal["user", "assistant"]
     content: str
+    images: tuple[bytes, ...] = ()  # PNG pictures sent before the text (vision advice, M7)
 
 
 class ModelClient(Protocol):
@@ -138,8 +141,9 @@ def run_structured[T: BaseModel](
     user: str,
     context: dict[str, Any] | None = None,
     clock: Callable[[], float] = time.monotonic,
+    images: tuple[bytes, ...] = (),
 ) -> GatewayResult[T]:
-    turns = [Turn("user", user)]
+    turns = [Turn("user", user, images)]
     usage = TokenUsage()
     replies: list[str | None] = []
     started = clock()
@@ -199,6 +203,23 @@ def run_structured[T: BaseModel](
 # --- Clients --------------------------------------------------------------------------------
 
 
+def _user_content(turn: Turn) -> str | list[ImageBlockParam | TextBlockParam]:
+    if not turn.images:
+        return turn.content
+    pictures: list[ImageBlockParam | TextBlockParam] = [
+        {
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": "image/png",
+                "data": base64.b64encode(png).decode("ascii"),
+            },
+        }
+        for png in turn.images
+    ]
+    return [*pictures, {"type": "text", "text": turn.content}]
+
+
 class AnthropicClient:
     """The live client. Credentials come from the environment (ANTHROPIC_API_KEY) as the SDK
     resolves them; nothing secret passes through our code."""
@@ -223,7 +244,7 @@ class AnthropicClient:
             {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
         ]
         messages: list[MessageParam] = [
-            UserMessageParam(role="user", content=t.content)
+            UserMessageParam(role="user", content=_user_content(t))
             if t.role == "user"
             else AssistantMessageParam(role="assistant", content=t.content)
             for t in turns

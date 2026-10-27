@@ -66,6 +66,10 @@ class Estimates(_Strict):
     resin_seconds_per_layer: float = Field(gt=0)
 
 
+class AdviceConfig(_Strict):
+    enabled: bool
+
+
 class FilesConfig(_Strict):
     checked: date
     limits: Limits
@@ -75,6 +79,7 @@ class FilesConfig(_Strict):
     loose_parts: LooseParts
     estimates: Estimates
     density_g_per_cm3: dict[str, float]
+    advice: AdviceConfig
 
 
 def load_files_config(path: Path = FILES_CONFIG_PATH) -> FilesConfig:

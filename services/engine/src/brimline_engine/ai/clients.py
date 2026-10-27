@@ -136,6 +136,9 @@ def fake_reply(turns: list[Turn]) -> ModelReply:
     if "<planner_message>" in message:
         text = _fake_disruption(message)
         return ModelReply(text=text, stop_reason="end_turn", usage=TokenUsage())
+    if content.startswith("<file_checks>"):
+        advice = {"advice": ["Print it on its largest flat face to avoid supports."]}
+        return ModelReply(text=json.dumps(advice), stop_reason="end_turn", usage=TokenUsage())
     if content.startswith("<plan_diff>"):
         inner = content.removeprefix("<plan_diff>").rsplit("</plan_diff>", 1)[0]
         return ModelReply(text=_fake_summary(inner), stop_reason="end_turn", usage=TokenUsage())

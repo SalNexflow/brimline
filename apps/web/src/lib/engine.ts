@@ -27,6 +27,7 @@ export type QueueTask = components["schemas"]["QueueTask"];
 export type Disruption = components["schemas"]["DisruptionOut"];
 export type DisruptionEvent = components["schemas"]["Event"];
 export type DisruptionCatalog = components["schemas"]["CatalogOut"];
+export type FileReport = components["schemas"]["FileOut"];
 
 function baseUrl(): string {
   const url = process.env.ENGINE_URL;

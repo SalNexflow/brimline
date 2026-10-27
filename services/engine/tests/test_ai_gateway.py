@@ -211,3 +211,12 @@ def test_other_type_errors_still_crash() -> None:
     with pytest.raises(TypeError, match="a real bug"):
         run(ScriptedClient(broken))
     assert issubclass(ModelUnavailableError, Exception)
+
+
+def test_pictures_go_before_the_text_for_a_vision_model() -> None:
+    from brimline_engine.ai.gateway import Turn, _user_content
+
+    content = _user_content(Turn("user", "<file_checks>", (b"\x89PNG",)))
+    assert isinstance(content, list) and content[0]["type"] == "image"
+    assert content[-1] == {"type": "text", "text": "<file_checks>"}
+    assert _user_content(Turn("user", "plain")) == "plain"

@@ -29,7 +29,7 @@ function SourceTag({ line, field }: { line?: QuoteLine; field: string }) {
   const uncertain = line?.uncertain.includes(field) ?? false;
   return (
     <>
-      <span className={`source source-${source}`}>{{ ai: "AI", staff: "Staff", missing: "Missing" }[source]}</span>
+      <span className={`source source-${source}`}>{{ ai: "AI", staff: "Staff", file: "File", missing: "Missing" }[source]}</span>
       {uncertain ? <span className="source source-uncertain">Check</span> : null}
     </>
   );
@@ -142,6 +142,21 @@ export function ReviewForm({
                   aria-label={`Line ${n} minutes per part`}
                 />
               </label>
+              <fieldset className={`part-size ${missing("part_mm")}`}>
+                <legend>
+                  Part size, mm <SourceTag line={line} field="part_mm" />
+                </legend>
+                {(["x", "y", "z"] as const).map((axis, i) => (
+                  <input
+                    key={axis}
+                    name={`line_${id}_part_${axis}`}
+                    type="number"
+                    min={1}
+                    defaultValue={line?.part_mm?.[i] ?? ""}
+                    aria-label={`Line ${n} part size ${axis}`}
+                  />
+                ))}
+              </fieldset>
               <div className="checks" role="group" aria-label={`Line ${n} post-processing`}>
                 {POST_PROCESSING.map((kind) => (
                   <label key={kind} className="inline">

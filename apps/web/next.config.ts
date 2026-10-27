@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   turbopack: { root: workspaceRoot },
   outputFileTracingRoot: workspaceRoot,
+  // Model files go through a server action to the engine, which allows 25 MiB
+  // (config/files.toml); the default action body limit is 1 MB.
+  experimental: { serverActions: { bodySizeLimit: "26mb" } },
 };
 
 export default nextConfig;

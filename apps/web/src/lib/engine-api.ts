@@ -185,6 +185,123 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload File
+         * @description Check a model file and fill the planning fields it can (quote line or job).
+         */
+        post: operations["upload_file_files_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Job Files
+         * @description The latest file of each job, for the board.
+         */
+        get: operations["job_files_files_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{file_number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read File */
+        get: operations["read_file_files__file_number__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{file_number}/advice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * File Advice
+         * @description Optional AI advice on the preview: stored and shown as advice, never a check result.
+         */
+        post: operations["file_advice_files__file_number__advice_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{file_number}/overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Override Warning
+         * @description Accept a warning with a reason (logged). A failed check cannot be accepted.
+         */
+        post: operations["override_warning_files__file_number__overrides_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{file_number}/preview.png": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * File Preview
+         * @description Three shaded views (top, front, side) drawn by code.
+         */
+        get: operations["file_preview_files__file_number__preview_png_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -507,6 +624,18 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdviceOut */
+        AdviceOut: {
+            /** Advice */
+            advice: string[];
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Model */
+            model: string | null;
+        };
         /** AiInfo */
         AiInfo: {
             /** Cost Micro Usd */
@@ -640,6 +769,18 @@ export interface components {
             /** Warnings */
             warnings: components["schemas"]["CheckIssue"][];
         };
+        /** CheckResult */
+        CheckResult: {
+            /** Name */
+            name: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pass" | "warn" | "fail" | "skip";
+        };
         /** CustomerOut */
         CustomerOut: {
             /** Code */
@@ -759,6 +900,52 @@ export interface components {
             /** Events */
             events: components["schemas"]["Event"][];
         };
+        /** FileOut */
+        FileOut: {
+            /** Advice */
+            advice: components["schemas"]["AdviceOut"][];
+            /** Applied */
+            applied: string[];
+            /** Can Ask Advice */
+            can_ask_advice: boolean;
+            /** Can Override */
+            can_override: boolean;
+            /** File Number */
+            file_number: string;
+            /** Filename */
+            filename: string;
+            /** Line */
+            line: number;
+            /** Material Code */
+            material_code: string | null;
+            /** Order Number */
+            order_number: string | null;
+            /**
+             * Overall
+             * @enum {string}
+             */
+            overall: "pass" | "warn" | "fail";
+            /** Overrides */
+            overrides: components["schemas"]["OverrideOut"][];
+            planning: components["schemas"]["PlanningValues"];
+            /** Quote Number */
+            quote_number: string | null;
+            report: components["schemas"]["Report"];
+            /**
+             * Target
+             * @enum {string}
+             */
+            target: "quote" | "job";
+            /** Unit */
+            unit: string;
+            /**
+             * Uploaded At
+             * Format: date-time
+             */
+            uploaded_at: string;
+            /** Uploaded By */
+            uploaded_by: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -799,6 +986,23 @@ export interface components {
             /** Idempotency Key */
             idempotency_key: string | null;
         };
+        /**
+         * LineFile
+         * @description The latest file uploaded for a quote line, as the quote page shows it.
+         */
+        LineFile: {
+            /** File Number */
+            file_number: string;
+            /** Filename */
+            filename: string;
+            /** Line No */
+            line_no: number;
+            /**
+             * Overall
+             * @enum {string}
+             */
+            overall: "pass" | "warn" | "fail";
+        };
         /** LinePriceOut */
         LinePriceOut: {
             /** Machine Cents */
@@ -838,6 +1042,29 @@ export interface components {
              * @enum {string}
              */
             role: "staff" | "planner" | "operator" | "customer";
+        };
+        /** Measurements */
+        Measurements: {
+            /** File Format */
+            file_format: string;
+            /** Fits On */
+            fits_on: string[];
+            /** Overhang Share */
+            overhang_share: number | null;
+            /** Shells */
+            shells: number;
+            /** Size Mm */
+            size_mm: number[];
+            /** Surface Mm2 */
+            surface_mm2: number;
+            /** Thinnest Wall Mm */
+            thinnest_wall_mm: number | null;
+            /** Triangles */
+            triangles: number;
+            /** Unit */
+            unit: string;
+            /** Volume Mm3 */
+            volume_mm3: number | null;
         };
         /** MessageIn */
         MessageIn: {
@@ -961,6 +1188,27 @@ export interface components {
              */
             status: "open" | "in_production" | "done" | "cancelled";
         };
+        /** OverrideIn */
+        OverrideIn: {
+            /** Check */
+            check: string;
+            /** Reason */
+            reason: string;
+        };
+        /** OverrideOut */
+        OverrideOut: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** By */
+            by: string;
+            /** Check */
+            check: string;
+            /** Reason */
+            reason: string;
+        };
         /** PlanningRun */
         PlanningRun: {
             /**
@@ -989,6 +1237,20 @@ export interface components {
              * @enum {string}
              */
             status: "queued" | "running" | "done" | "failed";
+        };
+        /**
+         * PlanningValues
+         * @description Values code computed from the file, or None with the reason they were not.
+         */
+        PlanningValues: {
+            /** Grams Per Part */
+            grams_per_part: number | null;
+            /** Minutes Per Part */
+            minutes_per_part: number | null;
+            /** Notes */
+            notes: string[];
+            /** Part Mm */
+            part_mm: number[] | null;
         };
         /** PriceOut */
         PriceOut: {
@@ -1147,6 +1409,11 @@ export interface components {
             can_decide: boolean;
             /** Can Edit */
             can_edit: boolean;
+            /**
+             * Can Upload
+             * @default false
+             */
+            can_upload: boolean;
             /** Currency */
             currency: string;
             /** Customer Code */
@@ -1159,6 +1426,11 @@ export interface components {
             due_rule: {
                 [key: string]: unknown;
             } | null;
+            /**
+             * Files
+             * @default []
+             */
+            files: components["schemas"]["LineFile"][];
             /** Lines */
             lines: components["schemas"]["QuoteLineOut"][];
             /** Message */
@@ -1215,6 +1487,8 @@ export interface components {
             material_code?: string | null;
             /** Minutes Per Part */
             minutes_per_part?: number | null;
+            /** Part Mm */
+            part_mm?: number[] | null;
             /** Part Name */
             part_name: string;
             /** Post Processing */
@@ -1236,6 +1510,8 @@ export interface components {
             material_name: string | null;
             /** Minutes Per Part */
             minutes_per_part: number | null;
+            /** Part Mm */
+            part_mm?: number[] | null;
             /** Part Name */
             part_name: string;
             /** Post Processing */
@@ -1244,7 +1520,7 @@ export interface components {
             quantity: number | null;
             /** Sources */
             sources: {
-                [key: string]: "ai" | "staff" | "missing";
+                [key: string]: "ai" | "staff" | "file" | "missing";
             };
             /** Uncertain */
             uncertain: string[];
@@ -1282,6 +1558,17 @@ export interface components {
             status: "draft" | "approved" | "rejected";
             /** Total Cents */
             total_cents: number | null;
+        };
+        /** Report */
+        Report: {
+            /** Checks */
+            checks: components["schemas"]["CheckResult"][];
+            measurements: components["schemas"]["Measurements"] | null;
+            /**
+             * Overall
+             * @enum {string}
+             */
+            overall: "pass" | "warn" | "fail";
         };
         /** ScheduleOut */
         ScheduleOut: {
@@ -1733,6 +2020,221 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_file_files_post: {
+        parameters: {
+            query: {
+                filename: string;
+                line: number;
+                quote?: string | null;
+                order?: string | null;
+                unit?: string;
+            };
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/octet-stream": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    job_files_files_jobs_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_file_files__file_number__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                file_number: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    file_advice_files__file_number__advice_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                file_number: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    override_warning_files__file_number__overrides_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                file_number: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OverrideIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    file_preview_files__file_number__preview_png_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                file_number: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": unknown;
                 };
             };
             /** @description Validation Error */

@@ -167,3 +167,18 @@ def test_every_configured_model_has_a_known_provider() -> None:
     for name, price in cfg.prices.items():
         assert price.provider in cfg.providers, name
     assert cfg.prices[cfg.task("quote_extract").model].provider == "deepseek"
+
+
+def test_deepseek_refuses_pictures() -> None:
+    from brimline_engine.ai.gateway import ModelUnavailableError, Turn
+
+    client = DeepSeekClient(api_key="test-key", base_url="https://example.invalid")
+    with pytest.raises(ModelUnavailableError, match="cannot read images"):
+        client.call(
+            model="deepseek-flash",
+            system="s",
+            turns=[Turn("user", "x", (b"png",))],
+            json_schema={},
+            max_tokens=10,
+            effort="low",
+        )

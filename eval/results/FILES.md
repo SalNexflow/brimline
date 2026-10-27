@@ -15,7 +15,7 @@ file shown as a warning is counted apart: staff see it, but it is not a fail.
 | Broken shown only as warning | 0/10 (0 %) | 0/6 (0 %) | 0/4 (0 %) |
 | False alarm (valid file failed) | 0/5 (0 %) | 0/5 (0 %) | 0/3 (0 %) |
 | Size within 0.01 mm | 19/19 (100 %) | 11/11 (100 %) | 11/11 (100 %) |
-| Slowest file (s) | 0.84 | 0.00 | 0.00 |
+| Slowest file (s) | 0.73 | 0.00 | 0.00 |
 
 ## Agreement per check
 

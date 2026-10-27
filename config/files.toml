@@ -79,3 +79,9 @@ PETG-ORANGE = 1.27
 TPU-BLACK = 1.21
 RESIN-GREY = 1.15
 RESIN-CLEAR = 1.15
+
+[advice]
+# Vision advice on the preview picture: off by default. It needs a paid vision model
+# (config/models.toml [tasks.file_advice]) and its key; with AI_MODE=fake it returns a prepared
+# reply. Never a pass/fail input: the checks cannot even import the AI package (tested).
+enabled = false

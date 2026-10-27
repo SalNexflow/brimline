@@ -27,6 +27,16 @@ const lineSchema = z.object({
     .transform((v) => (v === "" ? null : v)),
   grams_per_part: optionalCount("Grams per part", 100_000),
   minutes_per_part: optionalCount("Minutes per part", 100_000),
+  part_mm: z
+    .tuple([optionalCount("Part size", 5000), optionalCount("Part size", 5000), optionalCount("Part size", 5000)])
+    .transform((size, ctx) => {
+      if (size.every((v) => v === null)) return null;
+      if (size.some((v) => v === null)) {
+        ctx.addIssue({ code: "custom", message: "Give all three part sizes, or none" });
+        return z.NEVER;
+      }
+      return size as [number, number, number];
+    }),
   post_processing: z.array(z.enum(POST_PROCESSING)),
 });
 
@@ -57,6 +67,7 @@ export function parseQuoteEdit(form: FormData): QuoteEditResult {
       material_code: text(`line_${id}_material_code`),
       grams_per_part: text(`line_${id}_grams_per_part`),
       minutes_per_part: text(`line_${id}_minutes_per_part`),
+      part_mm: [text(`line_${id}_part_x`), text(`line_${id}_part_y`), text(`line_${id}_part_z`)],
       post_processing: form.getAll(`line_${id}_post_processing`).map(String),
     })),
   });

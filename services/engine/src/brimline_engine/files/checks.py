@@ -27,7 +27,7 @@ class Measurements(BaseModel):
     file_format: str
     unit: str
     triangles: int
-    size_mm: tuple[float, float, float]
+    size_mm: list[float]  # x, y, z
     volume_mm3: float | None  # only for a closed surface
     surface_mm2: float
     shells: int
@@ -202,7 +202,7 @@ def _check_mesh(
             file_format=mesh.file_format,
             unit=mesh.unit,
             triangles=len(mesh.faces),
-            size_mm=size,
+            size_mm=list(size),
             volume_mm3=abs(signed) if closed else None,
             surface_mm2=measure.surface_mm2(mesh),
             shells=count,
@@ -224,7 +224,7 @@ def _fits(size: tuple[float, float, float], build: tuple[int, int, int]) -> bool
 class PlanningValues(BaseModel):
     """Values code computed from the file, or None with the reason they were not."""
 
-    part_mm: tuple[int, int, int] | None
+    part_mm: list[int] | None  # x, y, z in whole mm, rounded up
     grams_per_part: int | None
     minutes_per_part: int | None
     notes: list[str]
@@ -247,11 +247,11 @@ def planning_values(
             minutes_per_part=None,
             notes=["the file could not be read"],
         )
-    part_mm: tuple[int, int, int] | None = None
+    part_mm: list[int] | None = None
     if report.status("units") == "pass" or units_confirmed:
         # Rounded up to whole mm, so a part never looks smaller than it is.
         x, y, z = (max(1, math.ceil(round(s, 2))) for s in m.size_mm)
-        part_mm = (x, y, z)
+        part_mm = [x, y, z]
     else:
         notes.append(
             "size not used: the unit looks wrong; confirm it or upload again with the right unit"

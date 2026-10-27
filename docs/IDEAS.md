@@ -23,3 +23,7 @@ Bigger "nice to have" ideas, one-line pitch each. Not commitments.
 - **Operators report disruptions** from their queue ("jammed" next to the running task), for a planner to confirm.
 - **A promised date per order**, set when the customer is told, as the re-planning reference instead of the approved plan's finish (D84).
 - **Ask the operator for an estimate** when a print runs over, instead of the configured margin (D86).
+- **Real free-licence test models (M7):** add a handful of CC0 or public-domain printable models (with their licence recorded) to the held-out file set, so the false pass rate is also measured on parts that are not simple shapes.
+- **Overhangs in the best orientation:** try the six flat orientations and report the one with least support, instead of only the orientation the file was saved in.
+- **Thin features on curved parts:** a voxel or distance-field wall check for parts where one ray per face is too coarse.
+- **Live vision advice:** switch on `[advice]` with a vision model once a key is approved, and evaluate the advice blind like the other AI steps.

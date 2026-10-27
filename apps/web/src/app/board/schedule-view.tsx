@@ -1,6 +1,8 @@
+import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import type { BoardJob, BoardTask, Schedule } from "@/lib/engine";
+import { splitJobKey } from "@/lib/file-upload";
 import { kindLabel, statusLabel } from "@/lib/task-labels";
 import {
   boardWindow,
@@ -12,7 +14,7 @@ import {
   percentAt,
 } from "@/lib/timeline";
 
-type Props = { schedule: Schedule; timeZone: string; now: Date };
+type Props = { schedule: Schedule; timeZone: string; now: Date; canAttach?: boolean };
 
 /** Row ids in the table; the version keeps a draft's and the approved plan's apart. */
 function taskAnchor(t: BoardTask, version: number): string {
@@ -236,7 +238,7 @@ export function PlanTable({ schedule, timeZone }: Omit<Props, "now">) {
   );
 }
 
-export function NotPlanned({ schedule }: { schedule: Schedule }) {
+export function NotPlanned({ schedule, canAttach = false }: { schedule: Schedule; canAttach?: boolean }) {
   const unscheduled = schedule.jobs.filter((j) => j.unscheduled);
   if (schedule.unplannable.length === 0 && unscheduled.length === 0) return null;
   return (
@@ -250,6 +252,7 @@ export function NotPlanned({ schedule }: { schedule: Schedule }) {
             {schedule.unplannable.map((u) => (
               <li key={u.job}>
                 {u.job} {u.part}: missing {u.missing.join(", ")}
+                <AttachLink job={u.job} show={canAttach && u.missing.includes("part size")} />
               </li>
             ))}
           </ul>
@@ -273,12 +276,24 @@ export function NotPlanned({ schedule }: { schedule: Schedule }) {
   );
 }
 
-export function ScheduleView({ schedule, timeZone, now }: Props) {
+/** A file measured by code gives a job its part size; then plan again. */
+function AttachLink({ job, show }: { job: string; show: boolean }) {
+  const target = splitJobKey(job);
+  if (!show || !target) return null;
+  return (
+    <>
+      {" "}
+      <Link href={`/files/new?order=${target.order}&line=${target.line}`}>Attach a model file</Link>
+    </>
+  );
+}
+
+export function ScheduleView({ schedule, timeZone, now, canAttach }: Props) {
   return (
     <>
       <CheckBadge schedule={schedule} />
       <Metrics schedule={schedule} />
-      <NotPlanned schedule={schedule} />
+      <NotPlanned schedule={schedule} canAttach={canAttach} />
       <Timeline schedule={schedule} timeZone={timeZone} now={now} />
       <h3 id={`table-${schedule.version}`}>Plan as a table</h3>
       <div className="table-scroll" role="region" aria-labelledby={`table-${schedule.version}`} tabIndex={0}>

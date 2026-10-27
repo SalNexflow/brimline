@@ -8,8 +8,11 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Body, HTTPException, Path, Query, Response
 
-from brimline_engine.api.deps import Conn, CurrentUser, IdempotencyKey, Now
+from brimline_engine.ai.clients import client_for
+from brimline_engine.ai.config import models_config
+from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, Now
 from brimline_engine.dates import shop_today
+from brimline_engine.files import advice
 from brimline_engine.files import service as f
 from brimline_engine.files.config import files_config
 from brimline_engine.idempotency import IdempotencyConflictError, StoredResponse
@@ -108,6 +111,46 @@ def override_warning(
     try:
         stored, replayed = f.override(
             conn, user.actor, file_number, body, key, _today(now), files_config()
+        )
+    except tuple(ERRORS) as exc:
+        raise _http_error(exc) from None
+    return _write(response, stored, replayed)
+
+
+@router.get(
+    "/files/{file_number}/preview.png",
+    response_class=Response,
+    responses={200: {"content": {"image/png": {}}}},
+)
+def file_preview(file_number: FileNumber, conn: Conn, user: CurrentUser) -> Response:
+    """Three shaded views (top, front, side) drawn by code."""
+    try:
+        png = f.preview_png(conn, user.actor, file_number, files_config())
+    except tuple(ERRORS) as exc:
+        raise _http_error(exc) from None
+    return Response(png, media_type="image/png", headers={"Cache-Control": "private, max-age=3600"})
+
+
+@router.post("/files/{file_number}/advice", response_model=f.FileOut)
+def file_advice(
+    file_number: FileNumber,
+    response: Response,
+    conn: Conn,
+    user: CurrentUser,
+    key: IdempotencyKey,
+    settings: CurrentSettings,
+) -> dict[str, Any]:
+    """Optional AI advice on the preview: stored and shown as advice, never a check result."""
+    model = models_config().task(advice.PURPOSE).model
+    try:
+        stored, replayed = f.ask_advice(
+            conn,
+            user.actor,
+            file_number,
+            key,
+            files_config(),
+            client_for(settings.ai_mode, model),
+            settings.ai_mode,
         )
     except tuple(ERRORS) as exc:
         raise _http_error(exc) from None

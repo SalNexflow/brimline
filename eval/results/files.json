@@ -62,7 +62,7 @@
      "fail_as_warn": 0
     }
    },
-   "slowest_seconds": 0.841,
+   "slowest_seconds": 0.734,
    "disagreements": []
   },
   "dev (blind)": {
@@ -190,7 +190,7 @@
      "fail_as_warn": 0
     }
    },
-   "slowest_seconds": 0.001,
+   "slowest_seconds": 0.002,
    "disagreements": []
   }
  },
@@ -235,7 +235,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.002
+   "seconds": 0.001
   },
   {
    "id": "d02",
@@ -323,7 +323,7 @@
     100.0,
     0.9
    ],
-   "seconds": 0.013
+   "seconds": 0.002
   },
   {
    "id": "d04",
@@ -368,7 +368,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.002
+   "seconds": 0.0
   },
   {
    "id": "d05",
@@ -542,7 +542,7 @@
     0.03999999910593033,
     0.03999999910593033
    ],
-   "seconds": 0.002
+   "seconds": 0.001
   },
   {
    "id": "d09",
@@ -584,7 +584,7 @@
     38.099999999999994,
     38.099999999999994
    ],
-   "seconds": 0.01
+   "seconds": 0.001
   },
   {
    "id": "d10",
@@ -628,7 +628,7 @@
     20.0,
     20.0
    ],
-   "seconds": 0.007
+   "seconds": 0.001
   },
   {
    "id": "d11",
@@ -672,7 +672,7 @@
     20.0,
     40.0
    ],
-   "seconds": 0.002
+   "seconds": 0.001
   },
   {
    "id": "d12",
@@ -717,7 +717,7 @@
     50.0,
     50.0
    ],
-   "seconds": 0.002
+   "seconds": 0.001
   },
   {
    "id": "d13",
@@ -759,7 +759,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.001
+   "seconds": 0.0
   },
   {
    "id": "d14",
@@ -801,7 +801,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.012
+   "seconds": 0.0
   },
   {
    "id": "d15",
@@ -846,7 +846,7 @@
     40.0,
     60.0
    ],
-   "seconds": 0.002
+   "seconds": 0.001
   },
   {
    "id": "d16",
@@ -974,7 +974,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.001
+   "seconds": 0.0
   },
   {
    "id": "d19",
@@ -1104,7 +1104,7 @@
     40.0,
     60.0
    ],
-   "seconds": 0.013
+   "seconds": 0.004
   },
   {
    "id": "d22",
@@ -1148,7 +1148,7 @@
     98.0,
     2.0
    ],
-   "seconds": 0.841
+   "seconds": 0.734
   },
   {
    "id": "d23",
@@ -1193,7 +1193,7 @@
     197.0,
     0.5
    ],
-   "seconds": 0.772
+   "seconds": 0.725
   },
   {
    "id": "b01",
@@ -2194,7 +2194,7 @@
     80.0,
     25.0
    ],
-   "seconds": 0.001
+   "seconds": 0.002
   },
   {
    "id": "b24",
@@ -2238,7 +2238,7 @@
     30.0,
     30.0
    ],
-   "seconds": 0.001
+   "seconds": 0.002
   }
  ]
 }

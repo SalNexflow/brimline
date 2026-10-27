@@ -615,3 +615,66 @@ blockquote.message {
   font-size: 0.9rem;
   margin: 0;
 }
+
+/* M7 file checks: the result is always written in words; colour only supports it. */
+.check {
+  display: inline-block;
+  padding: 0 0.4rem;
+  border-radius: 0.2rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--color-border);
+}
+
+.check-pass {
+  background: var(--color-ok-bg);
+  color: var(--color-ok-fg);
+}
+
+.check-warn {
+  background: var(--color-warn-bg);
+  color: var(--color-warn-fg);
+}
+
+.check-fail {
+  background: var(--color-error-bg);
+  color: var(--color-error-fg);
+}
+
+.check-skip {
+  color: var(--color-muted);
+}
+
+.file-preview {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: #ffffff;
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: end;
+  margin-top: 0.35rem;
+}
+
+.part-size {
+  display: flex;
+  gap: 0.25rem;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.part-size input {
+  width: 4.5rem;
+}
+
+.advice {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+}

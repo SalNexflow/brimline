@@ -34,7 +34,8 @@ EDIT_ENDPOINT = "PUT /quotes"
 DECIDE_ENDPOINT = "POST /quotes/decide"
 
 Source = Literal["ai", "staff", "file", "missing"]
-PartMm = tuple[int, int, int]
+# x, y, z in whole mm. A list (not a tuple) so the web's generated types read it as plain numbers.
+PartMm = Annotated[list[Annotated[int, Field(ge=1, le=5000)]], Field(min_length=3, max_length=3)]
 Extractor = Callable[[str], GatewayResult[QuoteDraft]]
 
 
@@ -66,14 +67,7 @@ class QuoteLineEdit(BaseModel):
     material_code: SafeText | None = Field(default=None, max_length=50)
     grams_per_part: int | None = Field(default=None, ge=1, le=100_000)
     minutes_per_part: int | None = Field(default=None, ge=1, le=100_000)
-    part_mm: (
-        tuple[
-            Annotated[int, Field(ge=1, le=5000)],
-            Annotated[int, Field(ge=1, le=5000)],
-            Annotated[int, Field(ge=1, le=5000)],
-        ]
-        | None
-    ) = None
+    part_mm: PartMm | None = None
     post_processing: list[PostProcess] = Field(default_factory=list, max_length=3)
 
 
@@ -358,7 +352,7 @@ def _lines(conn: psycopg.Connection, quote_id: int) -> list[QuoteLineOut]:
     for r in rows:
         values: dict[str, Any] = dict(zip(fields, (*r[:8], *r[11:]), strict=True))
         size = r[8:11]
-        values["part_mm"] = tuple(size) if None not in size else None
+        values["part_mm"] = list(size) if None not in size else None
         out.append(QuoteLineOut.model_validate(values))
     return out
 
@@ -895,7 +889,9 @@ def decide_quote(
                         mats[line.material_code or ""][0],
                         line.minutes_per_part,
                         tuple(line.post_processing),
-                        line.part_mm,
+                        (line.part_mm[0], line.part_mm[1], line.part_mm[2])
+                        if line.part_mm
+                        else None,
                     )
                     for line in before.lines
                 ],

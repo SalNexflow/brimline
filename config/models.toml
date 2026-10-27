@@ -67,3 +67,12 @@ model = "deepseek-flash"
 effort = "low"
 max_tokens = 3000
 prompt_version = "replan-summary-v1"
+
+# Optional advice on a file's preview picture (M7). Advice only: shown under its own heading and
+# never read by any check. Needs a model that reads images (DeepSeek's do not) and
+# ANTHROPIC_API_KEY; switched on in config/files.toml [advice]. Off until a key is approved.
+[tasks.file_advice]
+model = "claude-haiku-5-5"
+effort = "low"
+max_tokens = 1500
+prompt_version = "file-advice-v1"

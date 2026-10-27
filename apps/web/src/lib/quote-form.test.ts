@@ -38,11 +38,19 @@ describe("parseQuoteEdit", () => {
             material_code: "PETG-BLACK",
             grams_per_part: 35,
             minutes_per_part: 90,
+            part_mm: null,
             post_processing: ["sanding"],
           },
         ],
       },
     });
+  });
+
+  test("a part size is all three numbers or none", () => {
+    const sized = parseQuoteEdit(form({ ...base, line_7_part_x: "40", line_7_part_y: "30", line_7_part_z: "15" }));
+    expect(sized.ok && sized.value.lines[0]?.part_mm).toEqual([40, 30, 15]);
+    const partial = parseQuoteEdit(form({ ...base, line_7_part_x: "40" }));
+    expect(partial.ok === false && partial.errors).toEqual(["Give all three part sizes, or none"]);
   });
 
   test("empty fields mean not known yet, never zero", () => {

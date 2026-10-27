@@ -50,7 +50,7 @@ First run: `make setup` then `make gate`.
 | `db-reset` | Drop, migrate, and re-seed the dev database from `config/shop.toml` |
 | `api-types` | Regenerate the web's TypeScript types from the engine's OpenAPI schema |
 | `gate-selftest` | Proves the gate fails: plants deliberate errors in a throwaway copy and checks each is caught at the right step. Refuses to run on a dirty git tree |
-| `eval` | Run the evaluations (quote reading, disruption reading) and write `eval/results/RESULTS.md` and `DISRUPTIONS.md` (needs model access; see `eval/README.md`) |
+| `eval` | Run the evaluations (quote reading, disruption reading, file checker) and write `eval/results/RESULTS.md`, `DISRUPTIONS.md` and `FILES.md` (the first two need model access; see `eval/README.md`) |
 | `bench` | Scheduler benchmark against two baselines, every plan re-checked by the independent checker; writes `eval/results/BENCH.md` and fails if the checker disagrees (slow: 25 CP-SAT runs; `--quick` for a smoke run into `eval/results/quick`) |
 | `replan-bench` | Re-planning scenarios: lateness versus jobs moved, every re-plan checked; writes `eval/results/REPLAN.md` |
 
@@ -60,8 +60,12 @@ First run: `make setup` then `make gate`.
   (a separate worker would be the next step, `docs/DECISIONS.md` D68).
 - Plan times are wall-clock minutes in the shop's time zone, so an overnight print across a clock change is
   an hour longer or shorter in real time than its minute count.
-- Orders made from quotes have no part size yet (the file checker comes later), so the board lists them as
-  "cannot plan" instead of guessing.
+- A quote line gets its part size from a checked model file (or staff); a job still missing one is listed as
+  "cannot plan" with a link to attach a file. Print-time and weight estimates from a file are rough formulas
+  (`config/files.toml`), not a slicer.
+- File checks judge overhangs in the orientation the file was saved in, and wall thickness with one ray per
+  face, which can miss thin features on finely curved parts. The file-check evaluation uses generated shapes
+  only (`eval/results/FILES.md`).
 - Material deliveries are not modelled yet: stock is assumed on hand (M6 adds delays).
 - When a new plan replaces the approved one, finished manual work (prep, post-processing) of jobs that are
   not yet done is planned again; only machine work carries over as fixed.

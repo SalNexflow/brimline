@@ -125,6 +125,21 @@ const MUTATIONS = [
     replace: "known_ids = set(IDENTIFIER.findall(text))",
     expect: "engine: tests",
   },
+  {
+    // M7: a hole in the mesh is no longer seen, so a broken file would pass (a false pass).
+    name: "file checker stops counting open edges",
+    file: "services/engine/src/brimline_engine/files/measure.py",
+    find: "        boundary=int((u_counts == 1).sum()),",
+    replace: "        boundary=0,",
+    expect: "engine: tests",
+  },
+  {
+    name: "a failed file check can be accepted like a warning",
+    file: "services/engine/src/brimline_engine/files/service.py",
+    find: '        if check.status != "warn":',
+    replace: '        if check.status not in ("warn", "fail"):',
+    expect: "engine: tests",
+  },
 ];
 
 function sh(command, cwd, extraEnv = {}) {

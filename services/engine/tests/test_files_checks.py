@@ -214,26 +214,26 @@ def test_planning_values_from_a_cube() -> None:
     # PLA: 64 cm³ x 1.24 g/cm³ x 0.5 fill = 39.68 g -> 40 g; 32,000 mm³ / 300 mm³ per min -> 107 min.
     r = check_file(s.binary_stl(CUBE), "c.stl", "fdm", MACHINES, CFG)
     v = planning_values(r, "PLA-BLACK", "fdm", CFG)
-    assert (v.part_mm, v.grams_per_part, v.minutes_per_part) == ((40, 40, 40), 40, 107)
+    assert (v.part_mm, v.grams_per_part, v.minutes_per_part) == ([40, 40, 40], 40, 107)
     # Resin, 30 mm tall: 27 cm³ x 1.15 = 31.05 -> 31 g; 600 layers x 9 s = 90 min.
     r = check_file(s.binary_stl(s.box(30, 30, 30)), "c.stl", "resin", MACHINES, CFG)
     v = planning_values(r, "RESIN-GREY", "resin", CFG)
-    assert (v.part_mm, v.grams_per_part, v.minutes_per_part) == ((30, 30, 30), 31, 90)
+    assert (v.part_mm, v.grams_per_part, v.minutes_per_part) == ([30, 30, 30], 31, 90)
     # CNC: size only; staff enter weight and time.
     r = check_file(s.binary_stl(CUBE), "c.stl", "cnc", MACHINES, CFG)
     v = planning_values(r, "AL-6061", "cnc", CFG)
-    assert (v.part_mm, v.grams_per_part, v.minutes_per_part) == ((40, 40, 40), None, None)
+    assert (v.part_mm, v.grams_per_part, v.minutes_per_part) == ([40, 40, 40], None, None)
 
 
 def test_planning_values_round_size_up_and_hold_back_what_is_unsure() -> None:
     inch = check_file(s.three_mf(s.box(1.5, 1.5, 1.5), unit="inch"), "c.3mf", "fdm", MACHINES, CFG)
-    assert planning_values(inch, "PLA-BLACK", "fdm", CFG).part_mm == (39, 39, 39)  # 38.1 up
+    assert planning_values(inch, "PLA-BLACK", "fdm", CFG).part_mm == [39, 39, 39]  # 38.1 up
     tiny = check_file(s.binary_stl(s.box(0.04, 0.04, 0.04)), "c.stl", "fdm", MACHINES, CFG)
     assert planning_values(tiny, "PLA-BLACK", "fdm", CFG).part_mm is None
-    assert planning_values(tiny, "PLA-BLACK", "fdm", CFG, units_confirmed=True).part_mm == (1, 1, 1)
+    assert planning_values(tiny, "PLA-BLACK", "fdm", CFG, units_confirmed=True).part_mm == [1, 1, 1]
     open_cube = check_file(s.binary_stl(CUBE[1:]), "c.stl", "fdm", MACHINES, CFG)
     v = planning_values(open_cube, "PLA-BLACK", "fdm", CFG)
-    assert v.part_mm == (40, 40, 40) and v.grams_per_part is None and v.minutes_per_part is None
+    assert v.part_mm == [40, 40, 40] and v.grams_per_part is None and v.minutes_per_part is None
 
 
 def test_a_big_mesh_is_sampled_and_still_finds_thin_walls() -> None:
@@ -262,4 +262,7 @@ def test_the_checker_does_not_import_any_model_code() -> None:
         names = [a.name for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names]
         names += [n.module or "" for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)]
         ours = [n for n in names if n.startswith("brimline_engine")]
-        assert all(any(n == a or n.startswith(a + ".") for a in allowed) for n in ours), (name, ours)
+        assert all(any(n == a or n.startswith(a + ".") for a in allowed) for n in ours), (
+            name,
+            ours,
+        )
