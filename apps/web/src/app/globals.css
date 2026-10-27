@@ -319,6 +319,15 @@ blockquote.message {
   outline-offset: 2px;
 }
 
+/* The board uses the whole width; its timeline and tables scroll inside their own boxes. */
+.page.board {
+  max-width: none;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
 .inline-form {
   display: flex;
   flex-wrap: wrap;
@@ -515,4 +524,44 @@ blockquote.message {
 
 .task-actions form {
   margin: 0;
+}
+
+/* On a phone, each queue task becomes a card, so the action buttons are always in view. */
+@media (max-width: 40rem) {
+  .queue-stacked thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .queue-stacked table,
+  .queue-stacked tbody,
+  .queue-stacked tr,
+  .queue-stacked td {
+    display: block;
+  }
+
+  .queue-stacked tr {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .queue-stacked td {
+    border: 0;
+    padding: 0.15rem 0;
+    white-space: normal;
+  }
+
+  .queue-stacked td::before {
+    content: attr(data-label) ": ";
+    color: var(--color-muted);
+  }
+
+  .queue-stacked td[data-label="Actions"]::before {
+    content: none;
+  }
 }

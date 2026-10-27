@@ -280,8 +280,10 @@ export function ScheduleView({ schedule, timeZone, now }: Props) {
       <Metrics schedule={schedule} />
       <NotPlanned schedule={schedule} />
       <Timeline schedule={schedule} timeZone={timeZone} now={now} />
-      <h3>Plan as a table</h3>
-      <PlanTable schedule={schedule} timeZone={timeZone} />
+      <h3 id={`table-${schedule.version}`}>Plan as a table</h3>
+      <div className="table-scroll" role="region" aria-labelledby={`table-${schedule.version}`} tabIndex={0}>
+        <PlanTable schedule={schedule} timeZone={timeZone} />
+      </div>
     </>
   );
 }

@@ -17,20 +17,20 @@ function TaskRow({ t, timeZone, canUpdate }: { t: QueueTask; timeZone: string; c
   const actions = t.status === "running" ? (["done", "fail"] as const) : t.can_start ? (["start"] as const) : [];
   return (
     <tr data-testid={`task-${t.job}-${t.kind}`}>
-      <td>{formatShopTime(t.planned_start, timeZone)}</td>
-      <td>
+      <td data-label="Planned start">{formatShopTime(t.planned_start, timeZone)}</td>
+      <td data-label="Job">
         {t.order_number} {t.part_name}, {t.quantity} × {t.material_code}
         {t.rush ? <span className="badge badge-rush">rush</span> : null}
       </td>
-      <td>{kindLabel(t.kind)}</td>
-      <td>
+      <td data-label="Task">{kindLabel(t.kind)}</td>
+      <td data-label="Status">
         {statusLabel(t.status)}
         {t.actual_start && t.status === "running" ? (
           <span className="muted"> since {formatShopTime(t.actual_start, timeZone)}</span>
         ) : null}
         {t.waiting_for ? <span className="muted"> ({t.waiting_for})</span> : null}
       </td>
-      <td>
+      <td data-label="Actions">
         {canUpdate && actions.length > 0 ? (
           <TaskActions
             taskId={t.id}
@@ -74,8 +74,9 @@ async function QueuesContent() {
           const finished = q.tasks.filter((t) => t.status === "done" || t.status === "failed");
           const headingId = `queue-${q.machine ?? "manual"}`;
           return (
-            <section key={headingId} aria-labelledby={headingId} className="queue">
+            <section key={headingId} aria-labelledby={headingId} className="queue queue-stacked">
               <h2 id={headingId}>{q.machine ? `${q.machine}: ${q.name}` : q.name}</h2>
+              <div className="table-scroll" role="region" aria-labelledby={headingId} tabIndex={0}>
               <table>
                 <caption className="visually-hidden">Next tasks for {q.name}</caption>
                 <thead>
@@ -93,6 +94,7 @@ async function QueuesContent() {
                   ))}
                 </tbody>
               </table>
+              </div>
               {finished.length > 0 ? (
                 <details>
                   <summary>Finished ({finished.length})</summary>
