@@ -164,19 +164,64 @@ that is not in the diff. Plain English, at most 600 characters, and at most 5 sh
 
 IDENTIFIER = re.compile(r"\b[A-Z]{2,}-\d+(?:-\d+)?\b")
 NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
+# A number that counts something must be one of the diff's own numbers, not a digit that only
+# appears inside a date or time (review of M6: "27 jobs are late" passed because of "27 Oct").
+COUNT = re.compile(
+    r"(\d+(?:[.,]\d+)?)\s*(?:%|percent|jobs?|minutes?|mins?|hours?|hrs?|h\b|late|moved|orders?|prints?)",
+    re.IGNORECASE,
+)
+NUMBER_WORDS = re.compile(
+    r"\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen"
+    r"|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|hundred|dozens?"
+    r"|half|twice|double|triple)\b",
+    re.IGNORECASE,
+)
+ADVICE = re.compile(
+    r"\b(?:approve|approving|recommend\w*|should|suggest\w*|advise\w*|must)\b", re.I
+)
+WEEKDAY = re.compile(r"\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*\b")
+
+
+def _numeric_values(value: object) -> set[str]:
+    """Every number in the diff that is a number (not a digit inside a text such as a date)."""
+    if isinstance(value, bool):
+        return set()
+    if isinstance(value, int | float):
+        return {str(value), f"{value:g}"}
+    if isinstance(value, dict):
+        return set().union(*(_numeric_values(v) for v in value.values())) if value else set()
+    if isinstance(value, list):
+        return set().union(*(_numeric_values(v) for v in value)) if value else set()
+    return set()
 
 
 def grounding_problems(summary: Summary, diff_text: str) -> list[str]:
-    """Anything the summary mentions that the diff does not contain."""
+    """Anything the summary mentions that the diff does not contain, or advice it was told not to
+    give. Strict on purpose: when in doubt the code's own summary is shown instead."""
     text = " ".join([summary.summary, *summary.highlights])
+    diff = json.loads(diff_text)
     known_ids = set(IDENTIFIER.findall(diff_text))
     known_numbers = set(NUMBER.findall(diff_text))
+    counts = _numeric_values(diff)
     problems = [
         f"mentions {x}, not in the diff" for x in IDENTIFIER.findall(text) if x not in known_ids
     ]
     without_ids = IDENTIFIER.sub(" ", text)
     problems += [
         f"says {n}, not in the diff" for n in NUMBER.findall(without_ids) if n not in known_numbers
+    ]
+    problems += [
+        f"counts {n}, which is not a number in the diff"
+        for n in COUNT.findall(without_ids)
+        if n not in counts
+    ]
+    problems += [f"writes the number '{w}' in words" for w in NUMBER_WORDS.findall(text)]
+    problems += [f"gives advice ('{w}')" for w in ADVICE.findall(text)]
+    known_days = {d[:3] for d in WEEKDAY.findall(diff_text)}
+    problems += [
+        f"names {d}, not a day in the diff"
+        for d in WEEKDAY.findall(text)
+        if d[:3] not in known_days
     ]
     return problems
 

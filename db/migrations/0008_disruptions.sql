@@ -58,10 +58,10 @@ CREATE TABLE machine_downtimes (
     id             bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     machine_id     bigint NOT NULL REFERENCES machines (id),
     starts_at      timestamptz NOT NULL,
-    ends_at        timestamptz NOT NULL,  -- for "until further notice": the end of the horizon
+    ends_at        timestamptz,           -- null: until further notice (stays down past any horizon)
     disruption_id  bigint NOT NULL REFERENCES disruptions (id),
     created_at     timestamptz NOT NULL DEFAULT now(),
-    CHECK (ends_at > starts_at)
+    CHECK (ends_at IS NULL OR ends_at > starts_at)
 );
 
 CREATE TABLE material_delays (

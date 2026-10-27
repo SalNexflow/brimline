@@ -19,7 +19,7 @@ from brimline_engine.checker import CheckResult, check_document
 from brimline_engine.permissions import Actor, can
 from brimline_engine.planning.clock import at_minute, minute_at_or_after
 from brimline_engine.planning.disruptions import DisruptionOut, list_open
-from brimline_engine.planning.inputs import build_inputs, job_key
+from brimline_engine.planning.inputs import build_inputs, effects_key, job_key
 from brimline_engine.planning.runs import PlanningRun, latest_run
 from brimline_engine.scheduling.config import SchedulerConfig
 
@@ -354,9 +354,17 @@ def approve(
         if not result.valid:
             issues = "; ".join(f"{v.code} ({v.job}): {v.detail}" for v in result.violations[:5])
             raise RefusedError(f"the independent check fails: {issues}")
-        if build_inputs(conn, now, cfg, tz).fingerprint != fp:
+        current = build_inputs(conn, now, cfg, tz)
+        if current.fingerprint != fp:
             raise RefusedError(
                 "the plan is stale: jobs or work changed since it was made; plan again"
+            )
+        # What approving would change must still be what the planner was shown (review of M6:
+        # whether a print counts as lost can depend on the clock).
+        if effects_key(current.effects.as_dict()) != effects_key(effects):
+            raise RefusedError(
+                "what this plan would change (lost prints, cancellations, downtimes) is no"
+                " longer what was shown; plan again"
             )
         # Every task of a non-fixed job must start at or after now: a draft left waiting until
         # its first tasks are in the past is out of date even if nothing else changed.

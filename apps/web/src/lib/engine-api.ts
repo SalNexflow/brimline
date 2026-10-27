@@ -612,6 +612,8 @@ export interface components {
             materials: components["schemas"]["CatalogItem"][];
             /** Orders */
             orders: components["schemas"]["OrderItem"][];
+            /** Time Zone */
+            time_zone: string;
         };
         /** CheckIssue */
         CheckIssue: {
@@ -749,6 +751,11 @@ export interface components {
         };
         /** EventsIn */
         EventsIn: {
+            /**
+             * Acknowledged Warnings
+             * @default false
+             */
+            acknowledged_warnings: boolean;
             /** Events */
             events: components["schemas"]["Event"][];
         };

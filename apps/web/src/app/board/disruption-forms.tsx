@@ -54,7 +54,8 @@ export function ReportForm({ idempotencyKey }: { idempotencyKey: string }) {
 type EditorProps = {
   disruptionId: number | null; // null: entered by hand
   events: DisruptionEvent[];
-  choices: Record<string, string[]>; // event index -> two readings of an ambiguous date
+  choices: Record<string, string[]>; // "<event>:<starts_at|ends_at>" -> two readings of a date
+  warnings: string[]; // shown above; confirming needs the planner to tick that they checked them
   catalog: DisruptionCatalog;
   timeZone: string;
   idempotencyKey: string;
@@ -62,7 +63,16 @@ type EditorProps = {
 };
 
 /** The events, as read (or blank), for the planner to confirm or correct. */
-export function EventEditor({ disruptionId, events, choices, catalog, timeZone, idempotencyKey, submitLabel }: EditorProps) {
+export function EventEditor({
+  disruptionId,
+  events,
+  choices,
+  warnings,
+  catalog,
+  timeZone,
+  idempotencyKey,
+  submitLabel,
+}: EditorProps) {
   const [state, action, pending] = useActionState(confirmEvents, INITIAL);
   const [types, setTypes] = useState<(EventType | "")[]>(
     Array.from({ length: MAX_EVENTS }, (_, i) => (events[i]?.type as EventType | undefined) ?? ""),
@@ -72,12 +82,26 @@ export function EventEditor({ disruptionId, events, choices, catalog, timeZone, 
     <form action={action} className="stack event-editor" aria-label={submitLabel}>
       <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <input type="hidden" name="disruption_id" value={disruptionId ?? ""} />
-      <input type="hidden" name="time_zone" value={timeZone} />
       {types.map((type, i) => {
         const e = events[i];
         const uses = type ? FIELDS[type] : [];
         const id = (f: string) => `${prefix}-${i}-${f}`;
-        const readings = choices[String(i)] ?? [];
+        const readingsFor = (f: "starts_at" | "ends_at") => choices[`${i}:${f}`] ?? [];
+        const Readings = ({ f }: { f: "starts_at" | "ends_at" }) => {
+          const readings = readingsFor(f);
+          if (readings.length !== 2) return null;
+          return (
+            <p className="warning-box" id={id(`${f}-choices`)}>
+              The date could mean {formatShopTime(readings[0]!, timeZone)} or {formatShopTime(readings[1]!, timeZone)}.
+              Choose one and type it in:{" "}
+              {readings.map((r) => (
+                <span key={r} className="choice">
+                  {utcToShopLocal(r, timeZone).replace("T", " ")}
+                </span>
+              ))}
+            </p>
+          );
+        };
         // Only the first slot is shown when empty, plus one more for adding.
         if (!type && i > 0 && !types[i - 1]) return null;
         return (
@@ -145,11 +169,13 @@ export function EventEditor({ disruptionId, events, choices, catalog, timeZone, 
             {uses.includes("starts_at") ? (
               <>
                 <label htmlFor={id("starts_at")}>From ({timeZone} time; empty: when reported)</label>
+                <Readings f="starts_at" />
                 <input
                   id={id("starts_at")}
                   name={`e${i}_starts_at`}
                   type="datetime-local"
                   defaultValue={e?.starts_at ? utcToShopLocal(e.starts_at, timeZone) : ""}
+                  aria-describedby={readingsFor("starts_at").length === 2 ? id("starts_at-choices") : undefined}
                 />
               </>
             ) : null}
@@ -159,29 +185,27 @@ export function EventEditor({ disruptionId, events, choices, catalog, timeZone, 
                   {type === "machine_down" ? "Back at" : type === "print_overrun" ? "Done at" : "Available at"} ({timeZone}{" "}
                   time{type === "machine_down" ? "; empty: until further notice" : ""})
                 </label>
-                {readings.length === 2 ? (
-                  <p className="warning-box" id={id("choices")}>
-                    The date could mean {formatShopTime(readings[0]!, timeZone)} or{" "}
-                    {formatShopTime(readings[1]!, timeZone)}. Choose one:{" "}
-                    {readings.map((r) => (
-                      <span key={r} className="choice">
-                        {utcToShopLocal(r, timeZone).replace("T", " ")}
-                      </span>
-                    ))}
-                  </p>
-                ) : null}
+                <Readings f="ends_at" />
                 <input
                   id={id("ends_at")}
                   name={`e${i}_ends_at`}
                   type="datetime-local"
                   defaultValue={e?.ends_at ? utcToShopLocal(e.ends_at, timeZone) : ""}
-                  aria-describedby={readings.length === 2 ? id("choices") : undefined}
+                  aria-describedby={readingsFor("ends_at").length === 2 ? id("ends_at-choices") : undefined}
                 />
               </>
             ) : null}
           </fieldset>
         );
       })}
+      {warnings.length > 0 || disruptionId === null ? (
+        <label className="inline">
+          <input type="checkbox" name="acknowledged" required={warnings.length > 0} />{" "}
+          {warnings.length > 0
+            ? "I have checked the warnings above."
+            : "If this cancels two or more orders or lines: I have checked each one."}
+        </label>
+      ) : null}
       <div>
         <button type="submit" disabled={pending}>
           {submitLabel}

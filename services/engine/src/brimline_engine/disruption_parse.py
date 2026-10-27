@@ -197,7 +197,8 @@ class Review:
     events: list[Event]
     issues: list[str] = field(default_factory=list)  # must be settled before re-planning
     notes: list[str] = field(default_factory=list)  # worth knowing, not blocking
-    choices: dict[int, list[datetime]] = field(default_factory=dict)  # event -> two readings
+    # "<event index>:<starts_at|ends_at>" -> the two readings of an ambiguous date in that field
+    choices: dict[str, list[datetime]] = field(default_factory=dict)
     injection: bool = False
     question: str = ""
 
@@ -254,7 +255,9 @@ def interpret(
             order=raw.order,
             line=raw.line if raw.type == "cancellation" else None,
         )
-        index = len(review.events)
+        # Readings are attached only once the event is kept, to that event and that field
+        # (review of M6: they were keyed before and could land on the next event).
+        pending: dict[str, list[datetime]] = {}
         for which, phrase in (("from", raw.from_phrase), ("until", raw.until_phrase)):
             if which == "from" and raw.type != "machine_down":
                 continue
@@ -267,7 +270,7 @@ def interpret(
                 else:
                     event.ends_at = r.at
             elif r.kind == "needs_confirmation":
-                review.choices[index] = list(r.readings)
+                pending["starts_at" if which == "from" else "ends_at"] = list(r.readings)
                 review.issues.append(f"{label}: {r.note}; choose one")
             elif r.kind == "unknown":
                 review.issues.append(f"{label}: cannot read the time: {r.note}")
@@ -279,15 +282,25 @@ def interpret(
         if missing:
             review.issues.append(f"{label}: missing {', '.join(missing)}")
             continue
+        for field_name, readings in pending.items():
+            review.choices[f"{len(review.events)}:{field_name}"] = readings
         review.events.append(event)
     if not review.events and not review.issues:
         review.issues.append("no disruption found in the message")
     return review
 
 
-def validate_events(events: Sequence[Event], received: datetime, catalog: Catalog) -> list[str]:
+def validate_events(
+    events: Sequence[Event],
+    now: datetime,
+    catalog: Catalog,
+    *,
+    latest: datetime,
+    running_on: frozenset[str],
+) -> list[str]:
     """The checks a confirmed (or hand-entered) list of events must pass before a re-plan. Code
-    decides; nothing here trusts the model."""
+    decides; nothing here trusts the model or the browser. `now` is when it is confirmed,
+    `latest` the end of the planning horizon, `running_on` the machines with a print running."""
     problems = []
     if not 1 <= len(events) <= 3:
         problems.append("give 1 to 3 events")
@@ -302,10 +315,24 @@ def validate_events(events: Sequence[Event], received: datetime, catalog: Catalo
             target = "ends_at" if f == "until" else f
             if getattr(e, target) is None:
                 problems.append(f"{label}: {f} is required")
+        if e.line is not None:
+            if e.type != "cancellation":
+                problems.append(f"{label}: a line only belongs to a cancellation")
+            elif e.order in catalog.orders and e.line > catalog.orders[e.order]:
+                problems.append(f"{label}: {e.order} has no line {e.line}")
         if e.starts_at and e.ends_at and e.ends_at <= e.starts_at:
             problems.append(f"{label}: ends before it starts")
-        if e.ends_at and e.ends_at <= received and e.type != "machine_down":
+        if e.ends_at and e.ends_at <= now:
             problems.append(f"{label}: the time is already in the past")
+        for when in (e.starts_at, e.ends_at):
+            if (
+                when is not None
+                and when > latest
+                and not (e.type == "machine_down" and when is e.ends_at)
+            ):
+                problems.append(f"{label}: {when:%d %b} is beyond the planning horizon")
+        if e.type == "print_overrun" and e.machine not in running_on:
+            problems.append(f"{label}: nothing is running on {e.machine}")
     return problems
 
 

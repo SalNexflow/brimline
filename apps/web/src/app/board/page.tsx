@@ -121,6 +121,7 @@ async function BoardContent() {
               disruptionId={null}
               events={[]}
               choices={{}}
+              warnings={[]}
               catalog={catalog}
               timeZone={tz}
               idempotencyKey={crypto.randomUUID()}

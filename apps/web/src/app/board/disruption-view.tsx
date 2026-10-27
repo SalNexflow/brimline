@@ -85,9 +85,8 @@ export function DisruptionCard({
           <EventEditor
             disruptionId={d.id}
             events={d.events}
-            choices={Object.fromEntries(
-              Object.entries(d.choices).map(([k, v]) => [k, v.map(String)]),
-            )}
+            choices={Object.fromEntries(Object.entries(d.choices).map(([k, v]) => [k, v.map(String)]))}
+            warnings={d.warnings}
             catalog={catalog}
             timeZone={timeZone}
             idempotencyKey={crypto.randomUUID()}

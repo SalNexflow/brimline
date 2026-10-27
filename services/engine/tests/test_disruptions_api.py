@@ -76,7 +76,10 @@ def read(client: TestClient, h: dict[str, str], message: str) -> dict[str, Any]:
 def confirm(client: TestClient, h: dict[str, str], d: dict[str, Any], events: Any = None) -> Any:
     return client.post(
         f"/disruptions/{d['id']}/confirm",
-        json={"events": d["events"] if events is None else events},
+        json={
+            "events": d["events"] if events is None else events,
+            "acknowledged_warnings": bool(d.get("warnings")),
+        },
         headers=h | key(),
     )
 
@@ -158,7 +161,7 @@ def test_a_date_valid_in_two_readings_is_not_guessed(
     d = read(client, planner, "the resin printer is down until 12/11")
     assert d["events"][0]["ends_at"] is None
     assert any("12/11" in i for i in d["issues"])
-    readings = d["choices"]["0"]
+    readings = d["choices"]["0:ends_at"]
     assert [r[:10] for r in readings] == ["2026-11-12", "2026-12-11"]
     # The planner picks one; then it can be confirmed.
     chosen = [d["events"][0] | {"ends_at": readings[0]}]
@@ -413,3 +416,193 @@ def test_an_ungrounded_model_summary_is_replaced_by_the_codes_own() -> None:
     assert summary["source"] == "code" and summary["rejected"]
     assert summary["text"].startswith("3 of 12 planned jobs move.")
     assert record is not None
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Fourteen jobs moved and three became late.",  # numbers in words
+        "27 jobs are now late.",  # 27 is only a day in a date
+        "Lateness rises 45%.",
+        "Nothing is late, approve it.",  # advice
+        "BL-0001-1 now runs on Friday.",  # a day the diff does not have
+    ],
+)
+def test_review_cases_of_ungrounded_summaries_are_rejected(text: str) -> None:
+    import json
+
+    diff = DIFF | {"moved": [{"job": "BL-0001-1", "after": {"start": "Mon 27 Oct 08:00"}}]}
+    assert grounding_problems(Summary(summary=text, highlights=[]), json.dumps(diff)) != []
+
+
+# --- Found by the fresh-context review of M6 ----------------------------------------------------
+
+
+def _catalog() -> Any:
+    from brimline_engine.disruption_parse import Catalog
+
+    return Catalog(
+        machines=frozenset({"FDM-1", "FDM-3", "RESIN-1"}),
+        materials=frozenset({"PLA-BLACK"}),
+        orders={"BL-0004": 2},
+    )
+
+
+def test_date_readings_stay_with_their_own_event_and_field() -> None:
+    # The first event is dropped (no machine); the second has an ambiguous START. Its readings
+    # must be keyed to the kept event 0 and to starts_at, not to the next event or to ends_at.
+    from brimline_engine.disruption_parse import ParsedMessage, RawEvent, interpret
+
+    def raw(**kw: Any) -> RawEvent:
+        base: dict[str, Any] = {
+            "machine": None,
+            "material": None,
+            "order": None,
+            "line": None,
+            "from_phrase": None,
+            "until_phrase": None,
+        }
+        return RawEvent.model_validate(base | kw)
+
+    parsed = ParsedMessage(
+        events=[
+            raw(type="print_overrun", until_phrase="in 2 hours"),
+            raw(type="machine_down", machine="FDM-3", from_phrase="since 3/10"),
+        ],
+        unclear=False,
+        unclear_reason="",
+        question_for_planner="",
+        injection_suspected=False,
+    )
+    review = interpret(parsed, FIXED_NOW, TZ, scheduler_config().shifts.weekdays, _catalog())
+    assert [e.type for e in review.events] == ["machine_down"]
+    assert list(review.choices) == ["0:starts_at"]
+
+
+@pytest.mark.parametrize(
+    ("event", "problem"),
+    [
+        ({"type": "cancellation", "order": "BL-0004", "line": 9}, "has no line 9"),
+        ({"type": "rush_job", "order": "BL-0004", "line": 1}, "only belongs to a cancellation"),
+        (
+            {
+                "type": "material_delayed",
+                "material": "PLA-BLACK",
+                "ends_at": "2026-10-26T08:00:00Z",
+            },
+            "in the past",
+        ),
+        (
+            {"type": "machine_down", "machine": "FDM-1", "starts_at": "2027-06-01T08:00:00Z"},
+            "beyond the planning horizon",
+        ),
+        (
+            {"type": "print_overrun", "machine": "FDM-1", "ends_at": "2026-10-26T12:00:00Z"},
+            "nothing is running on FDM-1",
+        ),
+    ],
+)
+def test_confirmed_events_get_the_review_checks(event: dict[str, Any], problem: str) -> None:
+    from brimline_engine.disruption_parse import Event, validate_events
+
+    problems = validate_events(
+        [Event.model_validate(event)],
+        FIXED_NOW,
+        _catalog(),
+        latest=FIXED_NOW + timedelta(days=14),
+        running_on=frozenset(),
+    )
+    assert any(problem in p for p in problems), problems
+
+
+def test_two_cancellations_need_the_warnings_acknowledged(
+    client: TestClient, planner: dict[str, str]
+) -> None:
+    d = read(client, planner, "please cancel BL-0005 and BL-0006")
+    r = client.post(
+        f"/disruptions/{d['id']}/confirm", json={"events": d["events"]}, headers=planner | key()
+    )
+    assert r.status_code == 422 and "warnings" in r.json()["detail"]
+    r = client.post(
+        f"/disruptions/{d['id']}/confirm",
+        json={"events": d["events"], "acknowledged_warnings": True},
+        headers=planner | key(),
+    )
+    assert r.status_code == 200
+
+
+def test_until_further_notice_stays_open_after_approval(
+    client: TestClient, planner: dict[str, str], owner_url: str
+) -> None:
+    open_ended = [{"type": "machine_down", "machine": "FDM-1"}]
+    r = client.post("/disruptions/by-hand", json={"events": open_ended}, headers=planner | key())
+    assert r.status_code == 201, r.text
+    draft = plan(client, planner)
+    assert approve(client, planner, draft["id"]).status_code == 200
+    assert scalar(owner_url, "SELECT count(*) FROM machine_downtimes WHERE ends_at IS NULL") == 1
+
+
+def test_a_downtime_that_starts_later_waits_for_a_running_print(
+    client: TestClient, planner: dict[str, str], operator: dict[str, str], app_url: str
+) -> None:
+    first = plan(client, planner)
+    assert approve(client, planner, first["id"]).status_code == 200
+    job = start_first_print_on(client, operator, "FDM-3")
+    later = (FIXED_NOW + timedelta(minutes=30)).isoformat()
+    r = client.post(
+        "/disruptions/by-hand",
+        json={"events": [{"type": "machine_down", "machine": "FDM-3", "starts_at": later}]},
+        headers=planner | key(),
+    )
+    assert r.status_code == 201, r.text
+    with psycopg.connect(app_url) as conn:
+        inputs = build_inputs(conn, FIXED_NOW, scheduler_config(), TZ)
+    assert inputs.effects.lost == []  # not stopped now for a breakdown planned for later
+    fixed = {f.job_id: f for f in inputs.instance.fixed}[job]
+    down = next(d for d in inputs.instance.downtimes if d.machine == "FDM-3")
+    assert fixed.end is not None and down.start == fixed.end
+    assert any("starts when the print ends" in n for n in inputs.effects.notes)
+
+
+def test_approval_refuses_when_what_it_would_change_has_changed(
+    client: TestClient,
+    planner: dict[str, str],
+    operator: dict[str, str],
+    owner_url: str,
+    app_url: str,
+) -> None:
+    # At planning time the downtime starts in 30 minutes, while the print runs: the print is
+    # kept and the downtime waits for it. Approving an hour later, the machine would already be
+    # down while the print runs, so it would be lost; the planner never saw that.
+    first = plan(client, planner)
+    assert approve(client, planner, first["id"]).status_code == 200
+    start_first_print_on(client, operator, "FDM-3")
+    later = (FIXED_NOW + timedelta(minutes=30)).isoformat()
+    client.post(
+        "/disruptions/by-hand",
+        json={"events": [{"type": "machine_down", "machine": "FDM-3", "starts_at": later}]},
+        headers=planner | key(),
+    )
+    draft = plan(client, planner)
+    assert draft["diff"]["lost_prints"] == []
+    from brimline_engine.planning import schedules
+
+    with psycopg.connect(app_url, autocommit=True) as conn, pytest.raises(schedules.RefusedError):
+        schedules.approve(
+            conn,
+            actor_of(owner_url, "U-PLANNER"),
+            draft["id"],
+            f"late-{uuid.uuid4()}",
+            FIXED_NOW + timedelta(hours=1),
+            scheduler_config(),
+            TZ,
+        )
+
+
+def actor_of(owner_url: str, code: str) -> Any:
+    from brimline_engine.permissions import Actor
+
+    with psycopg.connect(owner_url) as conn:
+        row = conn.execute("SELECT id, role FROM users WHERE code = %s", (code,)).fetchone()
+    assert row is not None
+    return Actor(user_id=int(row[0]), role=row[1], customer_id=None)

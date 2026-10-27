@@ -12,7 +12,7 @@ Every write is permission-checked, idempotent and audit-logged. The model never 
 happens; it only proposes events, which code checks and a planner confirms.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Literal
 
 import psycopg
@@ -32,6 +32,7 @@ from brimline_engine.disruption_parse import (
     validate_events,
 )
 from brimline_engine.permissions import Actor, can
+from brimline_engine.scheduling.config import scheduler_config
 from brimline_engine.shop_config import load_shop_config
 from brimline_engine.text import SafeText
 
@@ -62,6 +63,9 @@ class MessageIn(BaseModel):
 class EventsIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     events: list[Event] = Field(min_length=1, max_length=3)
+    # Required when warnings are shown (a suspected injection, two or more cancellations): the
+    # planner must say they checked them; a quick confirm cannot pass them by.
+    acknowledged_warnings: bool = False
 
 
 class DisruptionOut(BaseModel):
@@ -72,7 +76,8 @@ class DisruptionOut(BaseModel):
     events: list[Event]
     issues: list[str]  # must be settled before it can be confirmed
     notes: list[str]
-    choices: dict[str, list[datetime]]  # event index -> the two readings of an ambiguous date
+    # "<event index>:<starts_at|ends_at>" -> the two readings of an ambiguous date in that field
+    choices: dict[str, list[datetime]]
     warnings: list[str]  # shown prominently: injection, several cancellations
     question: str
     read_by: Literal["model", "hand", "nobody"]  # "nobody": AI was off or failed
@@ -265,11 +270,22 @@ def read(
         return response, False
 
 
-def _check(conn: psycopg.Connection, events: list[Event], received: datetime) -> None:
+def _check(conn: psycopg.Connection, body: EventsIn, now: datetime, injection: bool) -> None:
     cat, *_ = catalog(conn)
-    problems = validate_events(events, received, cat)
+    running = frozenset(
+        code
+        for (code,) in conn.execute(
+            "SELECT m.code FROM tasks t JOIN schedules s ON s.id = t.schedule_id"
+            " JOIN machines m ON m.id = t.machine_id"
+            " WHERE s.status = 'approved' AND t.status = 'running'"
+        ).fetchall()
+    )
+    latest = now + timedelta(days=scheduler_config().shifts.horizon_days)
+    problems = validate_events(body.events, now, cat, latest=latest, running_on=running)
     if problems:
         raise InvalidError("; ".join(problems))
+    if _warnings(body.events, injection) and not body.acknowledged_warnings:
+        raise InvalidError("check the warnings shown and confirm that you have checked them")
 
 
 def confirm(
@@ -289,7 +305,7 @@ def confirm(
         row = _row(conn, did, lock=True)
         if row[3] != "review":
             raise ConflictError(f"disruption {did} is {row[3]}, not waiting for review")
-        _check(conn, body.events, row[2])
+        _check(conn, body, now, bool(row[5] and row[5].get("injection_suspected")))
         before = _out(row)
         conn.execute(
             "UPDATE disruptions SET events = %s, status = 'pending' WHERE id = %s",
@@ -327,7 +343,7 @@ def enter(
         )
         if stored is not None:
             return stored, True
-        _check(conn, body.events, now)
+        _check(conn, body, now, injection=False)
         row = conn.execute(
             "INSERT INTO disruptions (message, received_at, events, status, created_by)"
             " VALUES ('', %s, %s, 'pending', %s) RETURNING id",
@@ -406,6 +422,7 @@ class CatalogOut(BaseModel):
     machines: list[CatalogItem]
     materials: list[CatalogItem]
     orders: list[OrderItem]
+    time_zone: str  # the shop's: times typed by hand are read in it (never the browser's)
 
 
 def catalog_out(conn: psycopg.Connection, actor: Actor) -> CatalogOut:
@@ -416,4 +433,5 @@ def catalog_out(conn: psycopg.Connection, actor: Actor) -> CatalogOut:
         machines=[CatalogItem(code=c, name=n) for c, n, _ in machines],
         materials=[CatalogItem(code=c, name=n) for c, n in materials],
         orders=[OrderItem(number=c, name=n, lines=cat.orders[c]) for c, n in orders],
+        time_zone=load_shop_config().shop.time_zone,
     )

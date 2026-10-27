@@ -121,7 +121,8 @@ def _disruptions(conn: psycopg.Connection, now: datetime) -> _Disruptions:
     out = _Disruptions()
     for machine, start, end in conn.execute(
         "SELECT m.code, d.starts_at, d.ends_at FROM machine_downtimes d"
-        " JOIN machines m ON m.id = d.machine_id WHERE d.ends_at > %s ORDER BY d.id",
+        " JOIN machines m ON m.id = d.machine_id WHERE d.ends_at IS NULL OR d.ends_at > %s"
+        " ORDER BY d.id",
         (now,),
     ).fetchall():
         out.downtimes.append((machine, start, end, None))
@@ -231,16 +232,6 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
         start = max(minute_of(start_dt, anchor, tz), plan_start)
         if end > start:
             downs.append((machine, start, end, start_dt, end_dt, did))
-        if did is not None:
-            effects.downtimes.append(
-                {
-                    "machine": machine,
-                    "starts_at": start_dt.isoformat(),
-                    "ends_at": (end_dt or at_minute(horizon, anchor, tz)).isoformat(),
-                    "until_further_notice": end_dt is None,
-                    "disruption": did,
-                }
-            )
     for material, (available, did) in dis.delays.items():
         if did is not None:
             effects.delays.append(
@@ -259,7 +250,20 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
         downs,
         effects,
     )
-    # A downtime moved to after a print that survives it (config: prints are not lost).
+    # New downtimes to record at approval, after _fixed may have moved one to start when a
+    # running print ends. "Until further notice" is stored open (null), not as the horizon.
+    for machine, start, _end, start_dt, end_dt, did in downs:
+        if did is None:
+            continue
+        moved = start > max(minute_of(start_dt, anchor, tz), plan_start)
+        effects.downtimes.append(
+            {
+                "machine": machine,
+                "starts_at": (at_minute(start, anchor, tz) if moved else start_dt).isoformat(),
+                "ends_at": None if end_dt is None else end_dt.isoformat(),
+                "disruption": did,
+            }
+        )
     downtimes = tuple(Downtime(m, s, e) for m, s, e, *_ in downs if e > s)
     previous, previous_id = _previous(conn, anchor, tz, planned_keys - set(fixed))
     instance = Instance(
@@ -336,7 +340,11 @@ def _fixed(
                     " overrun_margin_minutes) until someone says when it will finish."
                 )
             hit = [d for d in downs if d[0] == machine and d[1] < end and start < d[2]]
-            if hit and cfg.replan.running_print_lost_when_machine_down:
+            # Lost only if the machine is down now, while it prints. A downtime that starts
+            # later waits for the print instead (review of M6: a print was stopped now for a
+            # breakdown planned for later).
+            down_now = [d for d in hit if d[1] <= now_minute]
+            if down_now and cfg.replan.running_print_lost_when_machine_down:
                 effects.lost.append({"job": key, "task_id": task_id, "machine": machine})
                 effects.notes.append(
                     f"The print of {key} on {machine} is treated as lost and planned again from"
@@ -346,11 +354,21 @@ def _fixed(
                 statuses[key] = "lost"
                 continue
             for i, d in enumerate(downs):
-                if d in hit:  # the print survives: the machine goes down when it ends
-                    downs[i] = (d[0], max(d[1], end), d[2], *d[3:])
+                if d not in hit:
+                    continue
+                downs[i] = (d[0], max(d[1], end), d[2], *d[3:])
+                if d in down_now:
                     effects.notes.append(
                         f"The print of {key} on {machine} is assumed to finish before its machine"
                         " goes down (running_print_lost_when_machine_down = false)."
+                    )
+                else:
+                    effects.notes.append(
+                        f"{machine} is due to go down at {at_minute(d[1], anchor, tz):%a %d %b %H:%M}"
+                        f" while the print of {key} runs until"
+                        f" {at_minute(end, anchor, tz):%a %d %b %H:%M}: the downtime starts when"
+                        " the print ends. Dismiss the disruption and enter it again if the print"
+                        " must stop."
                     )
         out[key] = Fixed(key, machine, start, max(end, start + 1))
         statuses[key] = status
@@ -431,3 +449,23 @@ def fingerprint(
     }
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(canonical.encode()).hexdigest()
+
+
+def effects_key(effects: dict[str, Any]) -> dict[str, Any]:
+    """What approval must find unchanged between the draft and now (review of M6): which prints
+    are lost, which jobs are cancelled or made rush, the new downtimes and delays, and which
+    overruns are estimates. Clock-dependent details (an estimated end) are left out."""
+    return {
+        "lost": sorted(x["job"] for x in effects.get("lost", [])),
+        "cancelled": sorted(x["job"] for x in effects.get("cancelled", [])),
+        "rush": sorted(x["order"] for x in effects.get("rush", [])),
+        "downtimes": sorted(
+            (d["machine"], d["disruption"], d["ends_at"] or "")
+            for d in effects.get("downtimes", [])
+        ),
+        "delays": sorted((d["material"], d["available_at"]) for d in effects.get("delays", [])),
+        "overruns": sorted(
+            (o["job"], o["estimated"], "" if o["estimated"] else o["ends_at"])
+            for o in effects.get("overruns", [])
+        ),
+    }

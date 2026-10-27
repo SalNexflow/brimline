@@ -110,7 +110,7 @@ def predicted(item: dict[str, Any], parsed: ParsedMessage | None) -> dict[str, A
     events = []
     for i, e in enumerate(review.events):
         until: str | None = None if e.ends_at is None else e.ends_at.isoformat()
-        if i in review.choices:
+        if f"{i}:ends_at" in review.choices:
             until = "NEEDS_CONFIRMATION"
         elif until is None and e.type in ("material_delayed", "print_overrun"):
             # Scoring rule (eval/README.md): an event still missing a time it needs is an open

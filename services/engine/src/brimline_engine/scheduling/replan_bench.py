@@ -36,7 +36,15 @@ from brimline_engine.shop_config import load_shop_config
 RESULTS = REPO_ROOT / "eval" / "results"
 NOW = 240  # Monday 12:00
 SCENARIOS = ("machine_down", "material_delayed", "rush_job", "cancellation", "print_overrun")
-WEIGHTS = (("none", 0), ("configured", 1), ("4x", 4))
+# (label, factor on the configured re-planning costs, hint). "none, approved hint" is the fair
+# baseline the M6 review asked for: no re-planning costs, but the search starts from the approved
+# plan, so ties do not move work just because the search started somewhere else.
+WEIGHTS = (
+    ("none", 0, "edd"),
+    ("none, approved hint", 0, "approved"),
+    ("configured", 1, "edd"),
+    ("4x", 4, "edd"),
+)
 
 
 def _machine_slot(s: Schedule, job_id: str) -> tuple[str, int, int] | None:
@@ -116,6 +124,15 @@ def _disrupt(
     return new, fixed, what
 
 
+def _approved_hint(approved: Schedule, inst: Instance) -> Schedule:
+    """The approved plan as a starting point: every job still there where it was (the search
+    repairs whatever the disruption made impossible)."""
+    alive = {j.id for j in inst.jobs}
+    plans = tuple(p for p in approved.plans if p.job_id in alive)
+    planned = {p.job_id for p in plans}
+    return Schedule("approved", plans, tuple(j.id for j in inst.jobs if j.id not in planned))
+
+
 def _moved(new: Schedule, previous: list[Previous]) -> tuple[int, int]:
     moved = slip = 0
     for p in previous:
@@ -142,7 +159,7 @@ def run(seeds: list[int], n_jobs: int, limit: float, cfg: SchedulerConfig) -> di
             alive = {j.id for j in inst.jobs}
             fixed_ids = {f.job_id for f in fixed_now}
             prev = [p for p in previous if p.job_id in alive and p.job_id not in fixed_ids]
-            for label, factor in WEIGHTS:
+            for label, factor, start in WEIGHTS:
                 weighted = cfg.model_copy(
                     update={
                         "replan": cfg.replan.model_copy(
@@ -157,7 +174,9 @@ def run(seeds: list[int], n_jobs: int, limit: float, cfg: SchedulerConfig) -> di
                 s = solve(
                     with_prev,
                     weighted,
-                    hint=edd(with_prev, cfg.durations),
+                    hint=edd(with_prev, cfg.durations)
+                    if start == "edd"
+                    else _approved_hint(approved, with_prev),
                     deterministic_time=limit,
                 )
                 check = check_document(document(with_prev, s))
@@ -205,15 +224,18 @@ def write_md(data: dict[str, Any], path: Path) -> None:
         f"rest is re-solved ({data['limit_seconds']:g} s deterministic limit) with no re-planning costs, the",
         f"configured costs ({data['replan_config']['moved_job']} per moved job,"
         f" {data['replan_config']['slip_per_minute']} per minute of slip), and four times those.",
-        "Every re-plan was validated by the independent checker.",
+        "Every re-plan was validated by the independent checker. *none, approved hint* is the fair",
+        "baseline: no re-planning costs, but the search starts from the approved plan. The solver",
+        "status column says whether a result was proven optimal (OPTIMAL) or is the best found in the",
+        "time limit (FEASIBLE); equal lateness under FEASIBLE means equal at this budget.",
         "",
         "## Means over the seeds",
         "",
-        "| Scenario | Re-planning costs | Jobs moved | Slip (h) | Late or unscheduled | Lateness (h) | Checker |",
-        "|---|---|---|---|---|---|---|",
+        "| Scenario | Re-planning costs | Jobs moved | Slip (h) | Late or unscheduled | Lateness (h) | Checker | Solver status |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for scenario in SCENARIOS:
-        for label, _ in WEIGHTS:
+        for label, _, _ in WEIGHTS:
             sel = [r for r in rows if r["scenario"] == scenario and r["costs"] == label]
             if not sel:
                 continue
@@ -223,7 +245,8 @@ def write_md(data: dict[str, Any], path: Path) -> None:
                 f" | {mean(r['slip_minutes'] for r in sel) / 60:.1f}"
                 f" | {mean(r['late_or_unscheduled'] for r in sel):.1f}"
                 f" | {mean(r['lateness_minutes'] for r in sel) / 60:.1f}"
-                f" | {sum(r['valid'] for r in sel)} of {len(sel)} valid |"
+                f" | {sum(r['valid'] for r in sel)} of {len(sel)} valid"
+                f" | {', '.join(sorted({str(r['status']) for r in sel}))} |"
             )
     lines += [
         "",
