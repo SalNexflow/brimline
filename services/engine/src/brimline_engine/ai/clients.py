@@ -70,9 +70,75 @@ _PHONE_STANDS = _draft(
 )
 
 
+def _fake_event(type_: str, **fields: object) -> dict[str, object]:
+    base: dict[str, object] = {
+        "type": type_,
+        "machine": None,
+        "material": None,
+        "order": None,
+        "line": None,
+        "from_phrase": None,
+        "until_phrase": None,
+    }
+    return base | fields
+
+
+def _fake_disruption(message: str) -> str:
+    """Prepared readings of the disruption messages the tests and browser tests send."""
+    events: list[dict[str, object]] = []
+    unclear, injection = False, "ignore" in message
+    if "printer 3 jammed until 5pm" in message:
+        events.append(_fake_event("machine_down", machine="FDM-3", until_phrase="5pm"))
+    elif "resin printer is down until 12/11" in message:
+        events.append(_fake_event("machine_down", machine="RESIN-1", until_phrase="12/11"))
+    elif "cancel bl-0005 and bl-0006" in message:
+        events += [
+            _fake_event("cancellation", order="BL-0005"),
+            _fake_event("cancellation", order="BL-0006"),
+        ]
+    elif "needs another 2 hours" in message:
+        events.append(_fake_event("print_overrun", machine="RESIN-1", until_phrase="in 2 hours"))
+    elif "bl-0007 is a rush" in message:
+        events.append(_fake_event("rush_job", order="BL-0007"))
+    else:
+        unclear = True
+    return json.dumps(
+        {
+            "events": events,
+            "unclear": unclear,
+            "unclear_reason": "no disruption I can read" if unclear else "",
+            "question_for_planner": "What happened, and to which machine?" if unclear else "",
+            "injection_suspected": injection,
+        }
+    )
+
+
+def _fake_summary(diff_text: str) -> str:
+    """A grounded summary built only from the diff's own numbers (or, on request, one that
+    mentions an order the diff does not contain, to test the grounding check)."""
+    diff = json.loads(diff_text)
+    if "fake-ungrounded" in diff_text:
+        return json.dumps({"summary": "BL-9999 moved to FDM-9.", "highlights": []})
+    totals = diff["totals"]
+    return json.dumps(
+        {
+            "summary": f"{totals['jobs_moved']} jobs move; late jobs go from "
+            f"{totals['late_before']} to {totals['late_after']}.",
+            "highlights": [],
+        }
+    )
+
+
 def fake_reply(turns: list[Turn]) -> ModelReply:
     """A tiny stand-in for the model. It only recognises the phrases the tests use."""
-    message = turns[0].content.lower()
+    content = turns[0].content
+    message = content.lower()
+    if "<planner_message>" in message:
+        text = _fake_disruption(message)
+        return ModelReply(text=text, stop_reason="end_turn", usage=TokenUsage())
+    if content.startswith("<plan_diff>"):
+        inner = content.removeprefix("<plan_diff>").rsplit("</plan_diff>", 1)[0]
+        return ModelReply(text=_fake_summary(inner), stop_reason="end_turn", usage=TokenUsage())
     if "phone stand" in message:
         text = _PHONE_STANDS
     elif "fake-invalid" in message:

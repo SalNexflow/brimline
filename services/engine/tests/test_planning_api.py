@@ -524,18 +524,28 @@ def test_a_task_that_started_late_ends_late(
     assert (fixed.start, fixed.end) == (minute(started), minute(started) + TRAY_MACHINE_MINUTES)
 
 
-def test_a_running_task_past_its_length_ends_now_at_the_earliest(
+def test_an_overrunning_print_is_estimated_to_need_the_configured_margin(
     client: TestClient,
     planner: dict[str, str],
     operator: dict[str, str],
     owner_url: str,
     app_url: str,
 ) -> None:
+    # M6: a print far past its 300 minutes was assumed to end "now" (M5), which freed its
+    # machine while it was still printing. Now it is assumed to need overrun_margin_minutes
+    # more, and that is listed as an estimate.
+    margin = scheduler_config().replan.overrun_margin_minutes
     started = FIXED_NOW + timedelta(minutes=30)
-    late = started + timedelta(days=1)  # far past its 300 minutes
-    out = fixed_after(client, planner, operator, owner_url, app_url, _start_machine(started), late)
-    assert out["fixed"] is not None
-    assert (out["fixed"].start, out["fixed"].end) == (minute(started), minute(late))
+    late = started + timedelta(days=1)
+    q = approved_queues(client, planner, operator)
+    steps = {t["kind"]: t for t in tasks_of(q, "BL-0003-1")}
+    with psycopg.connect(app_url, autocommit=True) as conn:
+        _start_machine(started)(actor(owner_url, "U-OPERATOR", "operator"), steps, conn)
+    with psycopg.connect(app_url) as conn:
+        inputs = build_inputs(conn, late, scheduler_config(), TZ)
+    fixed = {f.job_id: f for f in inputs.instance.fixed}["BL-0003-1"]
+    assert (fixed.start, fixed.end) == (minute(started), minute(late) + margin)
+    assert [(o["job"], o["estimated"]) for o in inputs.effects.overruns] == [("BL-0003-1", True)]
 
 
 def test_a_done_task_keeps_its_actual_times(

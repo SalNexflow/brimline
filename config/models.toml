@@ -2,7 +2,7 @@
 # (hard rule 8: config, not memory). Code reads these only from here. Update `checked` whenever
 # a value changes.
 
-checked = 2026-10-26
+checked = 2026-10-27
 source = "DeepSeek API docs (pricing, chat completion, JSON mode) and Anthropic Claude API docs (models, pricing), read 2026-10-26"
 
 [providers.deepseek]
@@ -51,3 +51,19 @@ model = "deepseek-flash"
 effort = "low"          # extraction is not hard reasoning; measured in eval/results/RESULTS.md
 max_tokens = 8000       # room for reasoning plus the JSON; a cut-off reply is rejected
 prompt_version = "quote-extract-v1"
+
+# Reading a planner's disruption message into typed events (times copied as written; code
+# resolves them). Evaluated in eval/results/RESULTS.md.
+[tasks.disruption_parse]
+model = "deepseek-flash"
+effort = "low"
+max_tokens = 4000
+prompt_version = "disruption-parse-v1"
+
+# A plain-language summary of a re-plan, written from the code-computed diff only and checked
+# against it before it is shown (anything not in the diff rejects it).
+[tasks.replan_summary]
+model = "deepseek-flash"
+effort = "low"
+max_tokens = 3000
+prompt_version = "replan-summary-v1"
