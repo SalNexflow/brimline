@@ -3,7 +3,9 @@
 Work one milestone at a time. For each: plan first, wait for approval, build in small commits, run `make gate`, then write the three-part summary from CLAUDE.md.
 You may improve this plan (see "Your latitude" in CLAUDE.md). Record changes in `docs/DECISIONS.md`.
 
-**Minimum impressive version: M0 to M6.** If time runs short, cut M9 and M10 first. Never cut M4 (the independent checker).
+**Minimum impressive version: M0 to M6.** Never cut M4 (the independent checker).
+
+**Build order from M7 (D97): M7, M8, M11, then M9 and M10 only if time remains.** The numbers stay as they are, so older references still hold; the sections below are in build order.
 
 ---
 
@@ -112,6 +114,17 @@ Deliverables:
 
 Acceptance: report filter accuracy and that every access-widening attack is blocked.
 
+## M11. Deploy, README, demo video
+**Goal:** something a stranger can run and understand.
+
+Deliverables: a deployed demo (or a one-command local run), a README with the architecture, results tables produced by `make eval` and `make bench`, screenshots, an honest limits section, and a short demo-video script.
+
+Acceptance: a stranger can clone, run `make setup` and `make gate`, and reproduce the headline tables.
+
+---
+
+**Only if time remains (D97).** M6 already delays jobs whose material is late; M9 adds stock levels and purchase suggestions.
+
 ## M9. Shortage planning
 **Goal:** materials constrain the plan and the system suggests what to buy.
 
@@ -125,10 +138,3 @@ Acceptance: jobs are never started before their material arrives, checked by the
 Deliverables: recording of actual times and failures, reprint handling, a report of estimated versus actual cost and time, and a flag for systematically underquoted job types.
 
 Acceptance: a seeded scenario shows the report correctly identifying an underquoted job type.
-
-## M11. Deploy, README, demo video
-**Goal:** something a stranger can run and understand.
-
-Deliverables: a deployed demo (or a one-command local run), a README with the architecture, results tables produced by `make eval` and `make bench`, screenshots, an honest limits section, and a short demo-video script.
-
-Acceptance: a stranger can clone, run `make setup` and `make gate`, and reproduce the headline tables.
