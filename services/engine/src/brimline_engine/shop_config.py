@@ -53,6 +53,7 @@ class Machine(_Strict):
     process: Process
     build_mm: tuple[int, int, int]
     materials: list[str]
+    aliases: list[str] = []  # other names people use in messages ("printer 3")
 
 
 class Shift(_Strict):

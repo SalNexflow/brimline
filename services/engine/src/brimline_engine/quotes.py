@@ -17,6 +17,7 @@ from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict, Field
 
 from brimline_engine import audit, idempotency, orders
+from brimline_engine.ai.calls import record_call
 from brimline_engine.ai.gateway import CallRecord, GatewayResult
 from brimline_engine.dates import resolve_due
 from brimline_engine.permissions import Actor, OrderTarget, can, order_scope
@@ -214,30 +215,7 @@ def _price(
 
 
 def _record_call(conn: psycopg.Connection, record: CallRecord, actor: Actor) -> int:
-    u = record.usage
-    row = conn.execute(
-        "INSERT INTO ai_calls (purpose, mode, model, prompt_version, outcome, attempts, input_tokens,"
-        " output_tokens, cache_read_tokens, cache_write_tokens, cost_micro_usd, latency_ms, error, created_by)"
-        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
-        (
-            record.purpose,
-            record.mode,
-            record.model,
-            record.prompt_version,
-            record.outcome,
-            record.attempts,
-            u.input_tokens,
-            u.output_tokens,
-            u.cache_read_tokens,
-            u.cache_write_tokens,
-            record.cost_micro_usd,
-            record.latency_ms,
-            record.error,
-            actor.user_id,
-        ),
-    ).fetchone()
-    assert row is not None
-    return int(row[0])
+    return record_call(conn, record, actor.user_id)
 
 
 def _write_lines(

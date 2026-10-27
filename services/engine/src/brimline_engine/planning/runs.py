@@ -22,13 +22,19 @@ from psycopg_pool import ConnectionPool
 from pydantic import BaseModel
 
 from brimline_engine import audit, idempotency
+from brimline_engine.ai.calls import record_call
+from brimline_engine.ai.clients import client_for
+from brimline_engine.ai.config import models_config
 from brimline_engine.checker import check_document
+from brimline_engine.disruption_parse import Event, describe
 from brimline_engine.permissions import Actor, can
 from brimline_engine.planning.inputs import build_inputs
+from brimline_engine.planning.replan import compute_diff, summarize
 from brimline_engine.scheduling.baselines import edd
 from brimline_engine.scheduling.config import SchedulerConfig
 from brimline_engine.scheduling.cpsat import Progress, solve
 from brimline_engine.scheduling.export import document
+from brimline_engine.settings import get_settings
 
 START_ENDPOINT = "POST /planning-runs"
 PROGRESS_EVERY_SECONDS = 0.5  # at most this often a progress write to the database
@@ -261,6 +267,40 @@ def _execute(
     doc = document(inst, schedule)
     result = check_document(doc)  # the independent checker, on exactly what is saved
 
+    # What changes against the approved plan, computed by code; then a summary of that only.
+    _update(pool, run_id, phase="comparing")
+    with pool.connection() as conn:
+        before = (
+            conn.execute(
+                "SELECT document, anchor FROM schedules WHERE id = %s", (inputs.previous_id,)
+            ).fetchone()
+            if inputs.previous_id is not None
+            else None
+        )
+        events = [
+            describe(Event.model_validate(e), tz)
+            for (evs,) in conn.execute(
+                "SELECT events FROM disruptions WHERE id = ANY(%s) ORDER BY id",
+                (list(inputs.disruption_ids),),
+            ).fetchall()
+            for e in evs
+        ]
+    diff = compute_diff(
+        before=None if before is None else before[0],
+        before_anchor=None if before is None else before[1],
+        before_check=None if before is None else check_document(before[0]),
+        after=doc,
+        after_anchor=inputs.anchor,
+        after_check=result,
+        tz=tz,
+        refs=inputs.refs,
+        effects=inputs.effects,
+        events=events,
+    )
+    mode = get_settings().ai_mode
+    summary_model = models_config().task("replan_summary").model
+    summary, call = summarize(client_for(mode, summary_model), mode=mode, diff=diff)
+
     with pool.connection() as conn, conn.transaction():
         # A new draft replaces an older one: there is only ever one plan waiting for approval.
         for (version,) in conn.execute(
@@ -278,9 +318,12 @@ def _execute(
                 after={"status": "discarded", "reason": "replaced by a newer plan"},
                 idempotency_key=None,
             )
+        call_id = None if call is None else record_call(conn, call, int(requested_by[0]))
         row = conn.execute(
             "INSERT INTO schedules (run_id, anchor, document, fingerprint, solver_info,"
-            " unplannable, created_by, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+            " unplannable, created_by, created_at, previous_id, disruption_ids, effects, diff,"
+            " summary, summary_ai_call_id)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             " RETURNING id, version",
             (
                 run_id,
@@ -291,6 +334,12 @@ def _execute(
                 Jsonb(inputs.unplannable),
                 requested_by[0],
                 now,
+                inputs.previous_id,
+                list(inputs.disruption_ids),
+                Jsonb(inputs.effects.as_dict()),
+                Jsonb(diff),
+                Jsonb(summary),
+                call_id,
             ),
         ).fetchone()
         assert row is not None

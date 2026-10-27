@@ -1,7 +1,7 @@
 -- M6: disruptions and re-planning.
 --
--- A disruption is a planner's message and the typed events it was confirmed as. It is pending
--- until a plan that includes it is approved; only then do its effects become facts (downtimes,
+-- A disruption is a planner's message and the typed events it was confirmed as. Once confirmed it
+-- is pending until a plan that includes it is approved; only then do its effects become facts (downtimes,
 -- material delays, rush flags, cancellations, lost prints), in the approval's transaction.
 
 CREATE TABLE disruptions (
@@ -11,14 +11,18 @@ CREATE TABLE disruptions (
     ai_call_id   bigint REFERENCES ai_calls (id),
     parsed       jsonb,                 -- the model's validated reply, kept as it came (null: by hand)
     events       jsonb NOT NULL,        -- the events the planner confirmed, with resolved times
-    status       text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'applied', 'dismissed')),
+    review       jsonb,                 -- what code could not settle when it read the message
+    -- review: read by the model, waiting for the planner to confirm or correct the events;
+    -- pending: confirmed, included in every plan until one that includes it is approved.
+    status       text NOT NULL DEFAULT 'review'
+                 CHECK (status IN ('review', 'pending', 'applied', 'dismissed')),
     created_by   bigint NOT NULL REFERENCES users (id),
     created_at   timestamptz NOT NULL DEFAULT now(),
     decided_by   bigint REFERENCES users (id),
     decided_at   timestamptz,
     applied_in   bigint,                -- the schedule whose approval applied it
     CONSTRAINT decided_disruptions_say_who CHECK (
-        (status = 'pending') = (decided_by IS NULL AND decided_at IS NULL)
+        (status IN ('review', 'pending')) = (decided_by IS NULL AND decided_at IS NULL)
     )
 );
 
@@ -29,11 +33,18 @@ BEGIN
         RAISE EXCEPTION 'disruptions are records and are never deleted';
     END IF;
     IF NEW.message IS DISTINCT FROM OLD.message OR NEW.parsed IS DISTINCT FROM OLD.parsed
-       OR NEW.events IS DISTINCT FROM OLD.events OR NEW.received_at IS DISTINCT FROM OLD.received_at THEN
+       OR NEW.received_at IS DISTINCT FROM OLD.received_at OR NEW.ai_call_id IS DISTINCT FROM OLD.ai_call_id THEN
         RAISE EXCEPTION 'disruption %: what was reported cannot change', OLD.id;
     END IF;
-    IF OLD.status <> 'pending' AND NEW.status IS DISTINCT FROM OLD.status THEN
-        RAISE EXCEPTION 'disruption % is already %', OLD.id, OLD.status;
+    -- The planner may correct the events only while reviewing them.
+    IF NEW.events IS DISTINCT FROM OLD.events AND OLD.status <> 'review' THEN
+        RAISE EXCEPTION 'disruption % is %: its events cannot change', OLD.id, OLD.status;
+    END IF;
+    IF NEW.status IS DISTINCT FROM OLD.status AND NOT (
+        (OLD.status = 'review' AND NEW.status IN ('pending', 'dismissed'))
+        OR (OLD.status = 'pending' AND NEW.status IN ('applied', 'dismissed'))
+    ) THEN
+        RAISE EXCEPTION 'disruption % cannot go from % to %', OLD.id, OLD.status, NEW.status;
     END IF;
     RETURN NEW;
 END;

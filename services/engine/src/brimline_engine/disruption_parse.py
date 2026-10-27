@@ -307,3 +307,24 @@ def validate_events(events: Sequence[Event], received: datetime, catalog: Catalo
         if e.ends_at and e.ends_at <= received and e.type != "machine_down":
             problems.append(f"{label}: the time is already in the past")
     return problems
+
+
+def describe(e: Event, tz: str) -> str:
+    """One event in plain words, with times in shop time (for the diff and the review)."""
+    from zoneinfo import ZoneInfo
+
+    def when(dt: datetime | None, default: str) -> str:
+        return default if dt is None else dt.astimezone(ZoneInfo(tz)).strftime("%a %d %b %H:%M")
+
+    if e.type == "machine_down":
+        return (
+            f"{e.machine} down from {when(e.starts_at, 'when reported')}"
+            f" until {when(e.ends_at, 'further notice')}"
+        )
+    if e.type == "material_delayed":
+        return f"{e.material} not available until {when(e.ends_at, '?')}"
+    if e.type == "rush_job":
+        return f"{e.order} is now a rush order"
+    if e.type == "cancellation":
+        return f"{e.order}" + (f" line {e.line}" if e.line else " (whole order)") + " cancelled"
+    return f"the print on {e.machine} will finish at {when(e.ends_at, '?')}"

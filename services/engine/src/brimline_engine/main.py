@@ -9,7 +9,15 @@ from fastapi import FastAPI
 from psycopg_pool import ConnectionPool
 from pydantic import BaseModel
 
-from brimline_engine.api import auth, orders, planning, price_rules, quotes, reference
+from brimline_engine.api import (
+    auth,
+    disruptions,
+    orders,
+    planning,
+    price_rules,
+    quotes,
+    reference,
+)
 from brimline_engine.planning.runs import SHUTDOWN, recover_interrupted
 from brimline_engine.settings import get_settings
 
@@ -43,6 +51,7 @@ app.include_router(reference.router)
 app.include_router(price_rules.router)
 app.include_router(quotes.router)
 app.include_router(planning.router)
+app.include_router(disruptions.router)
 
 
 class Health(BaseModel):

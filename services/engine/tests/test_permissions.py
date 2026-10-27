@@ -107,6 +107,11 @@ TABLE: list[tuple[Actor, Action, OrderTarget | None, bool]] = [
     (CUSTOMER_1, "schedule.read", None, False),
     (CUSTOMER_1, "queue.read", None, False),
     (CUSTOMER_1, "task.update", None, False),
+    # M6: the planner reports disruptions and decides on the re-plan.
+    (PLANNER, "disruption.report", None, True),
+    (OPERATOR, "disruption.report", None, False),
+    (STAFF, "disruption.report", None, False),
+    (CUSTOMER_1, "disruption.report", None, False),
 ]
 
 
@@ -165,6 +170,7 @@ def test_capabilities_per_role() -> None:
         "schedule.read",
     ]
     assert capabilities(PLANNER) == [
+        "disruption.report",
         "material.list",
         "order.history.read",
         "order.list",

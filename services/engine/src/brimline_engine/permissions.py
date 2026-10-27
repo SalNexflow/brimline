@@ -27,6 +27,7 @@ Action = Literal[
     "schedule.approve",
     "queue.read",
     "task.update",
+    "disruption.report",
 ]
 
 
@@ -78,6 +79,7 @@ _ANY_TARGET: dict[str, frozenset[str]] = {
             "schedule.plan",
             "schedule.approve",
             "queue.read",
+            "disruption.report",
         }
     ),
     "operator": frozenset(
