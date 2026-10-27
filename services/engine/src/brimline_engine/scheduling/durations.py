@@ -5,7 +5,7 @@ a slicer could replace it later. This is stated in the README's limits.
 """
 
 from brimline_engine.scheduling.config import Durations
-from brimline_engine.scheduling.model import Job, Machine, TaskKind
+from brimline_engine.scheduling.model import Fixed, Job, Machine, TaskKind
 
 
 def task_durations(job: Job, d: Durations) -> dict[TaskKind, int]:
@@ -19,6 +19,17 @@ def task_durations(job: Job, d: Durations) -> dict[TaskKind, int]:
         "finish": d.finish_base_minutes + job.quantity * d.finish_minutes_per_part,
     }
     return {kind: minutes for kind, minutes in durations.items() if minutes > 0}
+
+
+def job_durations(job: Job, d: Durations, fixed: Fixed | None) -> dict[TaskKind, int]:
+    """As task_durations, for a job whose machine task may be fixed: then its prep is done, and
+    its machine task lasts as long as it really did (or is expected to), if that is known."""
+    durations = task_durations(job, d)
+    if fixed is not None:
+        durations.pop("prep", None)
+        if fixed.end is not None:
+            durations["machine"] = fixed.end - fixed.start
+    return durations
 
 
 def fits(job: Job, machine: Machine) -> bool:

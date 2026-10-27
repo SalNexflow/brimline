@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from brimline_engine.checker.document import Job
+from brimline_engine.checker.document import Fixed, Job
 
 # services/engine/src/brimline_engine/checker/rules.py -> repository root
 CONFIG_PATH = Path(__file__).resolve().parents[5] / "config" / "scheduler.toml"
@@ -91,12 +91,14 @@ def load_rules(path: Path = CONFIG_PATH) -> Rules:
         return rules_from_toml(tomllib.load(f))
 
 
-def durations(job: Job, r: Rules, fixed: bool) -> dict[str, int]:
-    """The job's tasks in order with their minutes. A zero-length task does not exist, and a
-    job whose machine task is fixed (running or done) has no prep left."""
+def durations(job: Job, r: Rules, fixed: Fixed | None) -> dict[str, int]:
+    """The job's tasks in order with their minutes. A zero-length task does not exist. A job
+    whose machine task is fixed (running or done) has no prep left, and its machine task lasts
+    from the fixed start to the fixed end when the end is known."""
+    formula = r.setup + job.quantity * job.minutes_per_part + r.cool_down.get(job.process, 0)
     minutes = {
-        "prep": 0 if fixed else r.prep,
-        "machine": r.setup + job.quantity * job.minutes_per_part + r.cool_down.get(job.process, 0),
+        "prep": 0 if fixed is not None else r.prep,
+        "machine": fixed.end - fixed.start if fixed and fixed.end is not None else formula,
         "post": job.quantity * job.post_minutes_per_part,
         "finish": r.finish_base + job.quantity * r.finish_per_part,
     }

@@ -45,7 +45,8 @@ def instance_with_everything() -> Instance:
         (odd, *inst.jobs[1:]),
         inst.shifts,
         inst.staff,
-        (Fixed(inst.jobs[1].id, inst.machines[0].code, 12),),
+        (Fixed(inst.jobs[1].id, inst.machines[0].code, 12, 400),),
+        plan_start=5,
     )
 
 
@@ -85,7 +86,7 @@ def test_every_raw_field_reaches_the_json_unchanged() -> None:
 def test_the_test_knows_every_field() -> None:
     # If a model class grows a field, the round-trip test above must be looked at again.
     assert [f.name for f in fields(Machine)] == ["code", "process", "materials", "build_mm"]
-    assert [f.name for f in fields(Fixed)] == ["job_id", "machine", "start"]
+    assert [f.name for f in fields(Fixed)] == ["job_id", "machine", "start", "end"]
     assert [f.name for f in fields(JobPlan)] == ["job_id", "machine", "slots"]
     assert [f.name for f in fields(Slot)] == ["kind", "start", "end"]
     assert len(fields(Job)) == 11

@@ -25,7 +25,9 @@ importing any scheduler code. Sources: `docs/BRIEF.md` sections 10 and 11, `conf
 | finish | one person | `finish_base_minutes + quantity * finish_minutes_per_part` |
 
 A task whose duration is 0 does not exist. A job with a **fixed** machine task has no prep
-(it is already done).
+(it is already done), and when the fixed task has an `end` (from real clock times: when it
+ended, or for a running task the later of its planned end and now), it lasts `end - start`
+instead of the formula.
 
 Job fields that are easy to misread: `arrival` is the **order** in which jobs came in (FCFS
 sorts by it), not a minute, so no rule compares it with a time. `release` is the minute the
@@ -53,9 +55,10 @@ Each rule has a code the checker reports.
 | R14 `changeover` | On one machine, sorted by start, two neighbouring machine tasks of different material are at least `changeover_minutes` apart (gap = next start - previous end). Not required when both are fixed. |
 | R15 `fixed_moved` | A planned job with a fixed task keeps its machine and its machine start exactly. |
 | R16 `past_horizon` | Every task ends at or before the horizon, except a fixed machine task (it is a fact). |
-| R17 `bad_instance` | The instance itself is impossible or does not match the config: a fixed task for an unknown job or machine, two fixed tasks overlapping on a machine, a job with quantity or minutes_per_part below 1, a negative post time, a part side below 1 mm, two jobs or machines with the same id, a horizon below 1, or shifts or staff in the document that differ from `config/scheduler.toml`. The plan is not judged further. |
+| R18 `before_plan_start` | No task starts before `plan_start`, the moment of planning (0 when the document does not say), except a fixed machine task. You cannot plan work into the past. |
+| R17 `bad_instance` | The instance itself is impossible or does not match the config: a fixed task for an unknown job or machine, two fixed tasks overlapping on a machine, a job with quantity or minutes_per_part below 1, a negative post time, a part side below 1 mm, two jobs or machines with the same id, a horizon below 1, a fixed task whose end is not after its start, or shifts or staff in the document that differ from `config/scheduler.toml`. The plan is not judged further. |
 
-Fixed machine tasks are facts: R08, R09, R10 and R16 do not apply to them. A job with a fixed
+Fixed machine tasks are facts: R08, R09, R10, R16 and R18 do not apply to them. A job with a fixed
 task may still be listed as unscheduled (when its later tasks cannot fit); its fixed task then
 keeps blocking the machine (R13), the job counts in "late or unscheduled", and the checker
 warns if it looks like it could have fitted (below).

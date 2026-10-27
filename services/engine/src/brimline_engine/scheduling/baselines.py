@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 from brimline_engine.scheduling.calendar import earliest_machine_start, earliest_manual_start
 from brimline_engine.scheduling.config import Durations
-from brimline_engine.scheduling.durations import eligible_machines, task_durations
+from brimline_engine.scheduling.durations import eligible_machines, job_durations
 from brimline_engine.scheduling.model import Fixed, Instance, Job, JobPlan, Schedule, Slot, TaskKind
 from brimline_engine.scheduling.validation import check_instance
 
@@ -83,10 +83,10 @@ def _plan_job(
     job: Job, instance: Instance, state: _State, fixed: Fixed | None, d: Durations
 ) -> tuple[JobPlan | None, list[list[tuple[int, int]]], tuple[str, int, int] | None]:
     """(plan or None if it cannot fit, staff lanes after it, machine task to block)."""
-    durations = task_durations(job, d)
+    durations = job_durations(job, d, fixed)
     lanes = [list(busy) for busy in state.lanes]
     slots: list[Slot] = []
-    t = 0
+    t = instance.plan_start  # nothing that is not already running starts in the past
 
     def manual(kind: TaskKind, after: int) -> int | None:
         placed = _place_manual(after, durations[kind], lanes, instance)
@@ -101,7 +101,7 @@ def _plan_job(
         machine, start = fixed.machine, fixed.start  # a fact: no checks, prep already done
     else:
         if "prep" in durations:
-            end = manual("prep", 0)
+            end = manual("prep", instance.plan_start)
             if end is None:
                 return None, state.lanes, None
             t = end
@@ -123,7 +123,7 @@ def _plan_job(
     end = start + durations["machine"]
     block = (machine, start, end)
     slots.append(Slot("machine", start, end))
-    t = end
+    t = max(end, instance.plan_start)
     for kind in ("post", "finish"):
         if kind in durations:
             after = manual(kind, t)

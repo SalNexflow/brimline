@@ -328,6 +328,22 @@ def staff_overload_one_minute(doc: Doc, rng: random.Random, r: Rules) -> Doc | N
     return out
 
 
+def before_plan_start(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
+    """Say planning happened one minute after a task that is not fixed began."""
+    out = copy.deepcopy(doc)
+    fixed = _fixed_ids(out)
+    starts = [
+        t["start"]
+        for pj in _jobs(out)
+        for t in pj["tasks"]
+        if not (t["kind"] == "machine" and pj["job_id"] in fixed)
+    ]
+    if not starts:
+        return None
+    out["instance"]["plan_start"] = rng.choice(starts) + 1
+    return out
+
+
 def move_fixed(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
     out = copy.deepcopy(doc)
     fixed = _fixed_ids(out)
@@ -379,6 +395,7 @@ OPERATORS: dict[str, tuple[str, Operator]] = {
     "squeeze_changeover": ("changeover", squeeze_changeover),
     "staff_overload": ("staff_overload", staff_overload),
     "staff_overload_one_minute": ("staff_overload", staff_overload_one_minute),
+    "before_plan_start": ("before_plan_start", before_plan_start),
     "move_fixed": ("fixed_moved", move_fixed),
     "shrink_horizon": ("past_horizon", shrink_horizon),
 }

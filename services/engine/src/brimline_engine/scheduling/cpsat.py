@@ -30,7 +30,7 @@ from ortools.sat.python import cp_model
 
 from brimline_engine.scheduling.calendar import machine_start_ranges, manual_start_ranges
 from brimline_engine.scheduling.config import SchedulerConfig, Weights
-from brimline_engine.scheduling.durations import eligible_machines, task_durations
+from brimline_engine.scheduling.durations import eligible_machines, job_durations
 from brimline_engine.scheduling.model import (
     MANUAL,
     TASK_ORDER,
@@ -44,6 +44,39 @@ from brimline_engine.scheduling.model import (
 from brimline_engine.scheduling.validation import check_instance
 
 METHOD = "cpsat-simple"  # the name in schedules and in eval/results/BENCH.md
+
+
+@dataclass(frozen=True)
+class Progress:
+    """Reported each time the search finds a better schedule (for a progress display)."""
+
+    solutions: int
+    objective: float  # the model's objective (stand-in changeovers), lower is better
+    bound: float  # nothing better than this exists
+    work_done: float  # share of the deterministic time limit used so far, 0 to 1
+    wall_seconds: float
+
+
+class _ProgressCallback(cp_model.CpSolverSolutionCallback):
+    """Only reads what the solver reports; it never changes the search (tested)."""
+
+    def __init__(self, report: Callable[[Progress], None], limit: float) -> None:
+        super().__init__()
+        self._report = report
+        self._limit = limit
+        self._solutions = 0
+
+    def on_solution_callback(self) -> None:
+        self._solutions += 1
+        self._report(
+            Progress(
+                solutions=self._solutions,
+                objective=self.objective_value,
+                bound=self.best_objective_bound,
+                work_done=min(1.0, self.deterministic_time / self._limit),
+                wall_seconds=self.wall_time,
+            )
+        )
 
 
 @dataclass
@@ -88,9 +121,7 @@ def _job_vars(
 ) -> _JobVars | None:
     """Variables for one job, or None if no placement can ever satisfy the rules."""
     fixed = next((f for f in instance.fixed if f.job_id == job.id), None)
-    durations = task_durations(job, cfg.durations)
-    if fixed is not None:
-        durations.pop("prep", None)  # a running or finished task's prep is done
+    durations = job_durations(job, cfg.durations, fixed)
     machines = (
         [fixed.machine]
         if fixed is not None
@@ -106,7 +137,8 @@ def _job_vars(
         if kind == "machine" and fixed is not None:
             domain = cp_model.Domain(fixed.start, fixed.start)
         else:
-            latest = cp_model.Domain(0, instance.horizon - durations[kind])
+            # From the moment of planning (nothing starts in the past) to the horizon.
+            latest = cp_model.Domain(instance.plan_start, instance.horizon - durations[kind])
             if kind in MANUAL:
                 domain = _domain(manual_start_ranges(durations[kind], instance.shifts))
             else:
@@ -147,6 +179,7 @@ def solve(
     deterministic_time: float | None = None,
     weights: Weights | None = None,
     clock: Callable[[], float] = time.perf_counter,
+    on_progress: Callable[[Progress], None] | None = None,
 ) -> Schedule:
     check_instance(instance, cfg.durations)
     w = weights or cfg.weights
@@ -230,11 +263,13 @@ def solve(
     solver = cp_model.CpSolver()
     solver.parameters.random_seed = cfg.solver.random_seed
     solver.parameters.num_workers = cfg.solver.workers
-    solver.parameters.max_deterministic_time = (
-        deterministic_time or cfg.solver.deterministic_time_seconds
-    )
+    limit = deterministic_time or cfg.solver.deterministic_time_seconds
+    solver.parameters.max_deterministic_time = limit
     started = clock()
-    status = solver.solve(model)
+    if on_progress is None:
+        status = solver.solve(model)
+    else:
+        status = solver.solve(model, _ProgressCallback(on_progress, limit))
     wall = clock() - started
 
     found = status in (cp_model.OPTIMAL, cp_model.FEASIBLE)

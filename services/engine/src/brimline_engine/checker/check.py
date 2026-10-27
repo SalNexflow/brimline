@@ -7,7 +7,7 @@ everything wrong at once and the tests can say exactly what should be caught.
 from dataclasses import dataclass
 from itertools import pairwise
 
-from brimline_engine.checker.document import Document, Instance, Job, Plan, PlannedJob
+from brimline_engine.checker.document import Document, Fixed, Instance, Job, Plan, PlannedJob
 from brimline_engine.checker.rules import Rules, durations
 
 MANUAL = ("prep", "post", "finish")
@@ -126,7 +126,12 @@ def instance_problems(inst: Instance, r: Rules) -> list[Violation]:
             out.append(Violation("bad_instance", f.job_id, "two fixed tasks for one job"))
             continue
         seen.add(f.job_id)
-        length = durations(jobs[f.job_id], r, fixed=True)["machine"]
+        if f.end is not None and f.end <= f.start:
+            out.append(
+                Violation("bad_instance", f.job_id, f"fixed task ends {f.end}, not after {f.start}")
+            )
+            continue
+        length = durations(jobs[f.job_id], r, f)["machine"]
         fixed_runs.setdefault(f.machine, []).append((f.start, f.start + length, f.job_id))
     for machine, runs in fixed_runs.items():
         runs.sort()
@@ -139,14 +144,14 @@ def instance_problems(inst: Instance, r: Rules) -> list[Violation]:
 
 
 def _check_job(
-    pj: PlannedJob, job: Job, inst: Instance, r: Rules, fixed_at: tuple[str, int] | None
+    pj: PlannedJob, job: Job, inst: Instance, r: Rules, fx: Fixed | None
 ) -> list[Violation]:
     out: list[Violation] = []
 
     def v(code: str, detail: str) -> None:
         out.append(Violation(code, job.id, detail))
 
-    expected = durations(job, r, fixed=fixed_at is not None)
+    expected = durations(job, r, fx)
     kinds = [t.kind for t in pj.tasks]
     if kinds != list(expected):
         v("wrong_tasks", f"tasks {kinds}, expected {list(expected)}")
@@ -161,11 +166,16 @@ def _check_job(
     if machine is None:
         v("unknown_machine", f"machine {pj.machine} does not exist")
     for t in pj.tasks:
-        is_fact = t.kind == "machine" and fixed_at is not None
+        is_fact = t.kind == "machine" and fx is not None
+        if not is_fact and t.start < inst.plan_start:
+            v("before_plan_start", f"{t.kind} starts {t.start}, planning was at {inst.plan_start}")
         if t.kind == "machine":
-            if fixed_at is not None:
-                if (pj.machine, t.start) != fixed_at:
-                    v("fixed_moved", f"fixed at {fixed_at}, planned at {(pj.machine, t.start)}")
+            if fx is not None:
+                if (pj.machine, t.start) != (fx.machine, fx.start):
+                    v(
+                        "fixed_moved",
+                        f"fixed at {(fx.machine, fx.start)}, planned at {(pj.machine, t.start)}",
+                    )
             else:
                 if machine is not None and not _fits(
                     job, machine.process, machine.materials, machine.build_mm
@@ -331,16 +341,16 @@ def _witness(
     inst: Instance,
     r: Rules,
     runs: dict[str, list[_Run]],
-    fixed_at: tuple[str, int] | None,
+    fx: Fixed | None,
 ) -> str | None:
     """A placement of this one job alone (ignoring staff), or None. See SCHEDULE_RULES.md."""
-    d = durations(job, r, fixed=fixed_at is not None)
-    if fixed_at is not None:
-        machine, start = fixed_at
+    d = durations(job, r, fx)
+    if fx is not None:
+        machine, start = fx.machine, fx.start
     else:
-        t = 0
+        t = inst.plan_start
         if "prep" in d:
-            p = _earliest_manual(0, d["prep"], r, inst.horizon)
+            p = _earliest_manual(inst.plan_start, d["prep"], r, inst.horizon)
             if p is None:
                 return None
             t = p + d["prep"]
@@ -362,7 +372,7 @@ def _witness(
         if not options:
             return None
         start, machine = min(options)
-    t = start + d["machine"]
+    t = max(start + d["machine"], inst.plan_start)
     for kind in ("post", "finish"):
         if kind in d:
             s = _earliest_manual(t, d[kind], r, inst.horizon)
@@ -382,7 +392,7 @@ def check(doc: Document, r: Rules) -> CheckResult:
 
 def _check_plan(inst: Instance, plan: Plan, r: Rules) -> CheckResult:
     jobs = {j.id: j for j in inst.jobs}
-    fixed = {f.job_id: (f.machine, f.start) for f in inst.fixed}
+    fixed = {f.job_id: f for f in inst.fixed}
     out: list[Violation] = []
     seen: set[str] = set()
     planned: list[PlannedJob] = []
@@ -414,7 +424,8 @@ def _check_plan(inst: Instance, plan: Plan, r: Rules) -> CheckResult:
         out += _check_job(pj, job, inst, r, fixed.get(job.id))
         for t in pj.tasks:
             if t.kind == "machine":
-                fact = fixed.get(job.id) == (pj.machine, t.start)
+                fx = fixed.get(job.id)
+                fact = fx is not None and (fx.machine, fx.start) == (pj.machine, t.start)
                 runs.setdefault(pj.machine, []).append(
                     _Run(job.id, t.start, t.end, job.material, fact)
                 )
@@ -425,7 +436,7 @@ def _check_plan(inst: Instance, plan: Plan, r: Rules) -> CheckResult:
     for f in inst.fixed:
         if f.job_id not in planned_ids:
             job = jobs[f.job_id]
-            end = f.start + durations(job, r, fixed=True)["machine"]
+            end = f.start + durations(job, r, f)["machine"]
             runs.setdefault(f.machine, []).append(_Run(job.id, f.start, end, job.material, True))
     out += _timeline_problems(runs, r)
     out += _staff_problems(manual, r)

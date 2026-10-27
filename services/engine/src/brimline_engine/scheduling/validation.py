@@ -10,7 +10,7 @@ Fixed tasks (already running or done) are facts, not choices:
 from itertools import pairwise
 
 from brimline_engine.scheduling.config import Durations
-from brimline_engine.scheduling.durations import task_durations
+from brimline_engine.scheduling.durations import job_durations
 from brimline_engine.scheduling.model import Instance
 
 
@@ -27,7 +27,11 @@ def check_instance(instance: Instance, d: Durations) -> None:
             raise InstanceError(f"fixed task for unknown job {fixed.job_id}")
         if fixed.machine not in machines:
             raise InstanceError(f"fixed task {fixed.job_id} on unknown machine {fixed.machine}")
-        duration = task_durations(jobs[fixed.job_id], d)["machine"]
+        if fixed.end is not None and fixed.end <= fixed.start:
+            raise InstanceError(
+                f"fixed task {fixed.job_id} ends at {fixed.end}, not after its start"
+            )
+        duration = job_durations(jobs[fixed.job_id], d, fixed)["machine"]
         by_machine.setdefault(fixed.machine, []).append(
             (fixed.start, fixed.start + duration, fixed.job_id)
         )

@@ -44,6 +44,7 @@ class Fixed:
     job_id: str
     machine: str
     start: int
+    end: int | None  # when it really ended or is expected to; None: its formula duration
 
 
 @dataclass(frozen=True)
@@ -53,6 +54,7 @@ class Instance:
     machines: tuple[Machine, ...]
     jobs: tuple[Job, ...]
     fixed: tuple[Fixed, ...]
+    plan_start: int  # the moment of planning; 0 when the document does not say
     # The shifts and staff the plan was made for. Optional: when given, the checker compares
     # them with its own reading of config/scheduler.toml instead of trusting them.
     shifts: tuple[tuple[int, int], ...] | None
@@ -147,11 +149,14 @@ def _job(d: object, where: str) -> Job:
 
 
 def _fixed(d: object, where: str) -> Fixed:
-    _only(d, {"job_id", "machine", "start"}, where)
+    _only(d, {"job_id", "machine", "start", "end"}, where)
     return Fixed(
         job_id=_get(d, "job_id", str, where),
         machine=_get(d, "machine", str, where),
         start=_get(d, "start", int, where),
+        end=_get(d, "end", int, where)
+        if isinstance(d, dict) and d.get("end") is not None
+        else None,
     )
 
 
@@ -195,7 +200,11 @@ def parse(doc: object) -> Document:
         raise DocumentError(f"document: format must be {FORMAT!r}")
     inst = _get(doc, "instance", dict, "document")
     plan = _get(doc, "plan", dict, "document")
-    _only(inst, {"name", "horizon", "machines", "jobs", "fixed", "shifts", "staff"}, "instance")
+    _only(
+        inst,
+        {"name", "horizon", "machines", "jobs", "fixed", "shifts", "staff", "plan_start"},
+        "instance",
+    )
     _only(plan, {"method", "jobs", "unscheduled"}, "plan")
     machines = _get(inst, "machines", list, "instance")
     jobs = _get(inst, "jobs", list, "instance")
@@ -208,6 +217,7 @@ def parse(doc: object) -> Document:
             machines=tuple(_machine(m, f"machines[{i}]") for i, m in enumerate(machines)),
             jobs=tuple(_job(j, f"jobs[{i}]") for i, j in enumerate(jobs)),
             fixed=tuple(_fixed(f, f"fixed[{i}]") for i, f in enumerate(fixed)),
+            plan_start=_get(inst, "plan_start", int, "instance") if "plan_start" in inst else 0,
             shifts=_shifts(inst),
             staff=_get(inst, "staff", int, "instance") if "staff" in inst else None,
         ),

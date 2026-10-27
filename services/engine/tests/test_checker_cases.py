@@ -350,8 +350,9 @@ def test_manual_task_across_the_night_is_not_inside_one_shift() -> None:
 
 
 def test_task_before_minute_zero() -> None:
+    # Outside every shift, and (since M5) before the moment of planning, which defaults to 0.
     p = plan("A", "M1", ("prep", -10, 0), ("machine", 0, 100), ("finish", 100, 110))
-    assert codes(doc([job("A")], [p])) == {"manual_off_shift"}
+    assert codes(doc([job("A")], [p])) == {"manual_off_shift", "before_plan_start"}
 
 
 def test_three_manual_tasks_at_one_minute_with_two_people() -> None:

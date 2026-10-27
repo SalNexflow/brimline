@@ -49,12 +49,14 @@ class Job:
 
 @dataclass(frozen=True)
 class Fixed:
-    """A machine task already running or done: it keeps its machine and start (used in M6).
-    Its prep is treated as done."""
+    """A machine task already running or done: it keeps its machine and start. Its prep is
+    treated as done. `end` is when it really ended (done) or is expected to (running); without
+    it the task lasts its formula duration."""
 
     job_id: str
     machine: str
     start: int
+    end: int | None = None
 
 
 @dataclass(frozen=True)
@@ -66,6 +68,7 @@ class Instance:
     shifts: tuple[tuple[int, int], ...]  # staffed [start, end) windows, sorted
     staff: int
     fixed: tuple[Fixed, ...] = ()
+    plan_start: int = 0  # the moment of planning: nothing that is not fixed may start earlier
 
 
 @dataclass(frozen=True)

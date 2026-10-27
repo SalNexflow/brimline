@@ -40,13 +40,14 @@ def job_doc(j: Job) -> dict[str, Any]:
 
 
 def fixed_doc(f: Fixed) -> dict[str, Any]:
-    return {"job_id": f.job_id, "machine": f.machine, "start": f.start}
+    return {"job_id": f.job_id, "machine": f.machine, "start": f.start, "end": f.end}
 
 
 def instance_doc(instance: Instance) -> dict[str, Any]:
     return {
         "name": instance.name,
         "horizon": instance.horizon,
+        "plan_start": instance.plan_start,
         "machines": [machine_doc(m) for m in instance.machines],
         "jobs": [job_doc(j) for j in instance.jobs],
         "fixed": [fixed_doc(f) for f in instance.fixed],
