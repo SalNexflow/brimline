@@ -5,7 +5,9 @@ the work is planned across machines by a constraint solver, every plan is proven
 and the day is re-planned when something breaks. AI reads language and explains; code decides prices, dates,
 permissions, and schedules.
 
-> Status: **M4 (independent checker).** Every plan is re-validated by a checker that shares no code with the
+> Status: **M5 (production board).** A planner presses Plan day (it solves in the background), reads the plan as bars
+> per machine with an independent-check badge, and approves it; operators then work per-machine queues. Earlier:
+> **M4 (independent checker).** Every plan is re-validated by a checker that shares no code with the
 > scheduler and recomputes the numbers from raw inputs; the rules are in `docs/SCHEDULE_RULES.md`. Earlier: **M3
 > (scheduler, baselines, benchmark).** A CP-SAT scheduler plans the work across machines and shifts and is
 > benchmarked against two greedy baselines in `eval/results/BENCH.md`. Earlier: **M2 (pricing rules and AI quote builder).** A customer message becomes an AI-drafted quote that code prices
@@ -48,6 +50,16 @@ First run: `make setup` then `make gate`.
 | `gate-selftest` | Proves the gate fails: plants deliberate errors in a throwaway copy and checks each is caught at the right step. Refuses to run on a dirty git tree |
 | `eval` | Run the evaluations and write `eval/results/RESULTS.md` (needs model access; see `eval/README.md`) |
 | `bench` | Scheduler benchmark against two baselines, every plan re-checked by the independent checker; writes `eval/results/BENCH.md` and fails if the checker disagrees (slow: 25 CP-SAT runs; `--quick` for a smoke run into `eval/results/quick`) |
+
+## Known limits
+
+- Plan day runs on one background thread inside the engine process: fine for one engine, not for several
+  (a separate worker would be the next step, `docs/DECISIONS.md` D68).
+- Plan times are wall-clock minutes in the shop's time zone, so an overnight print across a clock change is
+  an hour longer or shorter in real time than its minute count.
+- Orders made from quotes have no part size yet (the file checker comes later), so the board lists them as
+  "cannot plan" instead of guessing.
+- Material deliveries are not modelled yet: stock is assumed on hand (M6 adds delays).
 
 ## Demo login
 

@@ -110,6 +110,13 @@ const MUTATIONS = [
       "from brimline_engine.checker.rules import Rules, durations\nfrom brimline_engine.scheduling.model import TASK_ORDER as _UNUSED  # noqa: F401",
     expect: "engine: tests",
   },
+  {
+    name: "approval no longer re-runs the independent checker",
+    file: "services/engine/src/brimline_engine/planning/schedules.py",
+    find: "        if not result.valid:",
+    replace: "        if result.valid is None:",
+    expect: "engine: tests",
+  },
 ];
 
 function sh(command, cwd, extraEnv = {}) {
