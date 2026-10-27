@@ -113,6 +113,10 @@ CREATE TABLE tasks (
 );
 CREATE INDEX tasks_schedule_idx ON tasks (schedule_id);
 CREATE INDEX tasks_job_idx ON tasks (job_id);
+-- A machine runs one task at a time. Two operators pressing Start at the same moment on the
+-- same machine cannot both win: the second waits for the first, then fails on this index.
+CREATE UNIQUE INDEX tasks_one_running_per_machine ON tasks (schedule_id, machine_id)
+    WHERE status = 'running' AND machine_id IS NOT NULL;
 
 CREATE FUNCTION tasks_only_for_the_approved_schedule() RETURNS trigger
 LANGUAGE plpgsql AS $$

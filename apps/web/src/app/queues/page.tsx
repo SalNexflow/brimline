@@ -44,24 +44,29 @@ function TaskRow({ t, timeZone, canUpdate }: { t: QueueTask; timeZone: string; c
   );
 }
 
-export default function QueuesPage() {
+export default function QueuesPage({ searchParams }: PageProps<"/queues">) {
   return (
     <main className="page">
       <h1 className="page-title">Queues</h1>
       <Suspense fallback={<p>Loading the queues…</p>}>
-        <QueuesContent />
+        <QueuesContent searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function QueuesContent() {
+async function QueuesContent({ searchParams }: { searchParams: PageProps<"/queues">["searchParams"] }) {
   const { client } = await signedInEngine();
   const { data } = await client.GET("/queues");
   if (!data) return <p>You do not have access to the queues.</p>;
   const tz = data.time_zone;
+  const updatedId = Number((await searchParams).updated);
+  const updated = data.queues.flatMap((q) => q.tasks).find((t) => t.id === updatedId);
   return (
     <>
+      <p role="status" className={updated ? "notice" : "visually-hidden"}>
+        {updated ? `${describe(updated)}: ${statusLabel(updated.status).toLowerCase()}.` : ""}
+      </p>
       {data.schedule_version === null ? (
         <p>No approved plan yet. Work appears here once a planner approves a plan.</p>
       ) : (

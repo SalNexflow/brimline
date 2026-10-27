@@ -180,6 +180,7 @@ def solve(
     weights: Weights | None = None,
     clock: Callable[[], float] = time.perf_counter,
     on_progress: Callable[[Progress], None] | None = None,
+    on_start: Callable[[cp_model.CpSolver], None] | None = None,
 ) -> Schedule:
     check_instance(instance, cfg.durations)
     w = weights or cfg.weights
@@ -265,6 +266,8 @@ def solve(
     solver.parameters.num_workers = cfg.solver.workers
     limit = deterministic_time or cfg.solver.deterministic_time_seconds
     solver.parameters.max_deterministic_time = limit
+    if on_start is not None:
+        on_start(solver)  # lets a caller stop the search from another thread (engine shutdown)
     started = clock()
     if on_progress is None:
         status = solver.solve(model)

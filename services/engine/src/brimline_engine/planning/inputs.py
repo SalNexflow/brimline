@@ -3,28 +3,30 @@
 - Jobs still to do (not done, not cancelled) with everything the scheduler needs; a job that
   lacks something is listed as unplannable with what is missing, never guessed.
 - Work already running or done in the approved schedule becomes fixed, at its real server-clock
-  times: a done machine task from its actual start to its actual end, a running one from its
-  actual start to the later of its planned end and now (it cannot have finished in the past).
+  times: a done machine task from its actual start to its actual end; a running one from its
+  actual start for its planned length, or until now if it is already running longer (D77: a
+  task that started late ends late; it cannot have finished in the past).
 - Nothing new may start before now (plan_start, rule R18).
 """
 
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from typing import Any
 
 import psycopg
 
 from brimline_engine.planning.clock import (
     anchor_for,
+    at_minute,
     due_minute,
     minute_at_or_after,
     minute_of,
 )
 from brimline_engine.scheduling.calendar import horizon_minutes, shift_windows
 from brimline_engine.scheduling.config import SchedulerConfig
-from brimline_engine.scheduling.export import fixed_doc, job_doc, machine_doc
+from brimline_engine.scheduling.export import job_doc, machine_doc
 from brimline_engine.scheduling.model import Fixed, Instance, Job, Machine
 
 DEFAULT_DAY_END = time(17, 0)  # due time on a day without a shift (for example a Sunday)
@@ -77,28 +79,31 @@ def _machines(conn: psycopg.Connection) -> tuple[Machine, ...]:
 
 def _fixed(
     conn: psycopg.Connection, anchor: datetime, now: datetime, tz: str, refs: dict[int, str]
-) -> dict[str, Fixed]:
-    """Machine tasks running or done in the approved schedule, at their real times."""
+) -> tuple[dict[str, Fixed], dict[str, str]]:
+    """Machine tasks running or done in the approved schedule, at their real times, and the
+    status of each (for the fingerprint)."""
     rows = conn.execute(
-        "SELECT t.job_id, m.code, t.status, t.actual_start, t.actual_end, t.planned_end"
+        "SELECT t.job_id, m.code, t.status, t.actual_start, t.actual_end, t.planned_start,"
+        "       t.planned_end"
         " FROM tasks t JOIN schedules s ON s.id = t.schedule_id AND s.status = 'approved'"
         " JOIN machines m ON m.id = t.machine_id"
         " WHERE t.kind = 'machine' AND t.status IN ('running', 'done')"
     ).fetchall()
     out = {}
-    for job_id, machine, status, actual_start, actual_end, planned_end in rows:
+    statuses = {}
+    for job_id, machine, status, a_start, a_end, p_start, p_end in rows:
         if job_id not in refs:
             continue  # the whole job is done
-        start = minute_of(actual_start, anchor, tz)
+        start = minute_of(a_start, anchor, tz)
         if status == "done":
-            end = minute_at_or_after(actual_end, anchor, tz)
-        else:  # running: it ends when planned, or later if it is already past that
-            end = max(
-                minute_at_or_after(planned_end, anchor, tz), minute_at_or_after(now, anchor, tz)
-            )
+            end = minute_at_or_after(a_end, anchor, tz)
+        else:  # running: its planned length from when it really started, or until now
+            length = -(-(p_end - p_start) // timedelta(minutes=1))  # whole minutes, rounded up
+            end = max(start + length, minute_at_or_after(now, anchor, tz))
         # A task done within the same minute it started still occupied its machine.
         out[refs[job_id]] = Fixed(refs[job_id], machine, start, max(end, start + 1))
-    return out
+        statuses[refs[job_id]] = status
+    return out, statuses
 
 
 def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, tz: str) -> Inputs:
@@ -147,7 +152,7 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
             )
         )
     planned_keys = {j.id for j in jobs}
-    fixed = _fixed(
+    fixed, statuses = _fixed(
         conn, anchor, now, tz, {r.job_id: r.key for r in refs.values() if r.key in planned_keys}
     )
     machines = _machines(conn)
@@ -161,19 +166,45 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
         fixed=tuple(fixed.values()),
         plan_start=minute_at_or_after(now, anchor, tz),
     )
-    return Inputs(instance, anchor, refs, unplannable, fingerprint(instance, unplannable))
+    return Inputs(
+        instance,
+        anchor,
+        refs,
+        unplannable,
+        fingerprint(instance, unplannable, statuses, anchor, tz),
+    )
 
 
-def fingerprint(instance: Instance, unplannable: list[dict[str, Any]]) -> str:
-    """What a plan was made from, without the moment of planning and the expected end of
-    running tasks (both move with the clock). Approval compares it with the inputs now: if a
-    job, a machine or the state of the work changed, the plan is stale."""
+def fingerprint(
+    instance: Instance,
+    unplannable: list[dict[str, Any]],
+    statuses: dict[str, str],
+    anchor: datetime,
+    tz: str,
+) -> str:
+    """What a plan was made from. Approval compares it with the inputs now: if a job, a machine,
+    the shifts or the state of the work (a task started or finished) changed, the plan is stale.
+    Times are absolute, so a new week's minute 0 does not by itself make a plan stale; the
+    moment of planning and the expected end of running work are left out, since both move with
+    the clock (approval checks separately that the plan does not start in the past)."""
+
+    def absolute(minute: int) -> str:
+        return at_minute(minute, anchor, tz).isoformat()
+
     data = {
-        "jobs": [job_doc(j) for j in instance.jobs],
+        "jobs": [job_doc(j) | {"due": absolute(j.due)} for j in instance.jobs],
         "machines": [machine_doc(m) for m in instance.machines],
-        "fixed": [{k: v for k, v in fixed_doc(f).items() if k != "end"} for f in instance.fixed],
+        "fixed": [
+            {
+                "job_id": f.job_id,
+                "machine": f.machine,
+                "start": absolute(f.start),
+                "status": statuses.get(f.job_id),
+            }
+            for f in instance.fixed
+        ],
         "unplannable": unplannable,
-        "shifts": [list(w) for w in instance.shifts],
+        "shifts": [[absolute(lo), absolute(hi)] for lo, hi in instance.shifts],
         "staff": instance.staff,
     }
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), default=str)

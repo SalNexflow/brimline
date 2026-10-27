@@ -7,6 +7,8 @@ document, and stores the result as a draft schedule. Only one run is active at a
 unique index); asking again while one runs returns the running one.
 """
 
+import logging
+import threading
 import time
 from collections.abc import Callable
 from dataclasses import asdict
@@ -14,6 +16,7 @@ from datetime import UTC, datetime
 from typing import Any, Literal
 
 import psycopg
+from ortools.sat.python import cp_model
 from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 from pydantic import BaseModel
@@ -31,6 +34,36 @@ START_ENDPOINT = "POST /planning-runs"
 PROGRESS_EVERY_SECONDS = 0.5  # at most this often a progress write to the database
 
 Runner = Callable[[int, datetime], None]  # (run id, the moment of planning)
+
+log = logging.getLogger(__name__)
+
+
+class _Shutdown:
+    """Lets the engine stop a running search when it shuts down, instead of waiting for it."""
+
+    def __init__(self) -> None:
+        self.requested = threading.Event()
+        self._lock = threading.Lock()
+        self._solver: cp_model.CpSolver | None = None
+
+    def track(self, solver: cp_model.CpSolver | None) -> None:
+        with self._lock:
+            self._solver = solver
+            if solver is not None and self.requested.is_set():
+                solver.stop_search()
+
+    def request(self) -> None:
+        with self._lock:
+            self.requested.set()
+            if self._solver is not None:
+                self._solver.stop_search()
+
+
+SHUTDOWN = _Shutdown()
+
+
+class InterruptedRunError(Exception):
+    pass
 
 
 class ForbiddenError(Exception):
@@ -140,18 +173,27 @@ def execute_run(
     *,
     deterministic_time: float | None = None,
 ) -> None:
-    """The background part. Never raises: a failure is written to the run for the board."""
+    """The background part. Never raises: a failure is written to the run for the board, and
+    if even that fails (the database is gone), it is logged and the next engine start marks the
+    run failed (recover_interrupted)."""
     try:
         _execute(pool, run_id, now, cfg, tz, deterministic_time)
     except Exception as exc:  # the board must learn about any failure, so catch everything
-        _update(
-            pool,
-            run_id,
-            status="failed",
-            phase="failed",
-            error=str(exc)[:500],
-            finished_at=datetime.now(UTC),
-        )
+        try:
+            mark_failed(pool, run_id, str(exc))
+        except Exception:
+            log.exception("planning run %s failed and could not be marked failed", run_id)
+
+
+def mark_failed(pool: ConnectionPool, run_id: int, error: str) -> None:
+    _update(
+        pool,
+        run_id,
+        status="failed",
+        phase="failed",
+        error=error[:500],
+        finished_at=datetime.now(UTC),
+    )
 
 
 def _execute(
@@ -177,7 +219,12 @@ def _execute(
         pool,
         run_id,
         phase="solving",
-        progress={"jobs": len(inst.jobs), "unplannable": len(inputs.unplannable)},
+        progress={
+            "jobs": len(inst.jobs),
+            "unplannable": len(inputs.unplannable),
+            # The quality limit, from config: shown on the board instead of a typed-in number.
+            "limit_seconds": deterministic_time or cfg.solver.deterministic_time_seconds,
+        },
     )
     last = 0.0
 
@@ -185,12 +232,30 @@ def _execute(
         nonlocal last
         if time.monotonic() - last >= PROGRESS_EVERY_SECONDS:
             last = time.monotonic()
-            _update(pool, run_id, progress={"jobs": len(inst.jobs), **asdict(p)})
+            _update(
+                pool,
+                run_id,
+                progress={
+                    "jobs": len(inst.jobs),
+                    "limit_seconds": deterministic_time or cfg.solver.deterministic_time_seconds,
+                    **asdict(p),
+                },
+            )
 
     hint = edd(inst, cfg.durations)
-    schedule = solve(
-        inst, cfg, hint=hint, deterministic_time=deterministic_time, on_progress=report
-    )
+    try:
+        schedule = solve(
+            inst,
+            cfg,
+            hint=hint,
+            deterministic_time=deterministic_time,
+            on_progress=report,
+            on_start=SHUTDOWN.track,
+        )
+    finally:
+        SHUTDOWN.track(None)
+    if SHUTDOWN.requested.is_set():
+        raise InterruptedRunError("the engine shut down during planning; plan again")
 
     _update(pool, run_id, phase="checking")
     doc = document(inst, schedule)

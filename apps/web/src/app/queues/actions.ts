@@ -22,5 +22,6 @@ export async function actOnTask(_previous: ActionState, formData: FormData): Pro
   });
   if (response.status === 401) redirect("/login");
   if (!data) return { error: refusal(response.status, error, "The task could not be updated.") };
-  redirect("/queues");
+  // Back to the queues, saying what happened (announced to screen readers there).
+  redirect(`/queues?updated=${data.id}`);
 }

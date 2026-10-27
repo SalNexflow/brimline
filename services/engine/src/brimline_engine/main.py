@@ -10,7 +10,7 @@ from psycopg_pool import ConnectionPool
 from pydantic import BaseModel
 
 from brimline_engine.api import auth, orders, planning, price_rules, quotes, reference
-from brimline_engine.planning.runs import recover_interrupted
+from brimline_engine.planning.runs import SHUTDOWN, recover_interrupted
 from brimline_engine.settings import get_settings
 
 
@@ -24,12 +24,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.pool = pool
     # Plan day runs here, one at a time, so a long solve never blocks a request (D68).
     app.state.planning_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="planning")
+    SHUTDOWN.requested.clear()  # a fresh start (tests start the app more than once)
     with pool.connection() as conn:
         recover_interrupted(conn)
     try:
         yield
     finally:
-        app.state.planning_executor.shutdown(wait=False, cancel_futures=True)
+        # Stop a search in progress, let the run record that, then close the database pool.
+        SHUTDOWN.request()
+        app.state.planning_executor.shutdown(wait=True, cancel_futures=True)
         pool.close()
 
 

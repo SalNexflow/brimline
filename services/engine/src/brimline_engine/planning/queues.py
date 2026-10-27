@@ -153,18 +153,29 @@ def act(
         )
         if stored is not None:
             return stored, True
+        # Lock the task's schedule for sharing first: an approval of a new plan (which locks the
+        # current one for update) then waits for this action, or this action waits for it and
+        # sees the plan superseded. Either way no start can slip between them.
+        found = conn.execute("SELECT schedule_id FROM tasks WHERE id = %s", (task_id,)).fetchone()
+        if found is None:
+            raise NotFoundError(str(task_id))
+        locked = conn.execute(
+            "SELECT status FROM schedules WHERE id = %s FOR SHARE", (found[0],)
+        ).fetchone()
+        assert locked is not None
         row = conn.execute(
-            "SELECT t.status, s.status, t.job_id, t.seq, t.kind, t.machine_id, t.schedule_id,"
-            "       t.actual_start, j.order_id"
-            " FROM tasks t JOIN schedules s ON s.id = t.schedule_id JOIN jobs j ON j.id = t.job_id"
+            "SELECT t.status, t.job_id, t.seq, t.kind, t.machine_id, t.schedule_id,"
+            "       t.actual_start, j.order_id, j.status, o.status"
+            " FROM tasks t JOIN jobs j ON j.id = t.job_id JOIN orders o ON o.id = j.order_id"
             " WHERE t.id = %s FOR UPDATE OF t",
             (task_id,),
         ).fetchone()
-        if row is None:
-            raise NotFoundError(str(task_id))
-        status, schedule_status, job_id, seq, kind, machine_id, schedule_id, a_start, order_id = row
-        if schedule_status != "approved":
+        assert row is not None
+        status, job_id, seq, kind, machine_id, schedule_id, a_start, order_id, j_st, o_st = row
+        if locked[0] != "approved":
             raise ConflictError("this task belongs to a plan that is no longer the approved one")
+        if "cancelled" in (j_st, o_st):
+            raise ConflictError("this job or its order was cancelled")
         before = {"status": status}
         if action == "start":
             if status != "planned":
@@ -186,10 +197,15 @@ def act(
                 assert busy is not None
                 if busy[0]:
                     raise ConflictError("the machine is already running another task")
-            conn.execute(
-                "UPDATE tasks SET status = 'running', actual_start = %s WHERE id = %s",
-                (now, task_id),
-            )
+            try:
+                conn.execute(
+                    "UPDATE tasks SET status = 'running', actual_start = %s WHERE id = %s",
+                    (now, task_id),
+                )
+            except psycopg.errors.UniqueViolation:
+                # The database's guard: someone started another task on this machine at the
+                # same moment, and won (tasks_one_running_per_machine).
+                raise ConflictError("the machine is already running another task") from None
             conn.execute(
                 "UPDATE jobs SET status = 'in_progress' WHERE id = %s AND status <> 'in_progress'",
                 (job_id,),

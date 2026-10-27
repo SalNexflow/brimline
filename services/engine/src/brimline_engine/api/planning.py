@@ -97,7 +97,19 @@ def start_planning(
     except tuple(ERRORS) as exc:
         raise _http_error(exc) from None
     if created:
-        runner(run.id, now)
+        try:
+            runner(run.id, now)
+        except Exception:
+            # Recorded as queued but never handed to the worker: say so, or Plan day stays
+            # blocked behind it until the next restart.
+            with conn.transaction():
+                conn.execute(
+                    "UPDATE planning_runs SET status = 'failed', phase = 'failed',"
+                    " error = 'could not start the planning worker', finished_at = now()"
+                    " WHERE id = %s",
+                    (run.id,),
+                )
+            raise
     return run
 
 

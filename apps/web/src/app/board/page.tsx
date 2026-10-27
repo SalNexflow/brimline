@@ -23,28 +23,34 @@ function RunProgress({ run, now }: { run: PlanningRun; now: Date }) {
   const p = run.progress as Record<string, number | boolean | undefined>;
   const elapsed = run.started_at ? Math.max(0, Math.round((now.getTime() - new Date(run.started_at).getTime()) / 1000)) : 0;
   const work = typeof p.work_done === "number" ? p.work_done : undefined;
+  const limit = typeof p.limit_seconds === "number" ? p.limit_seconds : undefined;
   if (!active && run.status !== "failed") return null;
+  if (run.status === "failed") {
+    return (
+      <p role="alert" className="error-box">
+        Planning failed: {run.error}
+      </p>
+    );
+  }
   return (
-    <div className="run-progress" role="status" aria-live="polite" data-testid="run-progress">
-      {run.status === "failed" ? (
-        <p className="error-box">Planning failed: {run.error}</p>
-      ) : (
-        <>
-          <p>
-            <strong>Planning:</strong> {PHASES[run.phase] ?? run.phase} ({elapsed} s)
-            {typeof p.jobs === "number" ? `, ${p.jobs} jobs` : null}
-          </p>
-          <progress max={1} value={work} aria-label="Share of the solver's work budget used">
-            {work === undefined ? "" : `${Math.round(work * 100)}%`}
-          </progress>
-          {typeof p.solutions === "number" ? (
-            <p className="muted">
-              Better plans found so far: {p.solutions}. The search stops at the quality limit (about 20 s of
-              solver work), which can take longer in real time.
-            </p>
-          ) : null}
-        </>
-      )}
+    <div className="run-progress" data-testid="run-progress">
+      {/* Only the phase is announced: the page re-renders every 2 s, and a ticking counter in a
+          live region would talk over everything else. */}
+      <p role="status">
+        <strong>Planning:</strong> {PHASES[run.phase] ?? run.phase}
+        {typeof p.jobs === "number" ? `, ${p.jobs} jobs` : null}.
+      </p>
+      <p className="muted">Running for {elapsed} s.</p>
+      <progress max={1} value={work} aria-label="Share of the solver's work budget used">
+        {work === undefined ? "" : `${Math.round(work * 100)}%`}
+      </progress>
+      {limit !== undefined ? (
+        <p className="muted">
+          {typeof p.solutions === "number" ? `Better plans found so far: ${p.solutions}. ` : null}
+          The search stops at its quality limit of {limit} s of solver work (a machine-independent
+          measure), which can take longer in real time.
+        </p>
+      ) : null}
     </div>
   );
 }

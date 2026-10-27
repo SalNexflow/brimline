@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from brimline_engine import audit, idempotency
 from brimline_engine.checker import CheckResult, check_document
 from brimline_engine.permissions import Actor, can
-from brimline_engine.planning.clock import at_minute
+from brimline_engine.planning.clock import at_minute, minute_at_or_after
 from brimline_engine.planning.inputs import build_inputs, job_key
 from brimline_engine.planning.runs import PlanningRun, latest_run
 from brimline_engine.scheduling.config import SchedulerConfig
@@ -346,24 +346,57 @@ def approve(
             raise RefusedError(
                 "the plan is stale: jobs or work changed since it was made; plan again"
             )
-        running_manual = conn.execute(
-            "SELECT count(*) FROM tasks t JOIN schedules s ON s.id = t.schedule_id"
-            " WHERE s.status = 'approved' AND t.status = 'running' AND t.kind <> 'machine'"
-        ).fetchone()
-        assert running_manual is not None
-        if running_manual[0]:
-            raise RefusedError(
-                f"{running_manual[0]} manual task(s) are in progress; finish or fail them first"
-            )
+        # Every task of a non-fixed job must start at or after now: a draft left waiting until
+        # its first tasks are in the past is out of date even if nothing else changed.
+        fixed_jobs = {f["job_id"] for f in doc["instance"]["fixed"]}
+        starts = [
+            t["start"]
+            for pj in doc["plan"]["jobs"]
+            for t in pj["tasks"]
+            if not (t["kind"] == "machine" and pj["job_id"] in fixed_jobs)
+        ]
+        if starts and min(starts) < minute_at_or_after(now, anchor, tz):
+            raise RefusedError("the plan starts tasks in the past; plan again")
 
+        # Lock the approved plan before looking at running work: an operator's action holds a
+        # share lock on it, so nothing can start between these checks and the hand-over.
         old = conn.execute(
             "SELECT id, version FROM schedules WHERE status = 'approved' FOR UPDATE"
         ).fetchone()
         carried: dict[tuple[int, str], tuple[Any, ...]] = {}
         if old is not None:
+            planned_keys = {pj["job_id"] for pj in doc["plan"]["jobs"]}
+            running = conn.execute(
+                "SELECT o.order_number, j.line_no, t.kind, m.code FROM tasks t"
+                " JOIN jobs j ON j.id = t.job_id JOIN orders o ON o.id = j.order_id"
+                " LEFT JOIN machines m ON m.id = t.machine_id"
+                " WHERE t.schedule_id = %s AND t.status = 'running'",
+                (old[0],),
+            ).fetchall()
+            manual = [r for r in running if r[2] != "machine"]
+            if manual:
+                raise RefusedError(
+                    f"{len(manual)} manual task(s) are in progress; finish or fail them first"
+                )
+            # A running machine task is carried into the new plan as fixed work; one whose job
+            # the new plan leaves out (cancelled, or unscheduled) would be orphaned, still
+            # printing but in no queue. Refuse instead.
+            orphans = [
+                f"{job_key(r[0], r[1])} on {r[3]}"
+                for r in running
+                if job_key(r[0], r[1]) not in planned_keys
+            ]
+            if orphans:
+                raise RefusedError(
+                    "running work is not in the new plan: "
+                    + ", ".join(orphans)
+                    + "; finish or fail it first"
+                )
+            # Only machine work is carried: it is what the new plan fixed. Manual work that
+            # was done is planned again (stated in the README's limits).
             for job_id, kind, t_status, a_start, a_end in conn.execute(
                 "SELECT job_id, kind, status, actual_start, actual_end FROM tasks"
-                " WHERE schedule_id = %s AND status IN ('running', 'done')",
+                " WHERE schedule_id = %s AND kind = 'machine' AND status IN ('running', 'done')",
                 (old[0],),
             ).fetchall():
                 carried[(job_id, kind)] = (t_status, a_start, a_end)

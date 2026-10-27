@@ -16,10 +16,12 @@ import pytest
 from fastapi.testclient import TestClient
 from psycopg.types.json import Jsonb
 
+from brimline_engine import audit
 from brimline_engine.api.planning import planning_runner
 from brimline_engine.main import app
 from brimline_engine.permissions import Actor
 from brimline_engine.planning import queues, runs, schedules
+from brimline_engine.planning.inputs import build_inputs
 from brimline_engine.scheduling.config import scheduler_config
 from tests.conftest import FIXED_NOW, login
 
@@ -448,8 +450,6 @@ def fixed_after(
     who = actor(owner_url, "U-OPERATOR", "operator")
     with psycopg.connect(app_url, autocommit=True) as conn:
         work(who, steps, conn)
-    from brimline_engine.planning.inputs import build_inputs
-
     with psycopg.connect(app_url) as conn:
         inputs = build_inputs(conn, replan_at, scheduler_config(), TZ)
     fixed = {f.job_id: f for f in inputs.instance.fixed}
@@ -474,7 +474,11 @@ def _start_machine(at: datetime) -> Callable[[Actor, dict[str, Any], psycopg.Con
     return work
 
 
-def test_a_running_task_ends_at_its_planned_end_when_that_is_later_than_now(
+# The model tray's machine task: setup 15 + 6 parts x 40 min + resin cool-down 45 = 300 min.
+TRAY_MACHINE_MINUTES = 300
+
+
+def test_a_running_task_runs_its_planned_length_from_when_it_really_started(
     client: TestClient,
     planner: dict[str, str],
     operator: dict[str, str],
@@ -491,12 +495,36 @@ def test_a_running_task_ends_at_its_planned_end_when_that_is_later_than_now(
         _start_machine(started),
         started + timedelta(minutes=10),
     )
-    planned_end = datetime.fromisoformat(out["steps"]["machine"]["planned_end"])
     assert out["fixed"] is not None
-    assert (out["fixed"].start, out["fixed"].end) == (minute(started), minute(planned_end))
+    assert (out["fixed"].start, out["fixed"].end) == (
+        minute(started),
+        minute(started) + TRAY_MACHINE_MINUTES,
+    )
 
 
-def test_a_running_task_past_its_planned_end_ends_now_at_the_earliest(
+def test_a_task_that_started_late_ends_late(
+    client: TestClient,
+    planner: dict[str, str],
+    operator: dict[str, str],
+    owner_url: str,
+    app_url: str,
+) -> None:
+    # Review finding (D77): started four hours late and re-planned ten minutes later, it still
+    # needs its full 300 minutes. "The later of its planned end and now" would free the machine
+    # after about an hour while it is still printing.
+    q = approved_queues(client, planner, operator)
+    steps = {t["kind"]: t for t in tasks_of(q, "BL-0003-1")}
+    started = datetime.fromisoformat(steps["machine"]["planned_start"]) + timedelta(hours=4)
+    who = actor(owner_url, "U-OPERATOR", "operator")
+    with psycopg.connect(app_url, autocommit=True) as conn:
+        _start_machine(started)(who, steps, conn)
+    with psycopg.connect(app_url) as conn:
+        inputs = build_inputs(conn, started + timedelta(minutes=10), scheduler_config(), TZ)
+    fixed = {f.job_id: f for f in inputs.instance.fixed}["BL-0003-1"]
+    assert (fixed.start, fixed.end) == (minute(started), minute(started) + TRAY_MACHINE_MINUTES)
+
+
+def test_a_running_task_past_its_length_ends_now_at_the_earliest(
     client: TestClient,
     planner: dict[str, str],
     operator: dict[str, str],
@@ -504,7 +532,7 @@ def test_a_running_task_past_its_planned_end_ends_now_at_the_earliest(
     app_url: str,
 ) -> None:
     started = FIXED_NOW + timedelta(minutes=30)
-    late = started + timedelta(days=1)  # far past the planned end (the tray takes 300 minutes)
+    late = started + timedelta(days=1)  # far past its 300 minutes
     out = fixed_after(client, planner, operator, owner_url, app_url, _start_machine(started), late)
     assert out["fixed"] is not None
     assert (out["fixed"].start, out["fixed"].end) == (minute(started), minute(late))
@@ -529,3 +557,192 @@ def test_a_done_task_keeps_its_actual_times(
     )
     assert out["fixed"] is not None
     assert (out["fixed"].start, out["fixed"].end) == (minute(started), minute(ended))
+
+
+# --- Review findings (M5) ---------------------------------------------------------------------
+
+
+def two_machine_jobs_ready(
+    client: TestClient, planner: dict[str, str], operator: dict[str, str]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Two machine tasks on one machine, each with its prep done."""
+    q = approved_queues(client, planner, operator)
+    queue = next(qu for qu in q["queues"] if qu["machine"] and len(qu["tasks"]) >= 2)
+    a, b = queue["tasks"][:2]
+    for t in (a, b):
+        prep = tasks_of(q, t["job"])[0]
+        assert act(client, operator, prep["id"], "start").status_code == 200
+        assert act(client, operator, prep["id"], "done").status_code == 200
+    return a, b
+
+
+def test_two_simultaneous_starts_on_one_machine_cannot_both_win(
+    client: TestClient,
+    planner: dict[str, str],
+    operator: dict[str, str],
+    owner_url: str,
+    app_url: str,
+) -> None:
+    a, b = two_machine_jobs_ready(client, planner, operator)
+    who = actor(owner_url, "U-OPERATOR", "operator")
+    barrier = threading.Barrier(2)
+    outcomes: list[str] = []
+    lock = threading.Lock()
+
+    def start(task_id: int) -> None:
+        with psycopg.connect(app_url, autocommit=True) as conn:
+            barrier.wait()
+            try:
+                queues.act(conn, who, task_id, "start", f"race-{uuid.uuid4()}", FIXED_NOW)
+                result = "started"
+            except queues.ConflictError:
+                result = "refused"
+        with lock:
+            outcomes.append(result)
+
+    threads = [threading.Thread(target=start, args=(t["id"],)) for t in (a, b)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=60)
+    assert sorted(outcomes) == ["refused", "started"]
+
+
+def test_the_database_allows_one_running_task_per_machine(
+    client: TestClient, planner: dict[str, str], operator: dict[str, str], app_url: str
+) -> None:
+    a, b = two_machine_jobs_ready(client, planner, operator)
+    with psycopg.connect(app_url) as conn, pytest.raises(psycopg.errors.UniqueViolation):
+        # Bypassing the engine's own check, as a race would.
+        conn.execute(
+            "UPDATE tasks SET status = 'running', actual_start = now() WHERE id = ANY(%s)",
+            ([a["id"], b["id"]],),
+        )
+
+
+def test_running_work_left_out_of_a_new_plan_blocks_approval(
+    client: TestClient,
+    planner: dict[str, str],
+    operator: dict[str, str],
+    owner_url: str,
+) -> None:
+    # The tray is printing; then its order is cancelled, so the next plan leaves it out. The
+    # print would be orphaned (running, in no queue): approval must refuse.
+    q = approved_queues(client, planner, operator)
+    steps = tasks_of(q, "BL-0003-1")
+    for action in ("start", "done"):
+        assert act(client, operator, steps[0]["id"], action).status_code == 200
+    assert act(client, operator, steps[1]["id"], "start").status_code == 200
+    with psycopg.connect(owner_url) as conn:
+        conn.execute("UPDATE orders SET status = 'cancelled' WHERE order_number = 'BL-0003'")
+        conn.execute(
+            "UPDATE jobs SET status = 'cancelled'"
+            " WHERE order_id = (SELECT id FROM orders WHERE order_number = 'BL-0003')"
+        )
+    plan_day(client, planner)
+    r = approve(client, planner, draft(client, planner)["id"])
+    assert r.status_code == 422 and "BL-0003-1 on RESIN-1" in r.json()["detail"]
+
+
+def test_an_old_draft_whose_tasks_are_now_in_the_past_is_refused(
+    client: TestClient, planner: dict[str, str], owner_url: str, app_url: str
+) -> None:
+    plan_day(client, planner)
+    d = draft(client, planner)
+    with (
+        psycopg.connect(app_url, autocommit=True) as conn,
+        pytest.raises(schedules.RefusedError, match="in the past"),
+    ):
+        schedules.approve(
+            conn,
+            actor(owner_url, "U-PLANNER", "planner"),
+            d["id"],
+            f"late-{uuid.uuid4()}",
+            FIXED_NOW + timedelta(hours=27),
+            scheduler_config(),
+            TZ,
+        )
+
+
+def test_work_finishing_after_planning_makes_the_draft_stale(
+    client: TestClient, planner: dict[str, str], operator: dict[str, str]
+) -> None:
+    q = approved_queues(client, planner, operator)
+    steps = tasks_of(q, "BL-0003-1")
+    for action in ("start", "done"):
+        assert act(client, operator, steps[0]["id"], action).status_code == 200
+    assert act(client, operator, steps[1]["id"], "start").status_code == 200
+    plan_day(client, planner)  # the tray's print is fixed as running
+    sid = draft(client, planner)["id"]
+    assert act(client, operator, steps[1]["id"], "done").status_code == 200
+    assert draft(client, planner)["stale"] is True
+    assert approve(client, planner, sid).status_code == 422
+
+
+def test_an_approval_waits_for_an_operator_action_in_progress(
+    client: TestClient,
+    planner: dict[str, str],
+    operator: dict[str, str],
+    owner_url: str,
+    app_url: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Review finding: approval read the running work before cancelling the old plan's tasks,
+    # so a start committed in between was lost. Now an operator's action holds a share lock on
+    # its plan: the approval waits for it, then sees the work in progress and refuses.
+    q = approved_queues(client, planner, operator)
+    prep = tasks_of(q, "BL-0003-1")[0]
+    plan_day(client, planner)
+    sid = draft(client, planner)["id"]
+
+    inside = threading.Event()
+    release = threading.Event()
+    real_record = audit.record
+
+    def slow_record(*args: Any, **kwargs: Any) -> None:
+        if kwargs.get("action") == "task.start":
+            inside.set()
+            assert release.wait(timeout=10)
+        real_record(*args, **kwargs)
+
+    monkeypatch.setattr(audit, "record", slow_record)
+    results: dict[str, str] = {}
+
+    def operator_starts() -> None:
+        with psycopg.connect(app_url, autocommit=True) as conn:
+            who = actor(owner_url, "U-OPERATOR", "operator")
+            queues.act(conn, who, prep["id"], "start", f"k-{uuid.uuid4()}", FIXED_NOW)
+
+    def planner_approves() -> None:
+        with psycopg.connect(app_url, autocommit=True) as conn:
+            who = actor(owner_url, "U-PLANNER", "planner")
+            try:
+                schedules.approve(
+                    conn, who, sid, f"k-{uuid.uuid4()}", FIXED_NOW, scheduler_config(), TZ
+                )
+                results["approve"] = "approved"
+            except schedules.RefusedError as exc:
+                results["approve"] = str(exc)
+
+    op = threading.Thread(target=operator_starts)
+    op.start()
+    assert inside.wait(timeout=10)
+    ap = threading.Thread(target=planner_approves)
+    ap.start()
+    ap.join(timeout=1)
+    assert ap.is_alive()  # it waits for the operator's action to commit
+    release.set()
+    op.join(timeout=10)
+    ap.join(timeout=30)
+    assert "manual task(s) are in progress" in results["approve"]
+
+
+def test_no_work_on_a_cancelled_order(
+    client: TestClient, planner: dict[str, str], operator: dict[str, str], owner_url: str
+) -> None:
+    q = approved_queues(client, planner, operator)
+    prep = tasks_of(q, "BL-0003-1")[0]
+    with psycopg.connect(owner_url) as conn:
+        conn.execute("UPDATE orders SET status = 'cancelled' WHERE order_number = 'BL-0003'")
+    r = act(client, operator, prep["id"], "start")
+    assert r.status_code == 409 and "cancelled" in r.json()["detail"]

@@ -60,6 +60,8 @@ First run: `make setup` then `make gate`.
 - Orders made from quotes have no part size yet (the file checker comes later), so the board lists them as
   "cannot plan" instead of guessing.
 - Material deliveries are not modelled yet: stock is assumed on hand (M6 adds delays).
+- When a new plan replaces the approved one, finished manual work (prep, post-processing) of jobs that are
+  not yet done is planned again; only machine work carries over as fixed.
 
 ## Demo login
 

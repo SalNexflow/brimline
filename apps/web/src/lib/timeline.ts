@@ -4,32 +4,31 @@
 const MINUTE = 60_000;
 const DAY = 24 * 60 * MINUTE;
 
-/** Hours and minutes of the wall clock in `timeZone` at `instant`. */
-function wallClock(instant: Date, timeZone: string): { hour: number; minute: number } {
+/** The wall clock in `timeZone` at `instant`, read as if it were UTC (a "wall" timestamp). */
+function wallAsUtc(instant: number, timeZone: string): number {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
     hourCycle: "h23",
-  }).formatToParts(instant);
+  }).formatToParts(new Date(instant));
   const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
-  return { hour: get("hour"), minute: get("minute") };
+  return Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
 }
 
-/** The instant of midnight in `timeZone` on the day `instant` falls on. Corrected once, so a
- * day with a clock change (23 or 25 hours) still lands on 00:00 local time. */
+/** The instant of midnight in `timeZone` on the day `instant` falls on. Take the local date,
+ * then find the instant whose wall clock reads that date at 00:00: the zone's offset is looked
+ * up at a first guess and corrected once, so a day with a clock change still lands on 00:00. */
 export function startOfShopDay(instant: Date, timeZone: string): Date {
-  let guess = new Date(instant.getTime() - wallMinutes(instant, timeZone) * MINUTE);
-  guess = new Date(guess.getTime() - wallMinutes(guess, timeZone) * MINUTE);
-  return new Date(Math.floor(guess.getTime() / MINUTE) * MINUTE);
-}
-
-function wallMinutes(instant: Date, timeZone: string): number {
-  const { hour, minute } = wallClock(instant, timeZone);
-  // Minutes past midnight, but a few minutes before midnight count as negative, so a guess that
-  // overshot into the previous evening is pulled forward rather than back a whole day.
-  const m = hour * 60 + minute;
-  return m > 23 * 60 ? m - 24 * 60 : m;
+  const wall = wallAsUtc(instant.getTime(), timeZone);
+  const midnightWall = wall - (wall % DAY);
+  let guess = midnightWall - (wallAsUtc(midnightWall, timeZone) - midnightWall);
+  guess = midnightWall - (wallAsUtc(guess, timeZone) - guess);
+  return new Date(guess);
 }
 
 export type Window = { from: Date; to: Date; days: Date[] };

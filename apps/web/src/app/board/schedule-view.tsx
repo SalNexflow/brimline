@@ -33,8 +33,8 @@ export function CheckBadge({ schedule }: { schedule: Schedule }) {
         <strong>{check.valid ? "passed" : "failed"}</strong>
       </p>
       <p className="muted">
-        The checker re-validated the saved plan from its raw inputs just now; it shares no code with
-        the scheduler.
+        Re-checked just now by the independent checker, which shares no code with the scheduler:
+        it reads the saved plan and the shop&apos;s config and applies every rule itself.
       </p>
       {check.violations.length > 0 ? (
         <>

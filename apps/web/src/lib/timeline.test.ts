@@ -11,6 +11,14 @@ describe("startOfShopDay", () => {
     expect(startOfShopDay(at("2026-10-26T09:00:00Z"), TZ).toISOString()).toBe("2026-10-25T23:00:00.000Z");
   });
 
+  it("keeps a late-evening time on its own day (review finding)", () => {
+    // 23:30 in Berlin on Monday 26 Oct = 22:30 UTC: still Monday, so midnight is 25 Oct 23:00 UTC.
+    expect(startOfShopDay(at("2026-10-26T22:30:00Z"), TZ).toISOString()).toBe("2026-10-25T23:00:00.000Z");
+    // 23:59 likewise, and 00:00 the next day starts that day.
+    expect(startOfShopDay(at("2026-10-26T22:59:00Z"), TZ).toISOString()).toBe("2026-10-25T23:00:00.000Z");
+    expect(startOfShopDay(at("2026-10-26T23:00:00Z"), TZ).toISOString()).toBe("2026-10-26T23:00:00.000Z");
+  });
+
   it("lands on 00:00 on the day the clocks go back", () => {
     // Sunday 25 Oct 2026 has 25 hours in Berlin; its midnight was still in summer time (UTC+2).
     expect(startOfShopDay(at("2026-10-25T20:00:00Z"), TZ).toISOString()).toBe("2026-10-24T22:00:00.000Z");
