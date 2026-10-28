@@ -344,7 +344,7 @@ def test_advice_is_stored_apart_and_changes_no_check(
     on = files_config().model_copy(
         update={"advice": files_config().advice.model_copy(update={"enabled": True})}
     )
-    monkeypatch.setattr(files_api, "files_config", lambda: on)
+    monkeypatch.setattr(files_api, "effective_files_config", lambda: on)
     order = new_order(client)
     f = upload(client, "U-PLANNER", METRES, order=order).json()  # a unit warning
     r = client.post(f"/files/{f['file_number']}/advice", headers=login(client, "U-PLANNER") | key())

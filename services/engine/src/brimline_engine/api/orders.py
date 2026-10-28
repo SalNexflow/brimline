@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Path, Response
 from brimline_engine import orders
 from brimline_engine.api.deps import Conn, CurrentUser, IdempotencyKey, Now
 from brimline_engine.dates import shop_today
+from brimline_engine.demo import check_storage
 from brimline_engine.idempotency import IdempotencyConflictError
 from brimline_engine.shop_config import load_shop_config
 from brimline_engine.text import ORDER_NUMBER_PATTERN
@@ -75,6 +76,7 @@ def create_order(
     now: Now,
     idempotency_key: IdempotencyKey,
 ) -> dict[str, Any]:
+    check_storage(conn, "orders")  # demo mode only (config/demo.toml)
     today = shop_today(now, load_shop_config().shop.time_zone)
     try:
         stored, replayed = orders.create_order(conn, user.actor, body, idempotency_key, today)

@@ -23,8 +23,15 @@ class Settings(BaseSettings):
     session_ttl_minutes: int = Field(default=480, gt=0, le=7 * 24 * 60)
     # Off unless explicitly enabled, so a deployment cannot ship demo login by accident.
     demo_login: bool = False
-    # Which model client to use: live, fake (tests), or off (staff fill quotes by hand).
-    ai_mode: Literal["live", "fake", "off"] = "off"
+    # Which model client to use: live, fake (tests), off (everything by hand), record (live, and
+    # every reply written to the recording file), replay (recorded replies only; M11).
+    ai_mode: Literal["live", "fake", "off", "record", "replay"] = "off"
+    # The hosted public demo (M11, config/demo.toml): spend limits, a shorter solver run,
+    # storage caps, smaller uploads. Off locally and in the gate.
+    demo_mode: bool = False
+    # When set, every request except /health must carry it (X-Engine-Key): only the web can
+    # call the engine, and only then is the visitor id it passes on (X-Visitor) believed.
+    engine_web_key: SecretStr | None = None
     # Read by the DeepSeek client. (The Claude client finds ANTHROPIC_API_KEY itself.)
     deepseek_api_key: SecretStr | None = None
 

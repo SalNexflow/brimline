@@ -9,9 +9,10 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Request, Response
 from psycopg_pool import ConnectionPool
 
 from brimline_engine.api.deps import Conn, CurrentUser, IdempotencyKey, Now
+from brimline_engine.demo import check_storage, effective_scheduler_config
 from brimline_engine.idempotency import IdempotencyConflictError, StoredResponse
 from brimline_engine.planning import queues, runs, schedules
-from brimline_engine.scheduling.config import SchedulerConfig, scheduler_config
+from brimline_engine.scheduling.config import SchedulerConfig
 from brimline_engine.shop_config import load_shop_config
 
 router = APIRouter(tags=["planning"])
@@ -49,13 +50,14 @@ def planning_runner(request: Request) -> runs.Runner:
 
     def submit(run_id: int, now: datetime) -> None:
         request.app.state.planning_executor.submit(
-            runs.execute_run, pool, run_id, now, scheduler_config(), shop_tz()
+            runs.execute_run, pool, run_id, now, effective_scheduler_config(), shop_tz()
         )
 
     return submit
 
 
-Config = Annotated[SchedulerConfig, Depends(scheduler_config)]
+# The hosted demo plans with a shorter solver run (config/demo.toml); elsewhere the full one.
+Config = Annotated[SchedulerConfig, Depends(effective_scheduler_config)]
 Tz = Annotated[str, Depends(shop_tz)]
 Runner = Annotated[Callable[[int, datetime], None], Depends(planning_runner)]
 Id = Annotated[int, Path(ge=1)]
@@ -92,6 +94,7 @@ def start_planning(
     conn: Conn, user: CurrentUser, now: Now, key: IdempotencyKey, runner: Runner
 ) -> runs.PlanningRun:
     """Plan day. Returns at once with a run to poll; the solve happens in the background."""
+    check_storage(conn, "planning_runs")  # demo mode only (config/demo.toml)
     try:
         run, created = runs.start_run(conn, user.actor, key)
     except tuple(ERRORS) as exc:

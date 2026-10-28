@@ -12,9 +12,9 @@ from brimline_engine.ai.clients import client_for
 from brimline_engine.ai.config import models_config
 from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, Now
 from brimline_engine.dates import shop_today
+from brimline_engine.demo import check_storage, effective_files_config
 from brimline_engine.files import advice
 from brimline_engine.files import service as f
-from brimline_engine.files.config import files_config
 from brimline_engine.idempotency import IdempotencyConflictError, StoredResponse
 from brimline_engine.shop_config import load_shop_config
 
@@ -63,6 +63,7 @@ def upload_file(
     unit: Annotated[str, Query(max_length=20)] = "millimeter",
 ) -> dict[str, Any]:
     """Check a model file and fill the planning fields it can (quote line or job)."""
+    check_storage(conn, "files")  # demo mode only (config/demo.toml)
     try:
         stored, replayed = f.upload(
             conn,
@@ -73,7 +74,7 @@ def upload_file(
             data,
             key,
             _today(now),
-            files_config(),
+            effective_files_config(),
         )
     except tuple(ERRORS) as exc:
         raise _http_error(exc) from None
@@ -110,7 +111,7 @@ def override_warning(
     """Accept a warning with a reason (logged). A failed check cannot be accepted."""
     try:
         stored, replayed = f.override(
-            conn, user.actor, file_number, body, key, _today(now), files_config()
+            conn, user.actor, file_number, body, key, _today(now), effective_files_config()
         )
     except tuple(ERRORS) as exc:
         raise _http_error(exc) from None
@@ -125,7 +126,7 @@ def override_warning(
 def file_preview(file_number: FileNumber, conn: Conn, user: CurrentUser) -> Response:
     """Three shaded views (top, front, side) drawn by code."""
     try:
-        png = f.preview_png(conn, user.actor, file_number, files_config())
+        png = f.preview_png(conn, user.actor, file_number, effective_files_config())
     except tuple(ERRORS) as exc:
         raise _http_error(exc) from None
     return Response(png, media_type="image/png", headers={"Cache-Control": "private, max-age=3600"})
@@ -148,7 +149,7 @@ def file_advice(
             user.actor,
             file_number,
             key,
-            files_config(),
+            effective_files_config(),
             client_for(settings.ai_mode, model),
             settings.ai_mode,
         )

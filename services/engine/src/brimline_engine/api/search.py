@@ -9,6 +9,7 @@ from brimline_engine.ai.clients import client_for
 from brimline_engine.ai.config import models_config
 from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, Now
 from brimline_engine.api.planning import Config, Tz
+from brimline_engine.demo import check_storage
 from brimline_engine.search import service
 from brimline_engine.search.filters import Filter
 from brimline_engine.search.reading import PURPOSE
@@ -26,6 +27,7 @@ def search(
     cfg: Config,
     tz: Tz,
 ) -> service.SearchOut:
+    check_storage(conn, "ai_calls")  # demo mode only (config/demo.toml)
     model = models_config().task(PURPOSE).model
     try:
         return service.search(

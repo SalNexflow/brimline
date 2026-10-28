@@ -11,6 +11,7 @@ from brimline_engine.ai.config import models_config
 from brimline_engine.ai.gateway import GatewayResult
 from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, Now
 from brimline_engine.dates import shop_today
+from brimline_engine.demo import check_storage
 from brimline_engine.idempotency import IdempotencyConflictError, StoredResponse
 from brimline_engine.quote_extract import PURPOSE, QuoteDraft, extract
 from brimline_engine.shop_config import load_shop_config
@@ -71,6 +72,7 @@ def submit_quote_request(
     idempotency_key: IdempotencyKey,
     extractor: Annotated[quotes.Extractor, Depends(get_extractor)],
 ) -> dict[str, Any]:
+    check_storage(conn, "quote_requests")  # demo mode only (config/demo.toml)
     try:
         stored, replayed = quotes.submit_request(
             conn, user.actor, body, idempotency_key, _today(now), extractor

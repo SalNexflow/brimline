@@ -10,6 +10,7 @@ from brimline_engine.ai.clients import client_for
 from brimline_engine.ai.config import models_config
 from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, Now
 from brimline_engine.api.planning import Config, Tz
+from brimline_engine.demo import check_storage
 from brimline_engine.idempotency import IdempotencyConflictError, StoredResponse
 from brimline_engine.planning import disruptions as d
 
@@ -68,6 +69,7 @@ def read_disruption(
     tz: Tz,
 ) -> dict[str, Any]:
     """Read a planner's message into events for review. Nothing is planned or changed yet."""
+    check_storage(conn, "disruptions")  # demo mode only (config/demo.toml)
     model = models_config().task("disruption_parse").model
     try:
         stored, replayed = d.read(
@@ -95,6 +97,7 @@ def enter_disruption(
     now: Now,
     key: IdempotencyKey,
 ) -> dict[str, Any]:
+    check_storage(conn, "disruptions")  # demo mode only (config/demo.toml)
     try:
         stored, replayed = d.enter(conn, user.actor, body, key, now)
     except tuple(ERRORS) as exc:

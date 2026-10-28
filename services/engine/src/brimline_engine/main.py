@@ -1,14 +1,18 @@
 """HTTP entry point."""
 
-from collections.abc import AsyncIterator
+import hmac
+import re
+from collections.abc import AsyncIterator, Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from typing import Literal
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 from psycopg_pool import ConnectionPool
 from pydantic import BaseModel
 
+from brimline_engine.ai.guard import REPLAYED, VISITOR, visitor_hash
 from brimline_engine.api import (
     auth,
     disruptions,
@@ -20,6 +24,8 @@ from brimline_engine.api import (
     reference,
     search,
 )
+from brimline_engine.api.deps import Conn
+from brimline_engine.demo import DemoStatus, StorageFullError, status
 from brimline_engine.planning.runs import SHUTDOWN, recover_interrupted
 from brimline_engine.settings import get_settings
 
@@ -56,6 +62,45 @@ app.include_router(planning.router)
 app.include_router(disruptions.router)
 app.include_router(files.router)
 app.include_router(search.router)
+
+CallNext = Callable[[Request], Awaitable[Response]]
+VISITOR_ID = re.compile(r"^[0-9a-f]{16}$")
+
+
+@app.middleware("http")
+async def web_key_and_visitor(request: Request, call_next: CallNext) -> Response:
+    """With ENGINE_WEB_KEY set (the hosted demo), only the web may call the engine, and only
+    then is its visitor id believed. The visitor id is a keyed hash, never an address."""
+    settings = get_settings()
+    address = request.client.host if request.client else "unknown"
+    key = settings.engine_web_key
+    if key is None:
+        visitor = visitor_hash(address, settings.session_secret.get_secret_value())
+    else:
+        sent = request.headers.get("x-engine-key", "")
+        if request.url.path != "/health" and not hmac.compare_digest(sent, key.get_secret_value()):
+            return JSONResponse({"detail": "not allowed"}, status_code=401)
+        claimed = request.headers.get("x-visitor", "")
+        visitor = (
+            claimed if VISITOR_ID.match(claimed) else visitor_hash(address, key.get_secret_value())
+        )
+    token, replayed = VISITOR.set(visitor), REPLAYED.set(False)
+    try:
+        return await call_next(request)
+    finally:
+        VISITOR.reset(token)
+        REPLAYED.reset(replayed)
+
+
+@app.exception_handler(StorageFullError)
+def storage_full(_request: Request, exc: StorageFullError) -> JSONResponse:
+    return JSONResponse({"detail": str(exc)}, status_code=503)
+
+
+@app.get("/demo-status")
+def demo_status(conn: Conn) -> DemoStatus:
+    """What the hosted demo limits now (all off locally): for the banner and the board label."""
+    return status(conn, VISITOR.get())
 
 
 class Health(BaseModel):

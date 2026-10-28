@@ -1,0 +1,42 @@
+# Settings for the hosted public demo (M11), used only when DEMO_MODE=true (hard rule 8: config,
+# not memory). Locally and in the gate DEMO_MODE is off and none of this applies.
+# Every value is a shop setting chosen for a free-tier demo, said plainly; change them here.
+
+checked = 2026-10-28
+
+[budget]
+# A hard limit on model spend, counted from the cost of every recorded call (ai_calls) since
+# midnight UTC. DeepSeek costs are recorded at the peak price, so the real spend is lower.
+daily_usd = 0.50
+# Live model calls per visitor (a hashed address the web passes on) per rolling hour.
+per_visitor_per_hour = 12
+# Over either limit, replies are replayed from a recorded run when the same prompt was recorded;
+# otherwise the app's by-hand path is used (it always exists). The page says which.
+
+[solver]
+# The free engine host has a small fraction of a CPU, so Plan day stops sooner there. The board
+# says so ("hosted demo: shorter search"). The full setting is in config/scheduler.toml.
+deterministic_time_seconds = 1.5
+
+[storage]
+# Neon's free plan holds 1 GB per project; writes stop well before it. The demo database is also
+# reset every night (.github/workflows/demo-reset.yml).
+max_database_mb = 700
+# Row caps for the tables visitors can grow; a write past the cap is refused with a plain message.
+[storage.max_rows]
+files = 300
+quote_requests = 2000
+orders = 2000
+disruptions = 2000
+ai_calls = 20000
+planning_runs = 2000
+
+[files]
+# Vercel's serverless functions accept request bodies up to about 4.5 MB, so uploads in the
+# hosted demo are capped below that (the local limit is in config/files.toml).
+max_upload_bytes = 4_000_000
+
+[recording]
+# Model replies recorded once with a live model, replayed by AI_MODE=replay and by the budget
+# fallback. Each line: the prompt's hash and the reply text (no keys, no user data).
+path = "eval/recordings/demo.jsonl"

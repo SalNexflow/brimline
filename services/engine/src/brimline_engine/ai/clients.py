@@ -19,7 +19,8 @@ from brimline_engine.ai.gateway import (
     TokenUsage,
     Turn,
 )
-from brimline_engine.settings import get_settings
+from brimline_engine.ai.guard import GuardedClient, RecordingClient, ReplayClient, demo_config
+from brimline_engine.settings import REPO_ROOT, get_settings
 
 
 def _draft(**overrides: object) -> str:
@@ -185,12 +186,7 @@ def fake_reply(turns: list[Turn]) -> ModelReply:
     return ModelReply(text=text, stop_reason="end_turn", usage=TokenUsage())
 
 
-def client_for(mode: str, model: str) -> ModelClient | None:
-    """The client for `model` in this mode, or None when AI is off."""
-    if mode == "fake":
-        return ScriptedClient(fake_reply)
-    if mode != "live":
-        return None
+def _live(model: str) -> ModelClient:
     cfg = models_config()
     provider = cfg.prices[model].provider
     if provider == "deepseek":
@@ -200,3 +196,23 @@ def client_for(mode: str, model: str) -> ModelClient | None:
             base_url=cfg.providers["deepseek"].base_url,
         )
     return AnthropicClient()
+
+
+def client_for(mode: str, model: str) -> ModelClient | None:
+    """The client for `model` in this mode, or None when AI is off. In demo mode a live client
+    is guarded by the spending limits (ai/guard.py) and falls back to recorded replies."""
+    if mode == "fake":
+        return ScriptedClient(fake_reply)
+    recording = REPO_ROOT / demo_config().recording.path
+    if mode == "replay":
+        return ReplayClient(recording)
+    if mode == "record":
+        return RecordingClient(_live(model), recording)
+    if mode != "live":
+        return None
+    settings = get_settings()
+    if settings.demo_mode:
+        return GuardedClient(
+            _live(model), ReplayClient(recording), settings.database_url, demo_config().budget
+        )
+    return _live(model)
