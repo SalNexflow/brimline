@@ -155,7 +155,8 @@ const MUTATIONS = [
     name: "engine stops checking the web key",
     file: "services/engine/src/brimline_engine/main.py",
     find: '        if request.url.path != "/health" and not hmac.compare_digest(',
-    replace: '        if False and not hmac.compare_digest(',
+    // Still valid code (lint passes): the key is now checked only on a path nobody calls.
+    replace: '        if request.url.path == "/nowhere" and not hmac.compare_digest(',
     expect: "engine: tests",
   },
   {
