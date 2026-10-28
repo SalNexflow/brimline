@@ -71,14 +71,29 @@ def ensure_app_role(conn: psycopg.Connection, app_url: str) -> None:
     if params.get("user") != APP_ROLE:
         raise MigrationError(f"DATABASE_URL must connect as {APP_ROLE}, not {params.get('user')!r}")
     password = sql.Literal(str(params.get("password", "")))
-    exists = conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (APP_ROLE,)).fetchone()
-    verb = sql.SQL("ALTER ROLE") if exists else sql.SQL("CREATE ROLE")
-    # Explicitly not a superuser and unable to create databases or roles.
-    conn.execute(
-        sql.SQL("{} {} WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD {}").format(
-            verb, sql.Identifier(APP_ROLE), password
+    row = conn.execute(
+        "SELECT rolsuper OR rolcreatedb OR rolcreaterole OR rolbypassrls FROM pg_roles"
+        " WHERE rolname = %s",
+        (APP_ROLE,),
+    ).fetchone()
+    if row is None:
+        # Explicitly not a superuser and unable to create databases or roles.
+        conn.execute(
+            sql.SQL(
+                "CREATE ROLE {} WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS"
+                " PASSWORD {}"
+            ).format(sql.Identifier(APP_ROLE), password)
         )
-    )
+    else:
+        # An owner that is not a superuser may not even repeat NOSUPERUSER (M11, D34), so the
+        # attributes are checked instead, and only the login and password are set.
+        if row[0]:
+            raise MigrationError(f"{APP_ROLE} exists with powers it must not have; drop it first")
+        conn.execute(
+            sql.SQL("ALTER ROLE {} WITH LOGIN PASSWORD {}").format(
+                sql.Identifier(APP_ROLE), password
+            )
+        )
     # Search public before pg_temp, so a temporary table can never shadow a real one. (Temp tables
     # are also revoked in 0004; this guards the name lookup itself.)
     conn.execute(

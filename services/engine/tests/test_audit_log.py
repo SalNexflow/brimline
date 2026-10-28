@@ -88,7 +88,7 @@ OWNER_ALLOWED: list[LiteralString] = [
     "CREATE TABLE sneaky (id int)",
     "ALTER TABLE orders ADD COLUMN discount_percent int",
     "CREATE SCHEMA sneaky",
-    "ALTER TABLE audit_log DISABLE TRIGGER ALL",
+    "ALTER TABLE audit_log DISABLE TRIGGER audit_log_no_update_or_delete",
     "INSERT INTO audit_log (id, at, action, entity_type, entity_id) OVERRIDING SYSTEM VALUE"
     " VALUES (999999, '2000-01-01', 'owner', 'order', 'BL-0001')",
     "CREATE TEMP TABLE audit_log (id int)",
@@ -130,6 +130,12 @@ def test_the_same_statements_work_for_the_owner(
     # Control group: proves the app role is refused for lack of privilege, not because the
     # statement is broken. (Rolled back after the test, like every fixture transaction.)
     owner_conn.execute(statement)
+
+
+def test_even_the_owner_cannot_switch_off_every_trigger(owner_conn: psycopg.Connection) -> None:
+    # M11 (D34): with a non-superuser owner, the system triggers behind foreign keys stay on.
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        owner_conn.execute("ALTER TABLE audit_log DISABLE TRIGGER ALL")
 
 
 def test_triggers_are_still_enabled(owner_conn: psycopg.Connection) -> None:
