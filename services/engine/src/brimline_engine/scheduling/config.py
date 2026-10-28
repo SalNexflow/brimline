@@ -55,6 +55,7 @@ class Replan(_Strict):
     moved_job: int = Field(ge=0)
     slip_per_minute: int = Field(ge=0)
     overrun_margin_minutes: int = Field(ge=1)
+    approval_grace_minutes: int = Field(ge=0, le=120)
     running_print_lost_when_machine_down: bool
 
 

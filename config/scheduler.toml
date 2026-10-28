@@ -48,6 +48,10 @@ slip_per_minute = 5                      # half the weight of a minute past the 
 # A print still running past its planned length is assumed to need this much longer, shown on
 # the board as an estimate until a planner says when it will really finish (print_overrun).
 overrun_margin_minutes = 60
+# A draft whose first tasks start at the moment it was made can still be approved for this long
+# afterwards; later it is out of date ("plan again"). Without it, a draft made during shift hours
+# could only be approved within the minute it was made (DEFECT_LOG #71). Shop setting, assumed.
+approval_grace_minutes = 15
 # When a machine goes down while a print is running on it, the print is treated as lost and
 # planned again from the start. Set to false to assume the print survives and the downtime
 # starts when it ends. Stated in every diff it affects.

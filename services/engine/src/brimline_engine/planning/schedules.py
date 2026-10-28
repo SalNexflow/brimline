@@ -366,8 +366,9 @@ def approve(
                 "what this plan would change (lost prints, cancellations, downtimes) is no"
                 " longer what was shown; plan again"
             )
-        # Every task of a non-fixed job must start at or after now: a draft left waiting until
-        # its first tasks are in the past is out of date even if nothing else changed.
+        # Every task of a non-fixed job must start at or after now, less a short grace: a draft
+        # left waiting until its first tasks are well in the past is out of date even if nothing
+        # else changed, but one approved a few minutes after it was made is not (#71).
         fixed_jobs = {f["job_id"] for f in doc["instance"]["fixed"]}
         starts = [
             t["start"]
@@ -375,7 +376,8 @@ def approve(
             for t in pj["tasks"]
             if not (t["kind"] == "machine" and pj["job_id"] in fixed_jobs)
         ]
-        if starts and min(starts) < minute_at_or_after(now, anchor, tz):
+        grace = cfg.replan.approval_grace_minutes
+        if starts and min(starts) < minute_at_or_after(now, anchor, tz) - grace:
             raise RefusedError("the plan starts tasks in the past; plan again")
 
         # Lock the approved plan before looking at running work: an operator's action holds a

@@ -756,3 +756,39 @@ def test_no_work_on_a_cancelled_order(
         conn.execute("UPDATE orders SET status = 'cancelled' WHERE order_number = 'BL-0003'")
     r = act(client, operator, prep["id"], "start")
     assert r.status_code == 409 and "cancelled" in r.json()["detail"]
+
+
+@pytest.mark.parametrize(("minutes_later", "approved"), [(10, True), (16, False)])
+def test_a_draft_can_be_approved_a_few_minutes_after_it_was_made(
+    client: TestClient,
+    planner: dict[str, str],
+    owner_url: str,
+    app_url: str,
+    minutes_later: int,
+    approved: bool,
+) -> None:
+    # Planned at Monday 10:00, inside the shift: the first tasks start at once. Approving ten
+    # minutes later is fine (grace 15, config/scheduler.toml); sixteen minutes later is not.
+    # Found by the disruption browser test, which failed whenever approval fell in a later
+    # minute than planning (DEFECT_LOG #71).
+    plan_day(client, planner)
+    d = draft(client, planner)
+    assert min(datetime.fromisoformat(t["start"]) for t in d["tasks"]) == PLAN_START
+    with psycopg.connect(app_url, autocommit=True) as conn:
+
+        def go() -> None:
+            schedules.approve(
+                conn,
+                actor(owner_url, "U-PLANNER", "planner"),
+                d["id"],
+                f"grace-{uuid.uuid4()}",
+                FIXED_NOW + timedelta(minutes=minutes_later),
+                scheduler_config(),
+                TZ,
+            )
+
+        if approved:
+            go()
+        else:
+            with pytest.raises(schedules.RefusedError, match="in the past"):
+                go()
