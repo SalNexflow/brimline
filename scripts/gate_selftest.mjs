@@ -138,7 +138,7 @@ const MUTATIONS = [
     // M8: the first lock (the customer's filter is rewritten to their own customer) is skipped.
     name: "search no longer narrows a customer's filter",
     file: "services/engine/src/brimline_engine/search/query.py",
-    find: "    if order_scope(actor) is None:\n        return Scoped(filter=f, notices=[])",
+    find: "    if _scope_of(actor) is None:\n        return Scoped(filter=f, notices=[])",
     replace: "    if True:\n        return Scoped(filter=f, notices=[])",
     expect: "engine: tests",
   },
