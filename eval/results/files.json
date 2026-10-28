@@ -62,7 +62,7 @@
      "fail_as_warn": 0
     }
    },
-   "slowest_seconds": 0.774,
+   "slowest_seconds": 0.854,
    "disagreements": []
   },
   "dev (blind)": {
@@ -126,7 +126,7 @@
      "fail_as_warn": 0
     }
    },
-   "slowest_seconds": 0.02,
+   "slowest_seconds": 0.001,
    "disagreements": []
   },
   "held out (blind)": {
@@ -190,7 +190,7 @@
      "fail_as_warn": 0
     }
    },
-   "slowest_seconds": 0.021,
+   "slowest_seconds": 0.001,
    "disagreements": []
   }
  },
@@ -235,7 +235,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.007
+   "seconds": 0.001
   },
   {
    "id": "d02",
@@ -279,7 +279,7 @@
     100.0,
     0.6
    ],
-   "seconds": 0.009
+   "seconds": 0.001
   },
   {
    "id": "d03",
@@ -323,7 +323,7 @@
     100.0,
     0.9
    ],
-   "seconds": 0.018
+   "seconds": 0.003
   },
   {
    "id": "d04",
@@ -368,7 +368,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.004
+   "seconds": 0.0
   },
   {
    "id": "d05",
@@ -412,7 +412,7 @@
     30.0,
     30.0
    ],
-   "seconds": 0.005
+   "seconds": 0.001
   },
   {
    "id": "d06",
@@ -454,7 +454,7 @@
     60.0,
     20.0
    ],
-   "seconds": 0.006
+   "seconds": 0.001
   },
   {
    "id": "d07",
@@ -542,7 +542,7 @@
     0.03999999910593033,
     0.03999999910593033
    ],
-   "seconds": 0.011
+   "seconds": 0.001
   },
   {
    "id": "d09",
@@ -584,7 +584,7 @@
     38.099999999999994,
     38.099999999999994
    ],
-   "seconds": 0.013
+   "seconds": 0.002
   },
   {
    "id": "d10",
@@ -628,7 +628,7 @@
     20.0,
     20.0
    ],
-   "seconds": 0.006
+   "seconds": 0.001
   },
   {
    "id": "d11",
@@ -672,7 +672,7 @@
     20.0,
     40.0
    ],
-   "seconds": 0.012
+   "seconds": 0.001
   },
   {
    "id": "d12",
@@ -717,7 +717,7 @@
     50.0,
     50.0
    ],
-   "seconds": 0.013
+   "seconds": 0.001
   },
   {
    "id": "d13",
@@ -759,7 +759,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.006
+   "seconds": 0.0
   },
   {
    "id": "d14",
@@ -801,7 +801,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.014
+   "seconds": 0.0
   },
   {
    "id": "d15",
@@ -846,7 +846,7 @@
     40.0,
     60.0
    ],
-   "seconds": 0.008
+   "seconds": 0.001
   },
   {
    "id": "d16",
@@ -890,7 +890,7 @@
     50.0,
     20.0
    ],
-   "seconds": 0.005
+   "seconds": 0.001
   },
   {
    "id": "d17",
@@ -974,7 +974,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.011
+   "seconds": 0.0
   },
   {
    "id": "d19",
@@ -1016,7 +1016,7 @@
     20.0,
     20.0
    ],
-   "seconds": 0.005
+   "seconds": 0.001
   },
   {
    "id": "d20",
@@ -1060,7 +1060,7 @@
     20.0,
     20.0
    ],
-   "seconds": 0.004
+   "seconds": 0.001
   },
   {
    "id": "d21",
@@ -1104,7 +1104,7 @@
     40.0,
     60.0
    ],
-   "seconds": 0.007
+   "seconds": 0.004
   },
   {
    "id": "d22",
@@ -1148,7 +1148,7 @@
     98.0,
     2.0
    ],
-   "seconds": 0.774
+   "seconds": 0.854
   },
   {
    "id": "d23",
@@ -1193,7 +1193,7 @@
     197.0,
     0.5
    ],
-   "seconds": 0.728
+   "seconds": 0.786
   },
   {
    "id": "d24",
@@ -1235,7 +1235,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.006
+   "seconds": 0.0
   },
   {
    "id": "d25",
@@ -1280,7 +1280,7 @@
     20.0,
     20.0
    ],
-   "seconds": 0.014
+   "seconds": 0.001
   },
   {
    "id": "d26",
@@ -1324,7 +1324,7 @@
     10.0,
     10.0
    ],
-   "seconds": 0.01
+   "seconds": 0.001
   },
   {
    "id": "d27",
@@ -1366,7 +1366,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.004
+   "seconds": 0.0
   },
   {
    "id": "b01",
@@ -1408,7 +1408,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.017
+   "seconds": 0.001
   },
   {
    "id": "b02",
@@ -1452,7 +1452,7 @@
     300.0,
     150.0
    ],
-   "seconds": 0.016
+   "seconds": 0.001
   },
   {
    "id": "b03",
@@ -1494,7 +1494,7 @@
     60.0,
     20.0
    ],
-   "seconds": 0.019
+   "seconds": 0.001
   },
   {
    "id": "b04",
@@ -1536,7 +1536,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.014
+   "seconds": 0.001
   },
   {
    "id": "b05",
@@ -1581,7 +1581,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.016
+   "seconds": 0.0
   },
   {
    "id": "b06",
@@ -1626,7 +1626,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.013
+   "seconds": 0.001
   },
   {
    "id": "b07",
@@ -1670,7 +1670,7 @@
     76.19999999999999,
     76.19999999999999
    ],
-   "seconds": 0.02
+   "seconds": 0.001
   },
   {
    "id": "b08",
@@ -1712,7 +1712,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.004
+   "seconds": 0.0
   },
   {
    "id": "b09",
@@ -1756,7 +1756,7 @@
     40.0,
     0.8100000023841858
    ],
-   "seconds": 0.011
+   "seconds": 0.001
   },
   {
    "id": "b10",
@@ -1800,7 +1800,7 @@
     40.0,
     0.79
    ],
-   "seconds": 0.015
+   "seconds": 0.001
   },
   {
    "id": "b11",
@@ -1842,7 +1842,7 @@
     40.0,
     25.0
    ],
-   "seconds": 0.016
+   "seconds": 0.001
   },
   {
    "id": "b12",
@@ -1886,7 +1886,7 @@
     30.0,
     30.0
    ],
-   "seconds": 0.016
+   "seconds": 0.001
   },
   {
    "id": "b13",
@@ -1930,7 +1930,7 @@
     40.0,
     30.0
    ],
-   "seconds": 0.018
+   "seconds": 0.001
   },
   {
    "id": "b14",
@@ -1972,7 +1972,7 @@
     40.0,
     30.0
    ],
-   "seconds": 0.017
+   "seconds": 0.001
   },
   {
    "id": "b15",
@@ -2014,7 +2014,7 @@
     40.0,
     30.0
    ],
-   "seconds": 0.014
+   "seconds": 0.001
   },
   {
    "id": "b16",
@@ -2059,7 +2059,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.019
+   "seconds": 0.001
   },
   {
    "id": "b17",
@@ -2104,7 +2104,7 @@
     40.0,
     60.0
    ],
-   "seconds": 0.015
+   "seconds": 0.001
   },
   {
    "id": "b18",
@@ -2146,7 +2146,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.018
+   "seconds": 0.0
   },
   {
    "id": "b19",
@@ -2190,7 +2190,7 @@
     130.0,
     130.0
    ],
-   "seconds": 0.015
+   "seconds": 0.001
   },
   {
    "id": "b20",
@@ -2235,7 +2235,7 @@
     30.0,
     30.0
    ],
-   "seconds": 0.021
+   "seconds": 0.001
   },
   {
    "id": "b21",
@@ -2279,7 +2279,7 @@
     10.0,
     80.0
    ],
-   "seconds": 0.014
+   "seconds": 0.001
   },
   {
    "id": "b22",
@@ -2323,7 +2323,7 @@
     40.0,
     30.0
    ],
-   "seconds": 0.018
+   "seconds": 0.001
   },
   {
    "id": "b23",
@@ -2367,7 +2367,7 @@
     80.0,
     25.0
    ],
-   "seconds": 0.018
+   "seconds": 0.001
   },
   {
    "id": "b24",
@@ -2411,7 +2411,121 @@
     30.0,
     30.0
    ],
-   "seconds": 0.02
+   "seconds": 0.001
+  }
+ ],
+ "real": [
+  {
+   "id": "r01",
+   "file": "models/r01.stl",
+   "process": "fdm",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "fits": "pass",
+    "loose_parts": "pass",
+    "overhangs": "warn"
+   },
+   "why": "A sphere, 341.6 x 331.8 x 331.8 mm: fits the 350 x 350 x 400 printer turned; one piece; the part of a sphere facing down more than 45 degrees from vertical is (1 - cos 45)/2 = 14.6 % of its surface (over 10 %). Closedness and walls not judged by eye.",
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\real\\models\\r01.stl",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "warn",
+    "loose_parts": "pass"
+   },
+   "agree": 5
+  },
+  {
+   "id": "r02",
+   "file": "models/r02.stl",
+   "process": "fdm",
+   "expected": {
+    "parse": "pass",
+    "units": "pass"
+   },
+   "why": "A small tower, 2 x 0.5 x 3 mm as read in mm; probably modelled in cm, but its largest side is not under the 3 mm rule, so the rule passes it (a limit of the rule, reported in FILES.md).",
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\real\\models\\r02.stl",
+   "got": {
+    "parse": "pass",
+    "units": "warn",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "warn",
+    "loose_parts": "warn"
+   },
+   "agree": 1
+  },
+  {
+   "id": "r03",
+   "file": "models/r03.stl",
+   "process": "fdm",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "fits": "pass",
+    "walls": "fail",
+    "loose_parts": "warn"
+   },
+   "why": "A cross of two separate bars (24 triangles: two closed boxes), 0.1 mm thick: two pieces sharing no vertex, walls far under 0.8 mm over far more than 4 mm2.",
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\real\\models\\r03.stl",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "fail",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "agree": 5
+  },
+  {
+   "id": "r04",
+   "file": "models/r04.stl",
+   "process": "fdm",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "fits": "pass"
+   },
+   "why": "An astronaut figure, 68.9 x 27.6 x 74.3 mm: plausible size, fits every FDM printer. Pieces, closedness, walls and overhangs not judged by eye.",
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\real\\models\\r04.stl",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "warn",
+    "loose_parts": "warn"
+   },
+   "agree": 3
+  },
+  {
+   "id": "r05",
+   "file": "models/r05.stl",
+   "process": "fdm",
+   "expected": {
+    "parse": "pass",
+    "units": "pass"
+   },
+   "why": "A building-site scene, 3.56 x 3.56 x 0.43 mm as read in mm; probably modelled in cm, but just over the 3 mm rule, so the rule passes it (a limit, reported).",
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\real\\models\\r05.stl",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "fail",
+    "fits": "pass",
+    "walls": "skip",
+    "overhangs": "warn",
+    "loose_parts": "warn"
+   },
+   "agree": 2
   }
  ]
 }

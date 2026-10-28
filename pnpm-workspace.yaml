@@ -3,5 +3,7 @@ packages:
 
 # Only packages listed here may run install scripts (pnpm blocks the rest by default).
 allowBuilds:
+  # Downloads the ffmpeg binary that `make demo-video` uses to write the MP4 (dev only, M11).
+  ffmpeg-static: true
   sharp: false
   unrs-resolver: false

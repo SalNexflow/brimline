@@ -15,7 +15,7 @@ file shown as a warning is counted apart: staff see it, but it is not a fail.
 | Broken shown only as warning | 0/12 (0 %) | 0/6 (0 %) | 0/4 (0 %) |
 | False alarm (valid file failed) | 0/5 (0 %) | 0/5 (0 %) | 0/3 (0 %) |
 | Size within 0.01 mm | 21/21 (100 %) | 11/11 (100 %) | 11/11 (100 %) |
-| Slowest file (s) | 0.77 | 0.02 | 0.02 |
+| Slowest file (s) | 0.85 | 0.00 | 0.00 |
 
 ## Agreement per check
 
@@ -39,3 +39,22 @@ Agreement, then false passes / files labelled fail for that check.
 
 **held out (blind):** none.
 
+## Real models (CC0 or public domain)
+
+Five free-licence files from Wikimedia Commons (`eval/datasets/files/real/sources.json`).
+Only checks a person can judge by eye or from the size are labelled; closedness and walls
+of organic shapes are not. Shown: every check's result; scored: the labelled ones.
+
+| Model | Licence | Size (mm) | parse | units | watertight | fits | walls | overhangs | loose_parts | Labelled checks agree |
+|---|---|---|---|---|---|---|---|---|---|---|
+| [3d model of Sphere.stl](https://commons.wikimedia.org/wiki/File:3d_model_of_Sphere.stl) | Public domain | 341.6 x 331.8 x 331.8 | pass | pass | pass | pass | pass | warn | pass | 5/5 |
+| [3D-Modell Selbstähnlichkeit 20220517.stl](https://commons.wikimedia.org/wiki/File:3D-Modell_Selbstähnlichkeit_20220517.stl) | CC0 | 2.0 x 0.5 x 3.0 | pass | **warn** | fail | pass | skip | warn | warn | 1/2 |
+| [Andreaskreuz 20220723.stl](https://commons.wikimedia.org/wiki/File:Andreaskreuz_20220723.stl) | CC0 | 8.3 x 0.1 x 12.6 | pass | pass | pass | pass | fail | pass | warn | 5/5 |
+| [Astronaut Astronaut1.stl](https://commons.wikimedia.org/wiki/File:Astronaut_Astronaut1.stl) | Public domain | 68.9 x 27.6 x 74.3 | pass | pass | fail | pass | skip | warn | warn | 3/3 |
+| [3D-Modell Baustelle 20220717.stl](https://commons.wikimedia.org/wiki/File:3D-Modell_Baustelle_20220717.stl) | CC0 | 3.6 x 3.6 x 0.4 | pass | pass | fail | pass | skip | warn | warn | 2/2 |
+
+Labelled checks that agree: 16/17. A result in **bold** disagrees with its label.
+Two of these (the tower and the building site) are most likely modelled in centimetres. The
+building site, 3.6 mm across, passes the unit check (a limit of the 3 mm rule); the tower
+measures 3.0 mm, on the rule's edge, and the checker warns while the label said pass
+(docs/DECISIONS.md D128).

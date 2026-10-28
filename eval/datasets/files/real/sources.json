@@ -1,0 +1,47 @@
+[
+ {
+  "id": "r01",
+  "name": "3d model of Sphere.stl",
+  "licence": "Public domain",
+  "source": "Wikimedia Commons",
+  "url": "https://commons.wikimedia.org/wiki/File:3d_model_of_Sphere.stl",
+  "bytes": 153684,
+  "sha256": "c9769933252ab0ad617ad4232ec87e12a72b404790ec568b4b29fc179ba60dfc"
+ },
+ {
+  "id": "r02",
+  "name": "3D-Modell Selbstähnlichkeit 20220517.stl",
+  "licence": "CC0",
+  "source": "Wikimedia Commons",
+  "url": "https://commons.wikimedia.org/wiki/File:3D-Modell_Selbstähnlichkeit_20220517.stl",
+  "bytes": 33684,
+  "sha256": "b253904c214869f6dbf4d6e53a597b768f3780c011f0d0af9a5335d34e8d2f98"
+ },
+ {
+  "id": "r03",
+  "name": "Andreaskreuz 20220723.stl",
+  "licence": "CC0",
+  "source": "Wikimedia Commons",
+  "url": "https://commons.wikimedia.org/wiki/File:Andreaskreuz_20220723.stl",
+  "bytes": 1284,
+  "sha256": "e873c5a4ba12b7b971d892355a7a6a9af031813db17ce18ae2147d250b3cb0e8"
+ },
+ {
+  "id": "r04",
+  "name": "Astronaut Astronaut1.stl",
+  "licence": "Public domain",
+  "source": "Wikimedia Commons",
+  "url": "https://commons.wikimedia.org/wiki/File:Astronaut_Astronaut1.stl",
+  "bytes": 319134,
+  "sha256": "50b31c22b90b94ba9a44f091ed9736043c7c5bd372b4813f92f4164b130ca06a"
+ },
+ {
+  "id": "r05",
+  "name": "3D-Modell Baustelle 20220717.stl",
+  "licence": "CC0",
+  "source": "Wikimedia Commons",
+  "url": "https://commons.wikimedia.org/wiki/File:3D-Modell_Baustelle_20220717.stl",
+  "bytes": 5272684,
+  "sha256": "c99bff84cd7ed76c971f24de557fb3f9b4d391a70ea699372e6870f905a306be"
+ }
+]

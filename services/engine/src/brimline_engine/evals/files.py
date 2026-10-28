@@ -180,17 +180,81 @@ def markdown(scores: dict[str, dict[str, Any]], when: str) -> str:
     return "\n".join(out)
 
 
+def real_models() -> tuple[list[dict[str, Any]], str]:
+    """Free-licence real models (eval/datasets/files/real): only the checks a person can judge
+    from the picture and the file's size are labelled; the rest are shown, not scored."""
+    folder = DATASETS / "real"
+    sources = {
+        s["id"]: s for s in json.loads((folder / "sources.json").read_text(encoding="utf-8"))
+    }
+    items = [
+        json.loads(line) | {"path": str(folder / json.loads(line)["file"])}
+        for line in (folder / "labels.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    cfg = files_config()
+    machines = load_shop_config().machines
+    rows, agree, labelled = [], 0, 0
+    lines = [
+        "## Real models (CC0 or public domain)",
+        "",
+        "Five free-licence files from Wikimedia Commons (`eval/datasets/files/real/sources.json`).",
+        "Only checks a person can judge by eye or from the size are labelled; closedness and walls",
+        "of organic shapes are not. Shown: every check's result; scored: the labelled ones.",
+        "",
+        "| Model | Licence | Size (mm) | " + " | ".join(CHECKS) + " | Labelled checks agree |",
+        "|---|---|---|" + "---|" * len(CHECKS) + "---|",
+    ]
+    for item in items:
+        path = Path(item["path"])
+        report = check_file(path.read_bytes(), path.name, item["process"], machines, cfg)
+        got = {c.name: c.status for c in report.checks}
+        ok = sum(got[c] == v for c, v in item["expected"].items())
+        agree, labelled = agree + ok, labelled + len(item["expected"])
+        src = sources[item["id"]]
+        size = (
+            " x ".join(f"{v:.1f}" for v in report.measurements.size_mm)
+            if report.measurements
+            else "-"
+        )
+        cells = [
+            f"**{got[c]}**" if c in item["expected"] and got[c] != item["expected"][c] else got[c]
+            for c in CHECKS
+        ]
+        lines.append(
+            f"| [{src['name']}]({src['url']}) | {src['licence']} | {size} | "
+            + " | ".join(cells)
+            + f" | {ok}/{len(item['expected'])} |"
+        )
+        rows.append(item | {"got": got, "agree": ok})
+    lines += [
+        "",
+        f"Labelled checks that agree: {agree}/{labelled}. A result in **bold** disagrees with its label.",
+        "Two of these (the tower and the building site) are most likely modelled in centimetres. The",
+        "building site, 3.6 mm across, passes the unit check (a limit of the 3 mm rule); the tower",
+        "measures 3.0 mm, on the rule's edge, and the checker warns while the label said pass",
+        "(docs/DECISIONS.md D128).",
+    ]
+    return rows, "\n".join(lines)
+
+
 def main() -> None:
     rows = run(load_labels())
     scores = {name: score(group) for name, group in groups(rows).items()}
+    real_rows, real_md = real_models()
     when = datetime.now(UTC).strftime("%Y-%m-%d")
     RESULTS.mkdir(parents=True, exist_ok=True)
     (RESULTS / "files.json").write_text(
-        json.dumps({"date": when, "scores": scores, "rows": rows}, indent=1, default=str) + "\n",
+        json.dumps(
+            {"date": when, "scores": scores, "rows": rows, "real": real_rows}, indent=1, default=str
+        )
+        + "\n",
         encoding="utf-8",
         newline="\n",
     )
-    (RESULTS / "FILES.md").write_text(markdown(scores, when) + "\n", encoding="utf-8", newline="\n")
+    (RESULTS / "FILES.md").write_text(
+        markdown(scores, when) + "\n" + real_md + "\n", encoding="utf-8", newline="\n"
+    )
     for name, s in scores.items():
         print(
             f"{name}: overall {s['overall_agreement']}/{s['n']}, false pass {s['false_pass']}/{s['broken']},"
