@@ -1,0 +1,50 @@
+{
+  "id": "s03",
+  "question_sha256": "1635347340201afb8aa47659c089f34945651e9a30fbf98d2a22501ae4f16390",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:54:54+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "job_status",
+        "op": "in",
+        "values": [
+          "failed"
+        ]
+      },
+      {
+        "field": "process",
+        "op": "in",
+        "values": [
+          "resin"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 215,
+      "output_tokens": 100,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 193,
+    "latency_ms": 922,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": false, \"unclear_reason\": \"\", \"conditions\": [{\"field\": \"job_status\", \"op\": \"in\", \"values\": [\"failed\"]}, {\"field\": \"process\", \"op\": \"in\", \"values\": [\"resin\"]}], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": false}"
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "id": "s22",
+  "question_sha256": "75a473e3d942149e3c5df902eaab18cd73c6a8d6a726a60bdf17fc2883f714ea",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v1",
+  "called_at": "2026-10-28T06:53:59+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "rush",
+        "op": "is",
+        "values": [
+          "true"
+        ]
+      },
+      {
+        "field": "process",
+        "op": "is",
+        "values": [
+          "resin"
+        ]
+      },
+      {
+        "field": "can_plan",
+        "op": "is",
+        "values": [
+          "true"
+        ]
+      }
+    ],
+    "due": {
+      "op": "between",
+      "rule": "this_month",
+      "phrase": null,
+      "phrase_to": null
+    },
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 267,
+      "output_tokens": 254,
+      "cache_read_tokens": 1280,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 393,
+    "latency_ms": 1781,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"rush\",\"op\":\"is\",\"values\":[\"true\"]},{\"field\":\"process\",\"op\":\"is\",\"values\":[\"resin\"]},{\"field\":\"can_plan\",\"op\":\"is\",\"values\":[\"true\"]}],\"due\":{\"op\":\"between\",\"rule\":\"this_month\",\"phrase\":null,\"phrase_to\":null},\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

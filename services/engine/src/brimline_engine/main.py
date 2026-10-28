@@ -18,6 +18,7 @@ from brimline_engine.api import (
     price_rules,
     quotes,
     reference,
+    search,
 )
 from brimline_engine.planning.runs import SHUTDOWN, recover_interrupted
 from brimline_engine.settings import get_settings
@@ -54,6 +55,7 @@ app.include_router(quotes.router)
 app.include_router(planning.router)
 app.include_router(disruptions.router)
 app.include_router(files.router)
+app.include_router(search.router)
 
 
 class Health(BaseModel):

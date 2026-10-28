@@ -76,3 +76,11 @@ model = "claude-haiku-5-5"
 effort = "low"
 max_tokens = 1500
 prompt_version = "file-advice-v1"
+
+# Reading a search question into a typed filter (M8). The model never sees data, never writes
+# SQL and is not told who is asking; code checks the filter and adds permissions.
+[tasks.search_parse]
+model = "deepseek-flash"
+effort = "low"
+max_tokens = 3000
+prompt_version = "search-parse-v2"  # v2 (tuned on dev only): "in" for list fields; "my orders" needs no condition

@@ -1,0 +1,49 @@
+{
+  "id": "s40",
+  "question_sha256": "38b7844b705b90854650654a2f6bb94b7a8a84a1201515fc0b0c28d1e9c6e0cb",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v1",
+  "called_at": "2026-10-28T06:54:23+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "material",
+        "op": "in",
+        "values": [
+          "PLA-BLACK",
+          "PLA-WHITE"
+        ]
+      }
+    ],
+    "due": {
+      "op": "between",
+      "rule": "this_week",
+      "phrase": null,
+      "phrase_to": null
+    },
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 272,
+      "output_tokens": 240,
+      "cache_read_tokens": 1280,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 377,
+    "latency_ms": 1438,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"material\",\"op\":\"in\",\"values\":[\"PLA-BLACK\",\"PLA-WHITE\"]}],\"due\":{\"op\":\"between\",\"rule\":\"this_week\",\"phrase\":null,\"phrase_to\":null},\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

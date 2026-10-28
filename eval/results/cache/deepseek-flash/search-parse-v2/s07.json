@@ -1,0 +1,43 @@
+{
+  "id": "s07",
+  "question_sha256": "d12e03fc62fd6d7c6f5e4feadf87037c94f7f821720bbaf425d0e8a6a28e50c1",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:54:59+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "customer",
+        "op": "in",
+        "values": [
+          "C-TALLOW"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "created",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 215,
+      "output_tokens": 97,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 189,
+    "latency_ms": 922,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"customer\",\"op\":\"in\",\"values\":[\"C-TALLOW\"]}],\"due\":null,\"sort\":\"created\",\"injection_suspected\":false}"
+    ]
+  }
+}

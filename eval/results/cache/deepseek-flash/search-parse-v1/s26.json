@@ -1,0 +1,35 @@
+{
+  "id": "s26",
+  "question_sha256": "5c08a867c89dc9cf313dade043bd4ca730f0810830e233bf957f9bf98776490e",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v1",
+  "called_at": "2026-10-28T06:54:03+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "Search cannot cancel orders or jobs; it only filters existing jobs.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 263,
+      "output_tokens": 121,
+      "cache_read_tokens": 1280,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 232,
+    "latency_ms": 1094,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":true,\"unclear_reason\":\"Search cannot cancel orders or jobs; it only filters existing jobs.\",\"conditions\":[],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

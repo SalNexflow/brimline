@@ -1,0 +1,43 @@
+{
+  "id": "s31",
+  "question_sha256": "1f6965b836bf2a675ab64415e215ec13fc829165cdd6de081862e3b453d48749",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v1",
+  "called_at": "2026-10-28T06:54:09+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "customer",
+        "op": "in",
+        "values": [
+          "C-WILLOW"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 267,
+      "output_tokens": 69,
+      "cache_read_tokens": 1280,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 171,
+    "latency_ms": 906,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": false, \"unclear_reason\": \"\", \"conditions\": [{\"field\": \"customer\", \"op\": \"in\", \"values\": [\"C-WILLOW\"]}], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": false}"
+    ]
+  }
+}

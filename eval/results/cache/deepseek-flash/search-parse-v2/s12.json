@@ -1,0 +1,48 @@
+{
+  "id": "s12",
+  "question_sha256": "c28f0ffbdb73c1204d715ed12768d4d5d4ab305f58b2a667cd3b654ca93dbfb8",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:55:06+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "material",
+        "op": "in",
+        "values": [
+          "AL-6061"
+        ]
+      }
+    ],
+    "due": {
+      "op": "between",
+      "rule": "next_month",
+      "phrase": null,
+      "phrase_to": null
+    },
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 214,
+      "output_tokens": 344,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 485,
+    "latency_ms": 2578,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"material\",\"op\":\"in\",\"values\":[\"AL-6061\"]}],\"due\":{\"op\":\"between\",\"rule\":\"next_month\",\"phrase\":null,\"phrase_to\":null},\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "s06",
+  "question_sha256": "b68296bd6b5ffa5642a094fd9f3224c3e5b030bf2f0caa88734cd356f34de85e",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v1",
+  "called_at": "2026-10-28T06:53:38+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "Cannot determine whose orders “my orders” refers to; no customer or owner context is provided.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v1",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 263,
+      "output_tokens": 230,
+      "cache_read_tokens": 1280,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 363,
+    "latency_ms": 2016,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":true,\"unclear_reason\":\"Cannot determine whose orders “my orders” refers to; no customer or owner context is provided.\",\"conditions\":[],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

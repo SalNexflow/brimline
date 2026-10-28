@@ -1,0 +1,48 @@
+{
+  "id": "s41",
+  "question_sha256": "e5b346879d5cd2f3760a3000069b7e02487e991ae1f5ae54497019bd3668c3a4",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:55:56+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "can_plan",
+        "op": "is",
+        "values": [
+          "false"
+        ]
+      }
+    ],
+    "due": {
+      "op": "on",
+      "rule": "friday",
+      "phrase": null,
+      "phrase_to": null
+    },
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 216,
+      "output_tokens": 208,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 323,
+    "latency_ms": 1563,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"can_plan\",\"op\":\"is\",\"values\":[\"false\"]}],\"due\":{\"op\":\"on\",\"rule\":\"friday\",\"phrase\":null,\"phrase_to\":null},\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

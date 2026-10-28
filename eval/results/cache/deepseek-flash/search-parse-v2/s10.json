@@ -1,0 +1,43 @@
+{
+  "id": "s10",
+  "question_sha256": "337bf2f79c581400e010b22bc24a5dd35feb11d64251b9f3191fc4a37de964c3",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:55:03+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "order_number",
+        "op": "in",
+        "values": [
+          "BL-0012"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 213,
+      "output_tokens": 106,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 200,
+    "latency_ms": 1187,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"order_number\",\"op\":\"in\",\"values\":[\"BL-0012\"]}],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

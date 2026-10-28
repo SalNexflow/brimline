@@ -1,0 +1,35 @@
+{
+  "id": "s30",
+  "question_sha256": "c6f5d9f27415ce41f6514753c74a615376e66e6c9069d1b98e77431b3221e854",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:55:30+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "This is a request to change job data, not a search; the search box cannot modify records.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 215,
+      "output_tokens": 122,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 219,
+    "latency_ms": 1203,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": true, \"unclear_reason\": \"This is a request to change job data, not a search; the search box cannot modify records.\", \"conditions\": [], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": false}"
+    ]
+  }
+}

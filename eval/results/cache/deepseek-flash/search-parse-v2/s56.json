@@ -1,0 +1,44 @@
+{
+  "id": "s56",
+  "question_sha256": "48e9707794e2bce5f806a24332fc3ea388c4993c72d9901fadbdf282d7fda219",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:56:15+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "customer",
+        "op": "in",
+        "values": [
+          "C-COPPER",
+          "C-TALLOW"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 221,
+      "output_tokens": 169,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 278,
+    "latency_ms": 1484,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": false, \"unclear_reason\": \"\", \"conditions\": [{\"field\": \"customer\", \"op\": \"in\", \"values\": [\"C-COPPER\", \"C-TALLOW\"]}], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": false}"
+    ]
+  }
+}

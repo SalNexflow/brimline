@@ -1,0 +1,35 @@
+{
+  "id": "s29",
+  "question_sha256": "8a73b1fbede9d7f37eaba256e256fbb96af8816eea9a2a5ec12b40106310492b",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:55:29+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "Costs and prices are not available as search fields, so this question cannot be answered.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 214,
+      "output_tokens": 71,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 158,
+    "latency_ms": 766,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": true, \"unclear_reason\": \"Costs and prices are not available as search fields, so this question cannot be answered.\", \"conditions\": [], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": false}"
+    ]
+  }
+}

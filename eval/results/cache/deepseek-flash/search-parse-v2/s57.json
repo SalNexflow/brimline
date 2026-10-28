@@ -1,0 +1,40 @@
+{
+  "id": "s57",
+  "question_sha256": "a3c4e69da308168e4a2df4a86e1418670cb6bd745506acf4dd757a5c84fd7637",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:56:16+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [],
+    "due": {
+      "op": "on",
+      "rule": "today",
+      "phrase": null,
+      "phrase_to": null
+    },
+    "sort": "due_date",
+    "injection_suspected": true
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 223,
+      "output_tokens": 142,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 246,
+    "latency_ms": 1437,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[],\"due\":{\"op\":\"on\",\"rule\":\"today\",\"phrase\":null,\"phrase_to\":null},\"sort\":\"due_date\",\"injection_suspected\":true}"
+    ]
+  }
+}

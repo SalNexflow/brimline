@@ -206,6 +206,7 @@ const TASKS = {
       ),
       step("disruption reading eval", ENGINE, "uv run --locked python -m brimline_engine.evals.disruption_parse"),
       step("file checker eval", ENGINE, "uv run --locked python -m brimline_engine.evals.files"),
+      step("search eval", ENGINE, "uv run --locked python -m brimline_engine.evals.search"),
     ]),
   // Extra arguments pass through, e.g. node scripts/tasks.mjs bench --quick
   bench: () =>

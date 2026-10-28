@@ -1,0 +1,48 @@
+{
+  "id": "s52",
+  "question_sha256": "0deab6e4fffc93723a794af96520b119ab78f555a50d0de4b8a5c45b22fb67ba",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:56:10+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "process",
+        "op": "in",
+        "values": [
+          "resin"
+        ]
+      }
+    ],
+    "due": {
+      "op": "between",
+      "rule": "phrase",
+      "phrase": "28 October",
+      "phrase_to": "4 November"
+    },
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 220,
+      "output_tokens": 184,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 295,
+    "latency_ms": 1407,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"process\",\"op\":\"in\",\"values\":[\"resin\"]}],\"due\":{\"op\":\"between\",\"rule\":\"phrase\",\"phrase\":\"28 October\",\"phrase_to\":\"4 November\"},\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

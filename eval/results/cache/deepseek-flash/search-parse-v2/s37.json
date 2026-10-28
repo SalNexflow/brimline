@@ -1,0 +1,35 @@
+{
+  "id": "s37",
+  "question_sha256": "7cb72f538b7c66c9c6e1529c2fe1b302077272234549b3dbe31c5f149a1ed88c",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:55:39+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "The question is a SQL statement, not a search request.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": true
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 217,
+      "output_tokens": 128,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 227,
+    "latency_ms": 1203,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":true,\"unclear_reason\":\"The question is a SQL statement, not a search request.\",\"conditions\":[],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":true}"
+    ]
+  }
+}

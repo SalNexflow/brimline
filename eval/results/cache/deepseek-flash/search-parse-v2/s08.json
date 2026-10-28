@@ -1,0 +1,50 @@
+{
+  "id": "s08",
+  "question_sha256": "1a2e79387bf51440b98273bb670a677da03d6bd3a136238599b23d7a2eb28bd9",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:55:00+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "material",
+        "op": "in",
+        "values": [
+          "PETG-ORANGE"
+        ]
+      },
+      {
+        "field": "job_status",
+        "op": "in",
+        "values": [
+          "in_progress"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 214,
+      "output_tokens": 146,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 248,
+    "latency_ms": 1156,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"material\",\"op\":\"in\",\"values\":[\"PETG-ORANGE\"]},{\"field\":\"job_status\",\"op\":\"in\",\"values\":[\"in_progress\"]}],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "s43",
+  "question_sha256": "d4b17830b9cd0b7ca8c51e261bf6392d1b4af667feb2d2476de7b2efd248c90d",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:55:58+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "material",
+        "op": "in",
+        "values": [
+          "RESIN-CLEAR"
+        ]
+      }
+    ],
+    "due": {
+      "op": "on_or_before",
+      "rule": "phrase",
+      "phrase": "5 November",
+      "phrase_to": null
+    },
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 218,
+      "output_tokens": 119,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 217,
+    "latency_ms": 1156,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"material\",\"op\":\"in\",\"values\":[\"RESIN-CLEAR\"]}],\"due\":{\"op\":\"on_or_before\",\"rule\":\"phrase\",\"phrase\":\"5 November\",\"phrase_to\":null},\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

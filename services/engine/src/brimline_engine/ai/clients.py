@@ -129,6 +129,38 @@ def _fake_summary(diff_text: str) -> str:
     )
 
 
+def _fake_search(question: str) -> str:
+    """Prepared readings of the search questions the tests send."""
+    reply: dict[str, object] = {
+        "unclear": False,
+        "unclear_reason": "",
+        "conditions": [],
+        "due": None,
+        "sort": "due_date",
+        "injection_suspected": "ignore" in question,
+    }
+    if "due this week not printed" in question:
+        reply["conditions"] = [{"field": "printed", "op": "is", "values": ["false"]}]
+        reply["due"] = {"op": "between", "rule": "this_week", "phrase": None, "phrase_to": None}
+    elif "willow" in question:
+        reply["conditions"] = [{"field": "customer", "op": "in", "values": ["C-WILLOW"]}]
+    elif "due 12/11" in question:
+        reply["due"] = {"op": "on", "rule": "phrase", "phrase": "12/11", "phrase_to": None}
+    elif "drop table" in question:
+        reply["conditions"] = [
+            {"field": "part_name", "op": "contains", "values": ["'; DROP TABLE jobs; --"]}
+        ]
+    elif "everything" in question:
+        reply["unclear"] = True
+        reply["unclear_reason"] = (
+            "Willow Street Dental Lab has secret orders"  # must never be shown
+        )
+    else:
+        reply["unclear"] = True
+        reply["unclear_reason"] = "not a search I can read"
+    return json.dumps(reply)
+
+
 def fake_reply(turns: list[Turn]) -> ModelReply:
     """A tiny stand-in for the model. It only recognises the phrases the tests use."""
     content = turns[0].content
@@ -136,6 +168,8 @@ def fake_reply(turns: list[Turn]) -> ModelReply:
     if "<planner_message>" in message:
         text = _fake_disruption(message)
         return ModelReply(text=text, stop_reason="end_turn", usage=TokenUsage())
+    if content.startswith("<question>"):
+        return ModelReply(text=_fake_search(message), stop_reason="end_turn", usage=TokenUsage())
     if content.startswith("<file_checks>"):
         advice = {"advice": ["Print it on its largest flat face to avoid supports."]}
         return ModelReply(text=json.dumps(advice), stop_reason="end_turn", usage=TokenUsage())

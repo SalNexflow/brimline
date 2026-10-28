@@ -1,0 +1,35 @@
+{
+  "id": "s26",
+  "question_sha256": "5c08a867c89dc9cf313dade043bd4ca730f0810830e233bf957f9bf98776490e",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:55:25+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "This asks to change an order's status (cancel BL-0003); search cannot modify data.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 213,
+      "output_tokens": 96,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 188,
+    "latency_ms": 1172,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": true, \"unclear_reason\": \"This asks to change an order's status (cancel BL-0003); search cannot modify data.\", \"conditions\": [], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": false}"
+    ]
+  }
+}

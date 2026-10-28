@@ -1,0 +1,44 @@
+{
+  "id": "s48",
+  "question_sha256": "fd0b271593b3c2cdb7f749ccce22262d950f9fda311ce5051250db06dc64752f",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:56:04+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "order_number",
+        "op": "in",
+        "values": [
+          "BL-0004",
+          "BL-0019"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 218,
+      "output_tokens": 132,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 232,
+    "latency_ms": 985,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"order_number\",\"op\":\"in\",\"values\":[\"BL-0004\",\"BL-0019\"]}],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

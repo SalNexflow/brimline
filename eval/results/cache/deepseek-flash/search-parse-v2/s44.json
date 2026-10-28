@@ -1,0 +1,43 @@
+{
+  "id": "s44",
+  "question_sha256": "972517c968e0264136d3e5cac08aa5f9aca72219b62738a1db5d41d5b145067f",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v2",
+  "called_at": "2026-10-28T06:55:59+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "order_status",
+        "op": "in",
+        "values": [
+          "open"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "created",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v2",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 214,
+      "output_tokens": 101,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 194,
+    "latency_ms": 1047,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"order_status\",\"op\":\"in\",\"values\":[\"open\"]}],\"due\":null,\"sort\":\"created\",\"injection_suspected\":false}"
+    ]
+  }
+}
