@@ -156,3 +156,6 @@ def test_the_demo_seed_moves_by_whole_weeks_to_this_week() -> None:
         o.due_date + timedelta(weeks=3) for o in shop.orders
     ]
     assert date(2026, 11, 20) in {o.due_date for o in moved.orders}
+    # Prices start on 25 October in the seed (after its Monday); moved, they start no later than
+    # the moved Monday, so a quote can be priced on the first day of the demo.
+    assert moved.price_rules.effective_from == date(2026, 11, 9)

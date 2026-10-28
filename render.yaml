@@ -1,0 +1,36 @@
+# Render blueprint for the engine of the hosted demo (M11, docs/DEPLOY.md). The web app runs on
+# Vercel and the database on Neon; both are free tiers. Values marked `sync: false` are set once
+# in the Render dashboard (they are secrets and never live in git).
+services:
+  - type: web
+    name: brimline-engine
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerContext: .
+    dockerfilePath: ./services/engine/Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Neon: the app role (created by our migrations) and the owner role (Neon's, not a superuser).
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_OWNER_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      # The same value as ENGINE_WEB_KEY on Vercel: only the web app may call the engine.
+      - key: ENGINE_WEB_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: AI_MODE
+        value: live
+      - key: DEMO_MODE
+        value: "true"
+      - key: DEMO_LOGIN
+        value: "true"
+      # The nightly workflow resets the data (.github/workflows/demo-reset.yml); a restart only
+      # migrates, so waking from sleep stays quick.
+      - key: DEMO_RESET_ON_START
+        value: "0"

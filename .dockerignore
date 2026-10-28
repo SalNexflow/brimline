@@ -1,0 +1,13 @@
+# Keep images small and secrets out: build contexts are the repository root.
+.env
+.env.*
+!.env.example
+.git
+**/node_modules
+**/.next
+**/.venv
+**/__pycache__
+apps/web/test-results
+apps/web/playwright-report
+eval/results/cache
+docs/video

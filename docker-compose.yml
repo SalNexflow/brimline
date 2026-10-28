@@ -25,5 +25,43 @@ services:
       timeout: 3s
       retries: 30
 
+  # `make demo`: the whole app in containers, with fake data and prepared model replies (no
+  # key needed). Not started by `make setup` or the gate, which run the engine and web directly.
+  engine:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: services/engine/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://brimline_app:brimline_app_dev_only@db:5432/brimline_demo
+      DATABASE_OWNER_URL: postgresql://brimline_owner:${POSTGRES_OWNER_PASSWORD:-brimline_dev_only}@db:5432/brimline_demo
+      SESSION_SECRET: ${SESSION_SECRET:?run make setup first (it writes SESSION_SECRET to .env)}
+      DEMO_LOGIN: "true"
+      AI_MODE: ${DEMO_AI_MODE:-fake}
+      DEMO_RESET_ON_START: "1"
+    ports:
+      - "${ENGINE_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 60
+
+  web:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    depends_on:
+      engine:
+        condition: service_healthy
+    environment:
+      ENGINE_URL: http://engine:8000
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
 volumes:
   brimline-pgdata:

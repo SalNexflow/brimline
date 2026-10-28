@@ -1,0 +1,33 @@
+# Resets the hosted demo's database every night (M11): the seed moved to this week, a plan
+# approved, everything visitors added gone. Does nothing until the two secrets are set
+# (docs/DEPLOY.md), so forks and the gate are unaffected.
+name: demo-reset
+
+on:
+  schedule:
+    - cron: "30 2 * * *" # 02:30 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - name: Reset the demo database
+        working-directory: services/engine
+        env:
+          DATABASE_URL: ${{ secrets.DEMO_DATABASE_URL }}
+          DATABASE_OWNER_URL: ${{ secrets.DEMO_DATABASE_OWNER_URL }}
+          SESSION_SECRET: not-used-by-a-reset-but-required-0123456789
+          DEMO_MODE: "true"
+        run: |
+          if [ -z "$DATABASE_OWNER_URL" ]; then
+            echo "Demo database not configured (DEMO_DATABASE_OWNER_URL is not set); nothing to reset."
+            exit 0
+          fi
+          uv run --locked python -m brimline_engine.db reset --demo

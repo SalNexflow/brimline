@@ -75,6 +75,11 @@ def main(argv: list[str] | None = None) -> int:
 
 def demo_reset(owner_url: str, app_url: str, dbname: str) -> int:
     """Empty the schema in place, migrate, seed this week, approve a first plan."""
+    try:
+        psycopg.connect(owner_url).close()
+    except psycopg.OperationalError:
+        # Not there yet (a fresh `make demo`): create it. A hosted database already exists.
+        ensure_database(get_settings().database_owner_url or owner_url, dbname)
     with psycopg.connect(owner_url, autocommit=True) as conn:
         conn.execute("DROP SCHEMA IF EXISTS public CASCADE")
         conn.execute("CREATE SCHEMA public")
