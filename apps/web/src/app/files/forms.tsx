@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { UNITS } from "@/lib/file-upload";
 
@@ -35,13 +35,17 @@ export function UploadForm({
   order,
   line,
   uploadKey,
+  maxBytes,
 }: {
   quote?: string;
   order?: string;
   line: number;
   uploadKey: string;
+  maxBytes: number;
 }) {
   const [state, action, pending] = useActionState(uploadModel, INITIAL);
+  const [tooBig, setTooBig] = useState<string | null>(null);
+  const mib = (maxBytes / 1024 / 1024).toFixed(maxBytes < 10 * 1024 * 1024 ? 1 : 0);
   return (
     <form action={action} className="stack" aria-label="Upload a model file">
       <input type="hidden" name="quote" value={quote ?? ""} />
@@ -50,8 +54,18 @@ export function UploadForm({
       <input type="hidden" name="idempotency_key" value={uploadKey} />
       <Errors state={state} />
       <label>
-        Model file (STL or 3MF, up to 25 MiB)
-        <input type="file" name="file" accept=".stl,.3mf" required />
+        Model file (STL or 3MF, up to {mib} MiB)
+        <input
+          type="file"
+          name="file"
+          accept=".stl,.3mf"
+          required
+          onChange={(e) => {
+            const f = e.currentTarget.files?.[0];
+            // Checked here too: on the hosted demo a larger body never reaches the server.
+            setTooBig(f && f.size > maxBytes ? `The file is larger than ${mib} MiB.` : null);
+          }}
+        />
       </label>
       <label>
         Numbers in an STL file are in
@@ -64,7 +78,12 @@ export function UploadForm({
         </select>
         <span className="muted">A 3MF file states its own unit; this is used for STL only.</span>
       </label>
-      <button type="submit" disabled={pending}>
+      {tooBig ? (
+        <p role="alert" className="error-box">
+          {tooBig}
+        </p>
+      ) : null}
+      <button type="submit" disabled={pending || tooBig !== null}>
         {pending ? "Checking…" : "Upload and check"}
       </button>
     </form>

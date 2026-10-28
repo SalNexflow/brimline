@@ -90,6 +90,7 @@ export default function BoardPage() {
 async function BoardContent() {
   const { client, me } = await signedInEngine();
   const { data: board } = await client.GET("/board");
+  const { data: demo } = await client.GET("/demo-status");
   const canAttach = can(me, "file.attach_job");
   const now = new Date();
   if (!board) return <p>You do not have access to the board.</p>;
@@ -102,6 +103,13 @@ async function BoardContent() {
     <>
       <AutoRefresh active={busy} />
       {board.can_plan ? <PlanDayForm idempotencyKey={crypto.randomUUID()} busy={busy} /> : null}
+      {demo?.demo_mode && board.can_plan ? (
+        <p className="muted" data-testid="solver-note">
+          Hosted demo: Plan day searches for {demo.solver_seconds} s of solver work instead of the full{" "}
+          {demo.full_solver_seconds} s (free hosting has a small CPU), so a plan can be less good than a full run.
+          Every plan is still checked by the independent checker.
+        </p>
+      ) : null}
       {pending > 0 ? (
         <p className="notice">
           {pending} confirmed disruption{pending === 1 ? "" : "s"} will be included the next time you press Plan day.

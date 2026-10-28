@@ -139,3 +139,20 @@ def test_demo_mode_refuses_writes_past_the_row_cap(
         "/orders", json=body, headers=login(client, "U-STAFF") | {"Idempotency-Key": "demo-cap-1"}
     )
     assert r.status_code == 503 and "resets every night" in r.json()["detail"]
+
+
+def test_the_demo_seed_moves_by_whole_weeks_to_this_week() -> None:
+    from datetime import date, timedelta
+
+    from brimline_engine.db.demo_seed import shifted
+    from brimline_engine.shop_config import load_shop_config
+
+    shop = load_shop_config()
+    # The seed is Monday 19 October 2026 (config/shop.toml). On Wednesday 11 November the shop
+    # moves three weeks: an order due Friday 30 October is due Friday 20 November.
+    moved = shifted(shop, date(2026, 11, 11))
+    assert moved.seed_time.date() == date(2026, 11, 9)
+    assert [o.due_date for o in moved.orders] == [
+        o.due_date + timedelta(weeks=3) for o in shop.orders
+    ]
+    assert date(2026, 11, 20) in {o.due_date for o in moved.orders}

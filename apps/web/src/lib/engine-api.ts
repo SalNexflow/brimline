@@ -96,6 +96,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/demo-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Demo Status
+         * @description What the hosted demo limits now (all off locally): for the banner and the board label.
+         */
+        get: operations["demo_status_demo_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/disruptions": {
         parameters: {
             query?: never;
@@ -854,6 +874,19 @@ export interface components {
             /** Token */
             token: string;
             user: components["schemas"]["Me"];
+        };
+        /** DemoStatus */
+        DemoStatus: {
+            /** Demo Mode */
+            demo_mode: boolean;
+            /** Full Solver Seconds */
+            full_solver_seconds: number;
+            /** Max Upload Bytes */
+            max_upload_bytes: number;
+            /** Model Limit Reason */
+            model_limit_reason: string | null;
+            /** Solver Seconds */
+            solver_seconds: number;
         };
         /** DemoUser */
         DemoUser: {
@@ -1971,6 +2004,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    demo_status_demo_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoStatus"];
                 };
             };
         };

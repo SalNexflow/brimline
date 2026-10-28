@@ -4,6 +4,7 @@ import createClient from "openapi-fetch";
 import { redirect } from "next/navigation";
 
 import type { components, paths } from "./engine-api";
+import { engineHeaders } from "./demo";
 import { readSessionToken } from "./session";
 
 export type Me = components["schemas"]["Me"];
@@ -27,6 +28,7 @@ export type QueueTask = components["schemas"]["QueueTask"];
 export type Disruption = components["schemas"]["DisruptionOut"];
 export type DisruptionEvent = components["schemas"]["Event"];
 export type DisruptionCatalog = components["schemas"]["CatalogOut"];
+export type DemoStatus = components["schemas"]["DemoStatus"];
 export type FileReport = components["schemas"]["FileOut"];
 
 function baseUrl(): string {
@@ -37,10 +39,18 @@ function baseUrl(): string {
 
 /** A typed client for the engine, optionally signed in with a session token. */
 export function engineClient(token?: string) {
-  return createClient<paths>({
+  const client = createClient<paths>({
     baseUrl: baseUrl(),
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
+  // Hosted demo only: the web key and the visitor's hashed id (nothing is added locally).
+  client.use({
+    async onRequest({ request }) {
+      for (const [name, value] of Object.entries(await engineHeaders())) request.headers.set(name, value);
+      return request;
+    },
+  });
+  return client;
 }
 
 /** The engine client for the signed-in user. Sends people without a session to the login page. */

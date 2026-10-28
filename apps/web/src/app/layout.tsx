@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { AccountBar } from "./account-bar";
+import { DemoGate } from "./demo-gate";
 import "./theme.css";
 import "./globals.css";
 
@@ -32,7 +33,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <AccountBar />
           </Suspense>
         </header>
-        {children}
+        {/* Hosted demo only: a waking-up screen while the engine sleeps, and a banner. */}
+        {process.env.DEMO_WAKE_CHECK === "1" ? (
+          <Suspense fallback={<p className="page muted">Checking the demo is awake…</p>}>
+            <DemoGate>{children}</DemoGate>
+          </Suspense>
+        ) : (
+          children
+        )}
       </body>
     </html>
   );

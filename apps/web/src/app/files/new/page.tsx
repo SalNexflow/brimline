@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { signedInEngine } from "@/lib/engine";
+import { MAX_UPLOAD_BYTES } from "@/lib/file-upload";
 
 import { UploadForm } from "../forms";
 
@@ -20,7 +21,8 @@ export default function NewFilePage({ searchParams }: PageProps<"/files/new">) {
 }
 
 async function NewFile({ searchParams }: Pick<PageProps<"/files/new">, "searchParams">) {
-  await signedInEngine(); // signed in; the engine checks who may upload where
+  const { client } = await signedInEngine(); // signed in; the engine checks who may upload where
+  const { data: demo } = await client.GET("/demo-status");
   const query = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
   const quote = one(query.quote);
@@ -38,7 +40,13 @@ async function NewFile({ searchParams }: Pick<PageProps<"/files/new">, "searchPa
         can, it fills in the part size{quote ? ", and estimates grams and print minutes" : ""}. A value staff already
         entered is never replaced.
       </p>
-      <UploadForm quote={quote || undefined} order={order || undefined} line={line} uploadKey={crypto.randomUUID()} />
+      <UploadForm
+        quote={quote || undefined}
+        order={order || undefined}
+        line={line}
+        uploadKey={crypto.randomUUID()}
+        maxBytes={demo?.max_upload_bytes ?? MAX_UPLOAD_BYTES}
+      />
     </>
   );
 }

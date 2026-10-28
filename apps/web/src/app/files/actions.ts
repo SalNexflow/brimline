@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { engineHeaders } from "@/lib/demo";
 import { engineClient, errorMessage } from "@/lib/engine";
 import { parseUpload } from "@/lib/file-upload";
 import { readSessionToken } from "@/lib/session";
@@ -27,6 +28,7 @@ export async function uploadModel(_previous: FormState, formData: FormData): Pro
   const response = await fetch(`${process.env.ENGINE_URL}/files?${query}`, {
     method: "POST",
     headers: {
+      ...(await engineHeaders()),
       Authorization: `Bearer ${await token()}`,
       "Content-Type": "application/octet-stream",
       "Idempotency-Key": String(formData.get("idempotency_key") ?? ""),
