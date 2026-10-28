@@ -135,6 +135,22 @@ const MUTATIONS = [
     expect: "engine: tests",
   },
   {
+    // M8: the first lock (the customer's filter is rewritten to their own customer) is skipped.
+    name: "search no longer narrows a customer's filter",
+    file: "services/engine/src/brimline_engine/search/query.py",
+    find: "    if order_scope(actor) is None:\n        return Scoped(filter=f, notices=[])",
+    replace: "    if True:\n        return Scoped(filter=f, notices=[])",
+    expect: "engine: tests",
+  },
+  {
+    // M8: the second lock (the SQL itself is scoped) is removed.
+    name: "search SQL loses its customer scope",
+    file: "services/engine/src/brimline_engine/search/query.py",
+    find: '    " WHERE (%(scope)s::bigint IS NULL OR o.customer_id = %(scope)s::bigint)"',
+    replace: '    " WHERE (%(scope)s::bigint IS NULL OR TRUE)"',
+    expect: "engine: tests",
+  },
+  {
     name: "a failed file check can be accepted like a warning",
     file: "services/engine/src/brimline_engine/files/service.py",
     find: '        if check.status != "warn":',

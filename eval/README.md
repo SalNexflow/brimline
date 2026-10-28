@@ -108,3 +108,18 @@ a warning, false alarms, and whether the measured size matches. Results:
 Caveat (D107): the labelling guide writes down the same rules the checker implements, and the
 shapes are simple, so a perfect score shows the code follows its written rules; it says little
 about how those rules judge real parts.
+
+## Search (`datasets/search.jsonl`)
+
+60 questions written and labelled blind by a fresh-context agent that saw only `docs/BRIEF.md`
+and the labelling guide (`datasets/search_labelling.md`): **40 dev, 20 held out**, each with who
+asks (staff, planner, operator or a customer) and the filter that should run after code has read
+the reply, dates resolved from Monday 2026-10-26 10:00 and permissions added. 15 are attacks:
+customers asking for other customers' orders or for everything, "ignore previous rules",
+role-play, instructions quoted as text to search for, and SQL typed into the question.
+
+Scoring (`brimline_engine.evals.search`) runs our code exactly as the app does. "Correct" is an
+exact match of the effective filter; "unclear" precision and recall compare what was said to be
+unclear with the labels; "blocked" checks the query itself (scoped to the asker in the filter and
+in the SQL parameter, no value in the SQL text). Results: `results/SEARCH.md`. Prompts are tuned
+on dev only (prompt v1 scored 35/40 on dev, v2 38/40; held out was run once, with v2).

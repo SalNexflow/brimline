@@ -28,3 +28,6 @@ Bigger "nice to have" ideas, one-line pitch each. Not commitments.
 - **Thin features on curved parts:** a voxel or distance-field wall check for parts where one ray per face is too coarse.
 - **Live vision advice:** switch on `[advice]` with a vision model once a key is approved, and evaluate the advice blind like the other AI steps.
 - **Re-check a file when its line changes:** when staff change a line's material, run the stored file's checks again for the new process instead of asking for a new upload (D111).
+- **Saved searches:** name a filter and show its count on the home page ("overdue rush jobs: 2").
+- **Explain an unclear question with code:** list which words the reading could not place in any field, instead of one general message.
+- **A lint rule for accent links on grey backgrounds,** since the same contrast mistake happened twice (#55, #65).

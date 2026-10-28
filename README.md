@@ -50,7 +50,7 @@ First run: `make setup` then `make gate`.
 | `db-reset` | Drop, migrate, and re-seed the dev database from `config/shop.toml` |
 | `api-types` | Regenerate the web's TypeScript types from the engine's OpenAPI schema |
 | `gate-selftest` | Proves the gate fails: plants deliberate errors in a throwaway copy and checks each is caught at the right step. Refuses to run on a dirty git tree |
-| `eval` | Run the evaluations (quote reading, disruption reading, file checker) and write `eval/results/RESULTS.md`, `DISRUPTIONS.md` and `FILES.md` (the first two need model access; see `eval/README.md`) |
+| `eval` | Run the evaluations (quote reading, disruption reading, file checker, search) and write `eval/results/RESULTS.md`, `DISRUPTIONS.md`, `FILES.md` and `SEARCH.md` (the model ones replay saved replies; see `eval/README.md`) |
 | `bench` | Scheduler benchmark against two baselines, every plan re-checked by the independent checker; writes `eval/results/BENCH.md` and fails if the checker disagrees (slow: 25 CP-SAT runs; `--quick` for a smoke run into `eval/results/quick`) |
 | `replan-bench` | Re-planning scenarios: lateness versus jobs moved, every re-plan checked; writes `eval/results/REPLAN.md` |
 

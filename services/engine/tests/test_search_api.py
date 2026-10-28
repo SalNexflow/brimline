@@ -177,3 +177,23 @@ def test_text_stored_in_notes_cannot_change_a_search(client: TestClient, owner_u
     finally:
         with psycopg.connect(owner_url) as conn:
             conn.execute("UPDATE orders SET notes = %s WHERE order_number = 'BL-0004'", (row[0],))
+
+
+def test_the_sql_is_scoped_even_if_the_filter_was_not(app_url: str, owner_url: str) -> None:
+    # Two locks: skip the first (the filter rewrite) on purpose; the SQL scope still holds.
+    from datetime import date
+
+    from brimline_engine.permissions import Actor
+    from brimline_engine.search.filters import Condition, Filter
+    from brimline_engine.search.query import run as run_query
+
+    with psycopg.connect(owner_url) as conn:
+        row = conn.execute("SELECT id FROM customers WHERE code = 'C-HARBOR'").fetchone()
+    assert row is not None
+    harbor = Actor(user_id=1, role="customer", customer_id=int(row[0]))
+    willow_only = Filter(conditions=[Condition(field="customer", op="in", value=["C-WILLOW"])])
+    with psycopg.connect(app_url) as conn:
+        rows, total = run_query(conn, harbor, willow_only, date(2026, 10, 26))
+        everything, _ = run_query(conn, harbor, Filter(), date(2026, 10, 26))
+    assert rows == [] and total == 0
+    assert everything and {r.customer_code for r in everything} == {"C-HARBOR"}
