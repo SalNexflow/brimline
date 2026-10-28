@@ -96,8 +96,14 @@ def prompt_key(model: str, system: str, turns: list[Turn]) -> str:
 
 
 def load_recording(path: Path) -> dict[str, str]:
+    """The recorded replies, read once per version of the file (not on every model call)."""
     if not path.exists():
         return {}
+    return _read_recording(path, path.stat().st_mtime_ns)
+
+
+@lru_cache(maxsize=4)
+def _read_recording(path: Path, _version: int) -> dict[str, str]:
     out = {}
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.strip():

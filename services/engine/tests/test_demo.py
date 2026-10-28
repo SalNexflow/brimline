@@ -159,3 +159,44 @@ def test_the_demo_seed_moves_by_whole_weeks_to_this_week() -> None:
     # Prices start on 25 October in the seed (after its Monday); moved, they start no later than
     # the moved Monday, so a quote can be priced on the first day of the demo.
     assert moved.price_rules.effective_from == date(2026, 11, 9)
+
+
+# --- Found by the fresh-context review of M11 -----------------------------------------------------
+
+
+def test_a_key_with_any_characters_is_refused_not_a_crash(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("ENGINE_WEB_KEY", "k" * 40)
+    get_settings.cache_clear()
+    try:
+        # A raw latin-1 byte reaches the engine as a non-ASCII character; compare_digest on str
+        # raised TypeError (a 500) before.
+        r = client.get("/materials", headers={b"X-Engine-Key": b"\xe9" * 40})
+        assert r.status_code == 401
+    finally:
+        monkeypatch.delenv("ENGINE_WEB_KEY")
+        get_settings.cache_clear()
+
+
+def test_every_write_checks_the_database_size_in_demo_mode(
+    client: TestClient, demo_on: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from brimline_engine import demo
+
+    cfg = demo_config()
+    full = cfg.model_copy(update={"storage": cfg.storage.model_copy(update={"max_database_mb": 1})})
+    monkeypatch.setattr(demo, "demo_config", lambda: full)
+    # Sign-in had no storage check at all before the review; reads still work.
+    r = client.post("/auth/demo-login", json={"user_code": "U-STAFF"})
+    assert r.status_code == 503 and "resets every night" in r.json()["detail"]
+    assert client.get("/health").status_code == 200
+
+
+def test_a_replayed_reply_marks_only_its_own_call() -> None:
+    from brimline_engine.ai.calls import _replayed
+    from brimline_engine.ai.guard import REPLAYED
+
+    REPLAYED.set(True)
+    assert _replayed() is True
+    assert _replayed() is False  # the next call in the same request is not a replay

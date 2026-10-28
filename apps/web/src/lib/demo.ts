@@ -13,7 +13,9 @@ export async function engineHeaders(): Promise<Record<string, string>> {
   const key = process.env.ENGINE_WEB_KEY;
   if (!key) return {};
   const h = await headers();
-  const address = (h.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  // Vercel sets x-real-ip itself (a client cannot choose it); the forwarded chain is a fallback.
+  // On another host, check which header its proxy sets before relying on this (docs/SECURITY.md).
+  const address = h.get("x-real-ip") || (h.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "unknown";
   const visitor = createHash("sha256").update(`${key}|${address}`).digest("hex").slice(0, 16);
   return { "X-Engine-Key": key, "X-Visitor": visitor };
 }

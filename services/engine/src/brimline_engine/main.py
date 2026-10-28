@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import FastAPI, Request, Response
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from psycopg_pool import ConnectionPool
 from pydantic import BaseModel
@@ -25,7 +26,7 @@ from brimline_engine.api import (
     search,
 )
 from brimline_engine.api.deps import Conn
-from brimline_engine.demo import DemoStatus, StorageFullError, status
+from brimline_engine.demo import DemoStatus, StorageFullError, check_storage, status
 from brimline_engine.planning.runs import SHUTDOWN, recover_interrupted
 from brimline_engine.settings import get_settings
 
@@ -64,6 +65,14 @@ app.include_router(files.router)
 app.include_router(search.router)
 
 CallNext = Callable[[Request], Awaitable[Response]]
+WRITES = {"POST", "PUT", "PATCH", "DELETE"}
+
+
+def _check_size(request: Request) -> None:
+    with request.app.state.pool.connection() as conn:
+        check_storage(conn, None)
+
+
 VISITOR_ID = re.compile(r"^[0-9a-f]{16}$")
 
 
@@ -78,12 +87,21 @@ async def web_key_and_visitor(request: Request, call_next: CallNext) -> Response
         visitor = visitor_hash(address, settings.session_secret.get_secret_value())
     else:
         sent = request.headers.get("x-engine-key", "")
-        if request.url.path != "/health" and not hmac.compare_digest(sent, key.get_secret_value()):
+        # Bytes, so a header with any characters is refused, never a crash (review of M11).
+        if request.url.path != "/health" and not hmac.compare_digest(
+            sent.encode("utf-8", "replace"), key.get_secret_value().encode("utf-8")
+        ):
             return JSONResponse({"detail": "not allowed"}, status_code=401)
         claimed = request.headers.get("x-visitor", "")
         visitor = (
             claimed if VISITOR_ID.match(claimed) else visitor_hash(address, key.get_secret_value())
         )
+    if settings.demo_mode and request.method in WRITES:
+        # The hosted demo's size cap, before any write route runs (row caps are per route).
+        try:
+            await run_in_threadpool(_check_size, request)
+        except StorageFullError as e:
+            return JSONResponse({"detail": str(e)}, status_code=503)
     token, replayed = VISITOR.set(visitor), REPLAYED.set(False)
     try:
         return await call_next(request)

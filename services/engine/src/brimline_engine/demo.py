@@ -38,8 +38,9 @@ def effective_files_config() -> FilesConfig:
     return cfg.model_copy(update={"limits": limits})
 
 
-def check_storage(conn: psycopg.Connection, table: str) -> None:
-    """Refuse a write that would grow the demo database past its caps."""
+def check_storage(conn: psycopg.Connection, table: str | None) -> None:
+    """Refuse a write that would grow the demo database past its caps. With no table, only the
+    size cap (the middleware checks it before every write)."""
     if not get_settings().demo_mode:
         return
     storage = demo_config().storage
@@ -47,8 +48,8 @@ def check_storage(conn: psycopg.Connection, table: str) -> None:
     assert size is not None
     if int(size[0]) > storage.max_database_mb * 1024 * 1024:
         raise StorageFullError("the demo's database is full for today; it resets every night")
-    cap = storage.max_rows.get(table)
-    if cap is not None:
+    cap = storage.max_rows.get(table) if table else None
+    if table is not None and cap is not None:
         # The table name comes from our code, never from a request (fixed list in config).
         row = conn.execute(
             sql.SQL("SELECT count(*) FROM {}").format(sql.Identifier(table))

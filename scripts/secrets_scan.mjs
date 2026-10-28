@@ -11,8 +11,9 @@ const PATTERNS = [
   ["API key (sk-...)", /\bsk-[A-Za-z0-9_-]{20,}/],
   ["private key block", /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
   ["GitHub token", /\bgh[pousr]_[A-Za-z0-9]{30,}/],
-  ["hosted database URL with a password", /postgres(?:ql)?:\/\/[^:\s"'`]+:[^@\s"'`$<]{8,}@[^\s"'`]*(neon\.tech|render\.com|supabase\.co)/],
-  ["key assigned a value", /\b(DEEPSEEK_API_KEY|ANTHROPIC_API_KEY|ENGINE_WEB_KEY)\s*=\s*[A-Za-z0-9_-]{16,}/],
+  // Any database URL with a password, except the local development ones (localhost, db).
+  ["database URL with a password", /postgres(?:ql)?:\/\/[^:\s"'`/]+:[^@\s"'`$<{]{8,}@(?!localhost|db[:/]|127\.0\.0\.1)[^\s"'`]+/],
+  ["key assigned a value", /\b(DEEPSEEK_API_KEY|ANTHROPIC_API_KEY|ENGINE_WEB_KEY|SESSION_SECRET|DEMO_DATABASE_\w+)\s*[:=]\s*["']?(?!replace-me|not-used|\$\{)[A-Za-z0-9_+/-]{16,}/],
 ];
 const BINARY = /\.(png|jpe?g|gif|webp|ico|stl|3mf|gz|zip|mp4|webm|woff2?|pdf)$/i;
 

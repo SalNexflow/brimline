@@ -142,6 +142,7 @@ def file_advice(
     settings: CurrentSettings,
 ) -> dict[str, Any]:
     """Optional AI advice on the preview: stored and shown as advice, never a check result."""
+    check_storage(conn, "ai_calls")  # demo mode only (config/demo.toml)
     model = models_config().task(advice.PURPOSE).model
     try:
         stored, replayed = f.ask_advice(

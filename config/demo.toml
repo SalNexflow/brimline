@@ -30,6 +30,7 @@ orders = 2000
 disruptions = 2000
 ai_calls = 20000
 planning_runs = 2000
+sessions = 20000
 
 [files]
 # Vercel's serverless functions accept request bodies up to about 4.5 MB, so uploads in the

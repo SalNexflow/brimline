@@ -24,6 +24,7 @@ USER brimline
 WORKDIR /app/services/engine
 ENV PORT=8000
 EXPOSE 8000
-# Migrate (and seed an empty database) as the owner, then serve as the app role. With
+# Migrate (and seed an empty database) as the owner, then serve as the app role, with the
+# owner's credentials removed from the server's environment (review of M11). With
 # DEMO_RESET_ON_START=1 the database is reset to this week's demo first (db reset --demo).
-CMD ["sh", "-c", "if [ \"${DEMO_RESET_ON_START:-0}\" = 1 ]; then .venv/bin/python -m brimline_engine.db reset --demo; else .venv/bin/python -m brimline_engine.db setup; fi && exec .venv/bin/uvicorn brimline_engine.main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "if [ \"${DEMO_RESET_ON_START:-0}\" = 1 ]; then .venv/bin/python -m brimline_engine.db reset --demo; else .venv/bin/python -m brimline_engine.db setup; fi && exec env -u DATABASE_OWNER_URL .venv/bin/uvicorn brimline_engine.main:app --host 0.0.0.0 --port ${PORT}"]

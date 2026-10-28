@@ -151,6 +151,22 @@ const MUTATIONS = [
     expect: "engine: tests",
   },
   {
+    // M11: the hosted engine would answer anyone, not only the web app.
+    name: "engine stops checking the web key",
+    file: "services/engine/src/brimline_engine/main.py",
+    find: '        if request.url.path != "/health" and not hmac.compare_digest(',
+    replace: '        if False and not hmac.compare_digest(',
+    expect: "engine: tests",
+  },
+  {
+    // M11: the hosted demo would keep calling the model after its daily budget is spent.
+    name: "demo ignores its daily model budget",
+    file: "services/engine/src/brimline_engine/ai/guard.py",
+    find: "    if s.today_usd >= budget.daily_usd:",
+    replace: "    if False:",
+    expect: "engine: tests",
+  },
+  {
     name: "a failed file check can be accepted like a warning",
     file: "services/engine/src/brimline_engine/files/service.py",
     find: '        if check.status != "warn":',

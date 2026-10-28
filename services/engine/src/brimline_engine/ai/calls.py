@@ -6,6 +6,14 @@ from brimline_engine.ai.gateway import CallRecord
 from brimline_engine.ai.guard import REPLAYED, VISITOR
 
 
+def _replayed() -> bool:
+    """Whether the call being recorded was replayed; cleared, so the next call starts fresh
+    (review of M11: one replay marked every later call in the request)."""
+    replayed = REPLAYED.get()
+    REPLAYED.set(False)
+    return replayed
+
+
 def record_call(conn: psycopg.Connection, record: CallRecord, user_id: int | None) -> int:
     u = record.usage
     row = conn.execute(
@@ -15,7 +23,7 @@ def record_call(conn: psycopg.Connection, record: CallRecord, user_id: int | Non
         (
             record.purpose,
             # A reply replayed from the recording is recorded as such (and costs nothing).
-            "replay" if REPLAYED.get() else record.mode,
+            "replay" if _replayed() else record.mode,
             record.model,
             record.prompt_version,
             record.outcome,
