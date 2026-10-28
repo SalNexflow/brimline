@@ -3,9 +3,11 @@
     question -> fast path or model -> interpret (code) -> scope (code) -> query (code)
     filter (chips) ---------------------------------------> scope (code) -> query (code)
 
-Search changes no data; the only write is the model call's cost record (ai_calls). Nothing the
-model writes is shown to the person: an unclear question gets code's own message, so a reply
-cannot carry text (another customer's name, say) to the screen."""
+Search changes no data; the only write is the model call's cost record (ai_calls). The model's
+free text is never shown, and an unclear question gets code's own message. Text that does reach
+the screen from a reply (a part name to look for, say) must be words of the question itself,
+and a customer's prompt names no other customer, so a reply cannot carry another customer's
+name to them (review of M8)."""
 
 from datetime import datetime
 from typing import Literal
@@ -61,6 +63,13 @@ def catalog(conn: psycopg.Connection) -> Catalog:
         customers=dict(conn.execute("SELECT code, name FROM customers ORDER BY code").fetchall()),
         materials=dict(conn.execute("SELECT code, name FROM materials ORDER BY code").fetchall()),
     )
+
+
+def prompt_catalog(cat: Catalog, own_code: str | None) -> Catalog:
+    """What the model is told: a customer's prompt names only their own customer."""
+    if own_code is None:
+        return cat
+    return Catalog(customers={own_code: cat.customers[own_code]}, materials=cat.materials)
 
 
 def _own_code(conn: psycopg.Connection, actor: Actor) -> str | None:
@@ -148,7 +157,10 @@ def search(
     if direct is not None:
         return run_filter(conn, actor, direct, now, tz)
     cat = catalog(conn)
-    result = parse_question(client, mode=mode, question=body.question, catalog=cat)
+    own = _own_code(conn, actor)
+    result = parse_question(
+        client, mode=mode, question=body.question, catalog=prompt_catalog(cat, own)
+    )
     with conn.transaction():
         record_call(conn, result.record, actor.user_id)
     ai = AiInfo(
@@ -164,9 +176,8 @@ def search(
             if client is None
             else out
         )
-    reading = interpret(result.value, now, tz, shifts, cat)
+    reading = interpret(result.value, now, tz, shifts, cat, question=body.question)
     if reading.kind == "needs_confirmation":
-        own = _own_code(conn, actor)
         return _empty(reading, ai, [query.scope(o, actor, own).filter for o in reading.options])
     if reading.kind != "filter" or reading.filter is None:
         return _empty(reading, ai)

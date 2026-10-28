@@ -83,4 +83,4 @@ prompt_version = "file-advice-v1"
 model = "deepseek-flash"
 effort = "low"
 max_tokens = 3000
-prompt_version = "search-parse-v2"  # v2 (tuned on dev only): "in" for list fields; "my orders" needs no condition
+prompt_version = "search-parse-v3"  # v2 (tuned on dev only): "in" for list fields, "my orders"; v3 (review): no customer named in the example

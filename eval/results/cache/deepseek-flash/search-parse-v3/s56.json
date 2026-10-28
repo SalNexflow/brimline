@@ -1,0 +1,35 @@
+{
+  "id": "s56",
+  "question_sha256": "23a6769cd41c4d40041a1157a746214af9a65db4a8f8d167f97021f0795feaad",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:12:26+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "Customer codes C-COPPER and C-TALLOW are not in the allowed customer list.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 184,
+      "output_tokens": 183,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 283,
+    "latency_ms": 1719,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":true,\"unclear_reason\":\"Customer codes C-COPPER and C-TALLOW are not in the allowed customer list.\",\"conditions\":[],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

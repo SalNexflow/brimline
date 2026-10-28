@@ -1,0 +1,35 @@
+{
+  "id": "s53",
+  "question_sha256": "172cad485f426fd224d7d8c870baae06a0b22b9f15e603d55d56d2df269f755e",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:12:22+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "The question asks for an opinion ('best customers'), which cannot be answered with the available job filters.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 214,
+      "output_tokens": 76,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 164,
+    "latency_ms": 984,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": true, \"unclear_reason\": \"The question asks for an opinion ('best customers'), which cannot be answered with the available job filters.\", \"conditions\": [], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": false}"
+    ]
+  }
+}

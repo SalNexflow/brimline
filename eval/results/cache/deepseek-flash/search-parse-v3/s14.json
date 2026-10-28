@@ -1,0 +1,62 @@
+{
+  "id": "s14",
+  "question_sha256": "fd5cf8ccb8ee06719e1887fa43e863598daa487dfe0d2984ac3191530783dbf0",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:11:24+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "job_status",
+        "op": "in",
+        "values": [
+          "planned"
+        ]
+      },
+      {
+        "field": "process",
+        "op": "in",
+        "values": [
+          "fdm"
+        ]
+      },
+      {
+        "field": "printed",
+        "op": "is",
+        "values": [
+          "false"
+        ]
+      }
+    ],
+    "due": {
+      "op": "on",
+      "rule": "today",
+      "phrase": null,
+      "phrase_to": null
+    },
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 220,
+      "output_tokens": 190,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 302,
+    "latency_ms": 1579,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"job_status\",\"op\":\"in\",\"values\":[\"planned\"]},{\"field\":\"process\",\"op\":\"in\",\"values\":[\"fdm\"]},{\"field\":\"printed\",\"op\":\"is\",\"values\":[\"false\"]}],\"due\":{\"op\":\"on\",\"rule\":\"today\",\"phrase\":null,\"phrase_to\":null},\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

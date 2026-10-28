@@ -1,0 +1,43 @@
+{
+  "id": "s59",
+  "question_sha256": "86ef31c91d2a14fefc2bd007fbf5a5ef3f99726f1c0a29c99a5e0db82b38e225",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:12:30+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "overdue",
+        "op": "in",
+        "values": [
+          "true"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": true
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 187,
+      "output_tokens": 102,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 187,
+    "latency_ms": 1109,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": false, \"unclear_reason\": \"\", \"conditions\": [{\"field\": \"overdue\", \"op\": \"in\", \"values\": [\"true\"]}], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": true}"
+    ]
+  }
+}

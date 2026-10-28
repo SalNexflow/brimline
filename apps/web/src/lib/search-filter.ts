@@ -91,18 +91,18 @@ export function parseValue(field: FieldName, op: Op, text: string): { ok: true; 
       if (t !== "true" && t !== "false") return { ok: false, error: `${spec.label} is yes or no` };
       if (spec.kind === "true" && t === "false") return { ok: false, error: "Overdue can only be yes" };
       return { ok: true, value: t === "true" };
-    case "int": {
-      const n = Number(t);
-      if (!Number.isInteger(n) || n < 0) return { ok: false, error: "Quantity is a whole number" };
-      return { ok: true, value: n };
-    }
+    case "int":
+      // Digits only: Number() would also read "1e3" and "0x10".
+      if (!/^\d{1,7}$/.test(t)) return { ok: false, error: "Quantity is a whole number" };
+      return { ok: true, value: Number(t) };
     case "text":
       if (t.length === 0 || t.length > 100) return { ok: false, error: `${spec.label}: 1 to 100 characters` };
       return { ok: true, value: t };
     case "date": {
       if (op === "between") {
-        const [a, b] = t.split(/\s*(?:to|,)\s*/);
-        if (!a || !b || !ISO.test(a) || !ISO.test(b)) return { ok: false, error: "Between needs two dates, e.g. 2026-10-26 to 2026-11-01" };
+        const parts = t.split(/\s*(?:to|,)\s*/);
+        const [a, b] = parts;
+        if (parts.length !== 2 || !a || !b || !ISO.test(a) || !ISO.test(b)) return { ok: false, error: "Between needs two dates, e.g. 2026-10-26 to 2026-11-01" };
         return { ok: true, value: [a, b] };
       }
       if (!ISO.test(t)) return { ok: false, error: "A date is written YYYY-MM-DD" };

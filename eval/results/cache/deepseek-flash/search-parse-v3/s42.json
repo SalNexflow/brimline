@@ -1,0 +1,51 @@
+{
+  "id": "s42",
+  "question_sha256": "9e419f5d9e5c99ed68a4facd1158070a9b71b973d9a677d1a51d2f22fbab5def",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:12:06+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "job_status",
+        "op": "in",
+        "values": [
+          "failed",
+          "cancelled"
+        ]
+      },
+      {
+        "field": "process",
+        "op": "in",
+        "values": [
+          "cnc"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 217,
+      "output_tokens": 125,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 224,
+    "latency_ms": 1218,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"job_status\",\"op\":\"in\",\"values\":[\"failed\",\"cancelled\"]},{\"field\":\"process\",\"op\":\"in\",\"values\":[\"cnc\"]}],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

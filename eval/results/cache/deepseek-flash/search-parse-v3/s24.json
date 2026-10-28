@@ -1,0 +1,55 @@
+{
+  "id": "s24",
+  "question_sha256": "7213d26d7e26f1f47f20997b8fc793d31beaebe76db7d33f7fe4d40f389e7ea6",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:11:39+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "customer",
+        "op": "in",
+        "values": [
+          "C-HARBOR"
+        ]
+      },
+      {
+        "field": "order_status",
+        "op": "in",
+        "values": [
+          "in_production"
+        ]
+      }
+    ],
+    "due": {
+      "op": "after",
+      "rule": "friday",
+      "phrase": null,
+      "phrase_to": null
+    },
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 219,
+      "output_tokens": 198,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 312,
+    "latency_ms": 1406,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"customer\",\"op\":\"in\",\"values\":[\"C-HARBOR\"]},{\"field\":\"order_status\",\"op\":\"in\",\"values\":[\"in_production\"]}],\"due\":{\"op\":\"after\",\"rule\":\"friday\",\"phrase\":null,\"phrase_to\":null},\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "s51",
+  "question_sha256": "aab54989987e4ce5d7c6922d0294a22bce4e1109c6ebc9f9c66b05a968eaea7d",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:12:18+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "customer",
+        "op": "in",
+        "values": [
+          "C-TALLOW"
+        ]
+      },
+      {
+        "field": "order_status",
+        "op": "in",
+        "values": [
+          "done"
+        ]
+      }
+    ],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 217,
+      "output_tokens": 206,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 321,
+    "latency_ms": 1547,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"customer\",\"op\":\"in\",\"values\":[\"C-TALLOW\"]},{\"field\":\"order_status\",\"op\":\"in\",\"values\":[\"done\"]}],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

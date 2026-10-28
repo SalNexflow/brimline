@@ -1,0 +1,48 @@
+{
+  "id": "s16",
+  "question_sha256": "d3de24d1bcc9ec1350833b416605984d3a80f24f31620eb0bddbc8b32190b96d",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:11:27+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "job_status",
+        "op": "in",
+        "values": [
+          "pending"
+        ]
+      }
+    ],
+    "due": {
+      "op": "before",
+      "rule": "phrase",
+      "phrase": "3 de noviembre",
+      "phrase_to": null
+    },
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 223,
+      "output_tokens": 340,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 483,
+    "latency_ms": 2406,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"job_status\",\"op\":\"in\",\"values\":[\"pending\"]}],\"due\":{\"op\":\"before\",\"rule\":\"phrase\",\"phrase\":\"3 de noviembre\",\"phrase_to\":null},\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

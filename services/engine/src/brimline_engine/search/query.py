@@ -29,7 +29,7 @@ class Scoped(BaseModel):
 def scope(f: Filter, actor: Actor, own_code: str | None) -> Scoped:
     """The filter this actor may run. For a customer, every customer condition is replaced by
     their own customer, whatever the question, the model or the chips said."""
-    if order_scope(actor) is None:
+    if _scope_of(actor) is None:
         return Scoped(filter=f, notices=[])
     if own_code is None:  # a customer without a customer fails closed
         raise ForbiddenError("order.list")
@@ -41,6 +41,13 @@ def scope(f: Filter, actor: Actor, own_code: str | None) -> Scoped:
     if any(c.value != [own_code] for c in asked):
         notices.append("Showing your own orders only: you can only search your own orders.")
     return Scoped(filter=Filter(conditions=conditions, sort=f.sort), notices=notices)
+
+
+def _scope_of(actor: Actor) -> int | None:
+    try:
+        return order_scope(actor)
+    except PermissionError as e:  # a customer user with no customer: refused, not a crash
+        raise ForbiddenError("order.list") from e
 
 
 class Row(BaseModel):
@@ -126,7 +133,7 @@ ORDER = {
 
 def build(f: Filter, actor: Actor, today: date) -> tuple[sql.Composed, dict[str, Any]]:
     """The SQL text (only our fixed pieces) and its parameters (every value)."""
-    params: dict[str, Any] = {"scope": order_scope(actor), "limit": MAX_ROWS}
+    params: dict[str, Any] = {"scope": _scope_of(actor), "limit": MAX_ROWS}
     parts = [sql.SQL(BASE)]  # fixed text, built from constants only
     for i, c in enumerate(f.conditions):
         text, values = _piece(c, f"p{i}")

@@ -1,0 +1,35 @@
+{
+  "id": "s31",
+  "question_sha256": "48185439c9105aba94cf5f1e276759c96c5584c3e7fe4b2b60eec876f02b7618",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:11:47+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "The customer 'Willow Street Dental Lab' is not one of the customers available in this search (only Harbor Lane Robotics Club, C-HARBOR).",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 182,
+      "output_tokens": 146,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 238,
+    "latency_ms": 1453,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": true, \"unclear_reason\": \"The customer 'Willow Street Dental Lab' is not one of the customers available in this search (only Harbor Lane Robotics Club, C-HARBOR).\", \"conditions\": [], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": false}"
+    ]
+  }
+}

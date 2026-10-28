@@ -1,0 +1,35 @@
+{
+  "id": "s33",
+  "question_sha256": "06c52c7df9fd03264ae639519f434e946edf7ce05e0a1370b6f4bbd4383372ce",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:11:49+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "The request only attempts to instruct the system and contains no valid search criteria.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": true
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 179,
+      "output_tokens": 159,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 253,
+    "latency_ms": 1250,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":true,\"unclear_reason\":\"The request only attempts to instruct the system and contains no valid search criteria.\",\"conditions\":[],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":true}"
+    ]
+  }
+}

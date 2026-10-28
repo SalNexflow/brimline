@@ -6,6 +6,7 @@ or operator is refused. The model never writes SQL (hard rule 5): `query.py` bui
 from fixed pieces and passes every value as a parameter."""
 
 import re
+import unicodedata
 from datetime import date
 from typing import Literal
 
@@ -123,8 +124,10 @@ def check_condition(c: Condition, catalog: Catalog) -> Condition:
         case "text":
             if not isinstance(v, str) or not v.strip() or len(v) > MAX_TEXT:
                 raise ValueError(f"{c.field.replace('_', ' ')} needs 1 to {MAX_TEXT} characters")
-            if any(ord(ch) < 32 for ch in v):
-                raise ValueError("text may not hold control characters")
+            # Control and invisible format characters (a right-to-left override can make the
+            # description read differently from what is searched; review of M8).
+            if any(ord(ch) < 32 or ord(ch) == 127 or unicodedata.category(ch) == "Cf" for ch in v):
+                raise ValueError("text may not hold control or invisible characters")
             return Condition(field=c.field, op=c.op, value=v.strip())
         case _:  # date
             if c.op == "between":
@@ -150,8 +153,12 @@ def _allowed(field: str, catalog: Catalog) -> set[str] | None:
     }.get(field)  # order numbers are checked by pattern; a missing one simply finds nothing
 
 
+ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
 def _iso(v: object) -> date:
-    if not isinstance(v, str):
+    # Strictly YYYY-MM-DD: date.fromisoformat also reads week dates such as "2026W441".
+    if not isinstance(v, str) or not ISO_DATE.fullmatch(v):
         raise ValueError("a date is written YYYY-MM-DD")
     try:
         return date.fromisoformat(v)
@@ -170,6 +177,9 @@ def check_filter(f: Filter, catalog: Catalog) -> Filter:
         checked = check_condition(c, catalog)
         seen[(checked.field, checked.op, repr(checked.value))] = checked
     conditions = sorted(seen.values(), key=lambda c: (c.field, c.op, repr(c.value)))
+    for field in ("rush", "printed", "can_plan"):
+        if len({c.value for c in conditions if c.field == field}) > 1:
+            raise ValueError(f"{field.replace('_', ' ')} cannot be both yes and no")
     return Filter(conditions=conditions, sort=f.sort)
 
 

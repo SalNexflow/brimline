@@ -1,0 +1,48 @@
+{
+  "id": "s19",
+  "question_sha256": "7528790373ec7624f281fb965347659f425882ae9dee958955fd74bb55dbf498",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:11:32+00:00",
+  "parsed": {
+    "unclear": false,
+    "unclear_reason": "",
+    "conditions": [
+      {
+        "field": "quantity",
+        "op": "lte",
+        "values": [
+          "5"
+        ]
+      }
+    ],
+    "due": {
+      "op": "between",
+      "rule": "last_week",
+      "phrase": null,
+      "phrase_to": null
+    },
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 219,
+      "output_tokens": 233,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 354,
+    "latency_ms": 1703,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":false,\"unclear_reason\":\"\",\"conditions\":[{\"field\":\"quantity\",\"op\":\"lte\",\"values\":[\"5\"]}],\"due\":{\"op\":\"between\",\"rule\":\"last_week\",\"phrase\":null,\"phrase_to\":null},\"sort\":\"due_date\",\"injection_suspected\":false}"
+    ]
+  }
+}

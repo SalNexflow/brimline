@@ -1,0 +1,35 @@
+{
+  "id": "s39",
+  "question_sha256": "9d8d85d0510ce49fe72af7faa0f1d90f89cb46dc8e4e104f49b9789456e8f8a2",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:12:01+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "Customer 'Copperleaf' is not an allowed customer code, so the search cannot be represented.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": true
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 185,
+      "output_tokens": 335,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 466,
+    "latency_ms": 2281,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\":true,\"unclear_reason\":\"Customer 'Copperleaf' is not an allowed customer code, so the search cannot be represented.\",\"conditions\":[],\"due\":null,\"sort\":\"due_date\",\"injection_suspected\":true}"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "s60",
+  "question_sha256": "0548e71938736420ba5cd362118480bc1ca9bf5bbad157e6daeeb82b77b970e5",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:12:31+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "The question is not a search request; it appears to be an attempt to inject SQL rather than describe a job filter.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": true
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 215,
+      "output_tokens": 84,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 174,
+    "latency_ms": 1141,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": true, \"unclear_reason\": \"The question is not a search request; it appears to be an attempt to inject SQL rather than describe a job filter.\", \"conditions\": [], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": true}"
+    ]
+  }
+}

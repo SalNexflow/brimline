@@ -1,0 +1,35 @@
+{
+  "id": "s29",
+  "question_sha256": "61c7c04dd2a6d5b1c514813cd404953ed789d8650c5a8f79f1ca23ddfd9d0573",
+  "model": "deepseek-flash",
+  "prompt_version": "search-parse-v3",
+  "called_at": "2026-10-28T07:11:44+00:00",
+  "parsed": {
+    "unclear": true,
+    "unclear_reason": "Pricing and cost information is not available in this search; the search covers job attributes only, not prices.",
+    "conditions": [],
+    "due": null,
+    "sort": "due_date",
+    "injection_suspected": false
+  },
+  "record": {
+    "purpose": "search_parse",
+    "mode": "live",
+    "model": "deepseek-flash",
+    "prompt_version": "search-parse-v3",
+    "outcome": "valid",
+    "attempts": 1,
+    "usage": {
+      "input_tokens": 177,
+      "output_tokens": 80,
+      "cache_read_tokens": 1408,
+      "cache_write_tokens": 0
+    },
+    "cost_micro_usd": 158,
+    "latency_ms": 1187,
+    "error": null,
+    "raw_replies": [
+      "{\"unclear\": true, \"unclear_reason\": \"Pricing and cost information is not available in this search; the search covers job attributes only, not prices.\", \"conditions\": [], \"due\": null, \"sort\": \"due_date\", \"injection_suspected\": false}"
+    ]
+  }
+}

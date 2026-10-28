@@ -20,6 +20,9 @@ describe("parseValue", () => {
     expect(parseValue("due_date", "on", "30/10")).toEqual({ ok: false, error: "A date is written YYYY-MM-DD" });
     expect(parseValue("quantity", "gt", "a few")).toEqual({ ok: false, error: "Quantity is a whole number" });
     expect(parseValue("customer", "in", " , ")).toMatchObject({ ok: false });
+    expect(parseValue("quantity", "eq", "1e3")).toMatchObject({ ok: false });
+    expect(parseValue("quantity", "eq", "0x10")).toMatchObject({ ok: false });
+    expect(parseValue("due_date", "between", "2026-10-26 to 2026-10-27 to 2026-10-28")).toMatchObject({ ok: false });
   });
 });
 
