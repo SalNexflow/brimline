@@ -16,6 +16,11 @@
     "eval": "node scripts/tasks.mjs eval",
     "bench": "node scripts/tasks.mjs bench",
     "replan-bench": "node scripts/tasks.mjs replan-bench",
-    "gate-selftest": "node scripts/tasks.mjs gate-selftest"
+    "gate-selftest": "node scripts/tasks.mjs gate-selftest",
+    "demo": "node scripts/tasks.mjs demo",
+    "demo-stop": "node scripts/tasks.mjs demo-stop",
+    "screenshots": "node scripts/tasks.mjs screenshots",
+    "demo-video": "node scripts/tasks.mjs demo-video",
+    "readme": "node scripts/tasks.mjs readme"
   }
 }

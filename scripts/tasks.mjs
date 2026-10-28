@@ -49,6 +49,8 @@ const ENGINE_UNIT = step("engine: tests", ENGINE, "uv run --locked pytest");
 
 // Order: fastest checks first, so most mistakes fail in seconds.
 const GATE = [
+  step("secrets: none in git", ROOT, "node scripts/secrets_scan.mjs"),
+  step("readme: matches eval/results", ROOT, "node scripts/readme.mjs --check"),
   step("db: start", ROOT, "docker compose up -d --wait"),
   step("api types: up to date", ROOT, "node scripts/tasks.mjs api-types --check"),
   step("web: typecheck", WEB, "pnpm run typecheck"),
@@ -226,6 +228,19 @@ const TASKS = {
         ["uv run --locked python -m brimline_engine.scheduling.replan_bench", ...process.argv.slice(3)].join(" "),
       ),
     ]),
+  // The whole app in containers with fake data and prepared replies (M11): http://localhost:3000
+  demo: () => {
+    const code = runSteps("demo", [step("build and start the app (db, engine, web)", ROOT, "docker compose --profile app up --build -d --wait")]);
+    if (code === 0) console.log("\nOpen http://localhost:3000 and sign in as any demo user. Stop with: make demo-stop");
+    return code;
+  },
+  "demo-stop": () => runSteps("demo-stop", [step("stop the app containers", ROOT, "docker compose --profile app stop engine web")]),
+  screenshots: () => spawnSync(`node "${join(ROOT, "scripts", "showcase.mjs")}" screenshots`, { cwd: ROOT, env: ENV, shell: true, stdio: "inherit" }).status ?? 1,
+  // Extra arguments pass through: node scripts/tasks.mjs demo-video --record
+  "demo-video": () =>
+    spawnSync(`node "${join(ROOT, "scripts", "showcase.mjs")}" video ${process.argv.slice(3).join(" ")}`, { cwd: ROOT, env: ENV, shell: true, stdio: "inherit" })
+      .status ?? 1,
+  readme: () => runSteps("readme", [step("write README tables from eval/results", ROOT, "node scripts/readme.mjs")]),
   "gate-selftest": () =>
     spawnSync(`node "${join(ROOT, "scripts", "gate_selftest.mjs")}"`, { cwd: ROOT, env: ENV, shell: true, stdio: "inherit" })
       .status ?? 1,

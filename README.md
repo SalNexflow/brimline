@@ -1,58 +1,127 @@
 # Brimline
 
-Production planning for a **fictional** made-to-order 3D-print and CNC shop: a messy customer request becomes a quote,
-the work is planned across machines by a constraint solver, every plan is proven valid by an independent checker,
-and the day is re-planned when something breaks. AI reads language and explains; code decides prices, dates,
-permissions, and schedules.
+Production planning for a **fictional** made-to-order 3D-print and CNC shop. One story, end to end:
 
-> Status: **M6 (disruptions and re-planning).** A planner types what broke; the AI proposes typed events, code
-> resolves the times, the planner confirms, and the re-plan shows what moves and why before anyone approves it.
-> Earlier: **M5 (production board).** A planner presses Plan day (it solves in the background), reads the plan as bars
-> per machine with an independent-check badge, and approves it; operators then work per-machine queues. Earlier:
-> **M4 (independent checker).** Every plan is re-validated by a checker that shares no code with the
-> scheduler and recomputes the numbers from raw inputs; the rules are in `docs/SCHEDULE_RULES.md`. Earlier: **M3
-> (scheduler, baselines, benchmark).** A CP-SAT scheduler plans the work across machines and shifts and is
-> benchmarked against two greedy baselines in `eval/results/BENCH.md`. Earlier: **M2 (pricing rules and AI quote builder).** A customer message becomes an AI-drafted quote that code prices
-> and staff approve into an order. Earlier: demo login for four roles, orders by hand, append-only audit log.
-> All data is synthetic.
-> Results tables will appear here only once `make eval` and `make bench` produce them.
+> a customer's message and 3D model file → an AI-drafted quote that code prices → an order → a plan across
+> machines from a constraint solver, re-checked by an independent checker → something breaks → a re-plan that
+> moves as little as it can → plain-English search over the work.
 
-## Layout
+**AI reads language and explains; code decides prices, dates, permissions and plans.** Every AI step is
+evaluated blind, and every number below is written by a command, never by hand. All data is fake.
 
-| Path | What lives there |
-|---|---|
-| `apps/web` | Next.js web app (TypeScript strict) |
-| `services/engine` | Python FastAPI engine: scheduler, checker, file checker |
-| `db` | Migrations and seed |
-| `config` | Dated config: model names, prices, thresholds, solver weights |
-| `eval` | Evaluation datasets and results |
-| `data` | Fake shop data and generated test models |
-| `scripts` | Task runner (`tasks.mjs`) and the gate self-test |
-| `docs` | Brief, milestones, decisions, defect log, ideas |
+![The production board with an approved plan](docs/screenshots/board.png)
 
-## Requirements
+## The AI-versus-code boundary
 
-Git, Node 24 LTS, pnpm, [uv](https://docs.astral.sh/uv/) (it installs Python 3.12 for the engine), Docker, and optionally GNU make.
+| Step | What the AI does | What code does |
+|---|---|---|
+| Quote request | Reads the message into a draft (parts, quantities, material, the due-date wording) | Works out the date, lists what is missing, computes every price; a person approves |
+| Model file | Optional advice on a preview, labelled as advice (off by default) | Measures the file: closed surface, size and units, fit per printer, walls, overhangs, loose parts |
+| Planning | Nothing | CP-SAT plans; an independent checker that shares no code with the scheduler re-checks every plan |
+| Disruption | Reads "printer 3 jammed until 5pm" into typed events or "unclear", copying times as written | Resolves the times in shop time, re-plans with stability costs, shows the diff; a planner approves |
+| Re-plan summary | Writes a summary from the diff only | Rejects any summary mentioning something the diff does not contain |
+| Search | Turns a question into a typed filter (never SQL) | Checks the filter, resolves dates, adds permissions, builds a parameterised query |
 
-## Commands
+## Architecture
 
-Every command works as `make <name>` or `pnpm run <name>`. Both call `scripts/tasks.mjs`, so they behave the same in
-PowerShell, Git Bash, and CI. (Use `pnpm run`, not bare `pnpm`: `pnpm setup` is a built-in pnpm command.)
+```mermaid
+flowchart LR
+  B[Browser] --> W[Web: Next.js 16<br/>server components, forms, chips]
+  W -- "typed client (OpenAPI)" --> E[Engine: FastAPI, Python 3.12]
+  E --> AI[LLM gateway<br/>schema-validated, cost-logged,<br/>budget and replay in the demo]
+  E --> S[Scheduler: OR-Tools CP-SAT]
+  E --> C[Independent checker<br/>imports nothing from the scheduler]
+  E --> F[File checker: own STL/3MF reader, numpy]
+  E --> P[(PostgreSQL 18<br/>append-only audit log,<br/>non-superuser owner)]
+  AI -. "DeepSeek (default) or Claude" .-> X((model API))
+```
 
-First run: `make setup` then `make gate`.
+The web app never talks to the database; the engine checks permissions on every query, after any AI step.
+Details: `docs/BRIEF.md` (intent), `docs/DECISIONS.md` (every choice and its alternative), `docs/DEFECT_LOG.md`
+(every bug that was introduced and how it was caught), `docs/SECURITY.md` (what is and is not hardened).
+
+## Results
+
+Written by `make readme` from `eval/results/` (produced by `make eval`, `make bench`, `make replan-bench`);
+the gate fails if this table and the results disagree. Full tables, every miss and the method behind each:
+`eval/results/*.md`.
+
+<!-- generated:results:start (scripts/readme.mjs; do not edit by hand) -->
+| Area | Measure (held-out set where there is one) | Result | Command |
+|---|---|---|---|
+| Quote reading (AI) | Messages with every field right | 85 % of 20 | `make eval` |
+| Quote reading (AI) | Harmful errors (a wrong value that would reach a price) | 0 | `make eval` |
+| Disruption reading (AI) | Messages read exactly right | 92 % of 12 | `make eval` |
+| Disruption reading (AI) | Cancellations the label does not have | 0 | `make eval` |
+| Search (AI) | Filter exactly right after code reads it | 18/20 | `make eval` |
+| Search (AI) | Access-widening attacks blocked | 2/2 | `make eval` |
+| Search (AI) | Customer questions showing another customer's name | 0/5 | `make eval` |
+| File checker (code) | Broken files passed (false pass) | 0/4 | `make eval` |
+| File checker (code) | Overall verdict agrees with the label | 12/12 | `make eval` |
+| Scheduler, 80 jobs | Late or unscheduled jobs: CP-SAT / EDD / first-come | 10.8 / 38.4 / 35.8 | `make bench` |
+| Scheduler, 80 jobs | Total lateness, hours: CP-SAT / EDD | 787.9 / 1624.9 | `make bench` |
+| Independent checker | Corrupted plans caught | 2760/2760 (23 kinds) | `make bench` |
+| Independent checker | Plans checked valid / disagreements with the scheduler | 60/60 / 0 | `make bench` |
+| Re-planning | Jobs moved after a breakdown: stability costs / none, same hint | 3.7 / 14.3 of 32.7 | `make replan-bench` |
+| Re-planning | Re-plans that pass the independent checker | 60/60 | `make replan-bench` |
+<!-- generated:results:end -->
+
+## Resume claims, each with its measured number
+
+<!-- generated:claims:start (scripts/readme.mjs; do not edit by hand) -->
+- Built an **independent plan checker** that shares no code with the scheduler and caught **2760/2760** deliberately corrupted plans across 23 kinds of error (`make bench`).
+- Scheduled with **OR-Tools CP-SAT**: on 80-job instances, **10.8** late or unscheduled jobs on average against **38.4** for earliest-due-date (`make bench`).
+- Made re-planning stable: after a machine breakdown the re-plan moves **3.7** of 32.7 jobs instead of **14.3** without stability costs, with all **60/60** re-plans checker-valid (`make replan-bench`).
+- Kept the LLM out of decisions: natural-language search turns a question into a typed filter (never SQL) with **18/20** exactly right on a blind held-out set and **2/2** access-widening attacks blocked (`make eval`).
+- Evaluated every AI step blind, with dev and held-out sets written by a fresh agent: the disruption reader is exactly right on **92 %** of held-out messages with **0** unsafe cancellations (`make eval`).
+<!-- generated:claims:end -->
+
+## Screenshots
+
+| Quote from a message | A disruption, read and checked | Search with editable chips |
+|---|---|---|
+| ![Quote](docs/screenshots/quote.png) | ![Disruption review](docs/screenshots/disruption-review.png) | ![Search](docs/screenshots/search.png) |
+
+Regenerate with `make screenshots`. A 3-minute walkthrough video, with captions, is made by `make demo-video`
+(it replays model replies from a recorded run, and says so).
+
+## Run it
+
+Requirements: Git, Node 24, pnpm, [uv](https://docs.astral.sh/uv/) (it installs Python 3.12), Docker, and
+optionally GNU make. Every command is `make <name>` or `pnpm run <name>` (both call `scripts/tasks.mjs`).
+
+```bash
+make setup
+```
+
+```bash
+make gate
+```
+
+```bash
+make demo
+```
+
+`make demo` runs the whole app in containers with fake data and prepared model replies (no key needed) at
+http://localhost:3000. `make eval`, `make bench` and `make replan-bench` reproduce the results above; the
+model evaluations replay saved replies, so they need no key either.
 
 | Command | What it does |
 |---|---|
 | `setup` | Install dependencies and the Playwright browser, create `.env`, start PostgreSQL |
-| `dev` | Run database, engine (port 8000) and web (port 3000) |
-| `gate` | The quality gate: types, lint, format, unit tests, engine tests, browser test |
+| `dev` | Run database, engine (port 8000) and web (port 3000) for development |
+| `gate` | The quality gate: secrets scan, README check, types, lint, format, unit and engine tests, browser tests |
+| `gate-selftest` | Proves the gate fails: plants deliberate errors in a throwaway copy and checks each is caught at the right step |
 | `test` | Unit tests only (web and engine) |
-| `db-reset` | Drop, migrate, and re-seed the dev database from `config/shop.toml` |
-| `api-types` | Regenerate the web's TypeScript types from the engine's OpenAPI schema |
-| `gate-selftest` | Proves the gate fails: plants deliberate errors in a throwaway copy and checks each is caught at the right step. Refuses to run on a dirty git tree |
-| `eval` | Run the evaluations (quote reading, disruption reading, file checker, search) and write `eval/results/RESULTS.md`, `DISRUPTIONS.md`, `FILES.md` and `SEARCH.md` (the model ones replay saved replies; see `eval/README.md`) |
-| `bench` | Scheduler benchmark against two baselines, every plan re-checked by the independent checker; writes `eval/results/BENCH.md` and fails if the checker disagrees (slow: 25 CP-SAT runs; `--quick` for a smoke run into `eval/results/quick`) |
-| `replan-bench` | Re-planning scenarios: lateness versus jobs moved, every re-plan checked; writes `eval/results/REPLAN.md` |
+| `demo` / `demo-stop` | The whole app in Docker (db, engine, web) |
+| `eval` | Quote, disruption, file-checker and search evaluations into `eval/results/` |
+| `bench` | Scheduler benchmark against two baselines, every plan re-checked (slow; `--quick` for a smoke run) |
+| `replan-bench` | Re-planning scenarios: lateness versus jobs moved, every re-plan checked |
+| `readme` | Rewrite this README's results and claims from `eval/results/` |
+| `screenshots` / `demo-video` | The README screenshots, and the captioned walkthrough video (`-- --record` records replies once) |
+| `db-reset` / `api-types` | Reset the dev database; regenerate the web's types from the engine's OpenAPI schema |
+
+The hosted demo (Vercel + Render + Neon, all free tiers) is described in `docs/DEPLOY.md`.
 
 ## Known limits
 
@@ -60,22 +129,19 @@ First run: `make setup` then `make gate`.
   (a separate worker would be the next step, `docs/DECISIONS.md` D68).
 - Plan times are wall-clock minutes in the shop's time zone, so an overnight print across a clock change is
   an hour longer or shorter in real time than its minute count.
-- A quote line gets its part size from a checked model file (or staff); a job still missing one is listed as
-  "cannot plan" with a link to attach a file. Print-time and weight estimates from a file are rough formulas
-  (`config/files.toml`), not a slicer.
-- File checks judge overhangs in the orientation the file was saved in, and wall thickness with one ray per
-  face, which can miss thin features on finely curved parts. The file-check evaluation uses generated shapes
-  only (`eval/results/FILES.md`).
-- Material deliveries are not modelled yet: stock is assumed on hand (M6 adds delays).
-- When a new plan replaces the approved one, finished manual work (prep, post-processing) of jobs that are
-  not yet done is planned again; only machine work carries over as fixed.
-
-## Demo login
-
-Sign-in is a list of seeded demo people (staff, planner, operator, customer), with no passwords. The engine signs a
-short-lived session token; the web keeps it in an httpOnly cookie. This is a demo mechanism, not real authentication:
-it only works while `DEMO_LOGIN=true`, and the default is off.
+- Print-time and weight estimates from a model file are rough formulas (`config/files.toml`), not a slicer.
+  File checks judge overhangs in the orientation the file was saved in, wall thickness with one ray per face,
+  and units with a size rule that a small part modelled in centimetres can pass.
+- Material deliveries are modelled as delays (M6); stock levels and purchasing (M9) and quoted-versus-actual
+  reporting (M10) are not built.
+- When a new plan replaces the approved one, finished manual work (prep, post-processing) of jobs that are not
+  yet done is planned again; only machine work carries over as fixed.
+- The evaluations are small (tens of items per set) and partly synthetic; each results file says what its
+  numbers can and cannot show. The hosted demo uses a shorter solver run than the benchmark.
+- Demo login lets anyone sign in as any demo person, staff included; it is a demo mechanism, not
+  authentication, and is off unless `DEMO_LOGIN=true`.
 
 ## Not affiliated
 
-Brimline is a portfolio project. It is not affiliated with any real company and uses no real customer data, brands, or copyrighted models.
+Brimline is a portfolio project. It is not affiliated with any real company and uses no real customer data,
+brands, or copyrighted models; the five real test models are CC0 or public domain (`eval/datasets/files/real`).
