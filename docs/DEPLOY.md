@@ -8,6 +8,7 @@ Three free tiers, chosen in M11 (docs/DECISIONS.md D127), terms read on 2026-10-
 | Engine (FastAPI, Docker) | Render free web service | 750 instance hours a month; sleeps after 15 idle minutes and takes about a minute to wake | Runs our Dockerfile as it is |
 | Database (Postgres) | Neon Free | 1 GB per project, no card, suspends after 5 idle minutes | Does not expire (Render's free Postgres expires after 30 days) |
 
+All three run in Singapore (closest to the maintainer; `render.yaml`, `apps/web/vercel.json`).
 Everything that does not need your login is already in the repository: `render.yaml` (the
 engine), `services/engine/Dockerfile`, `.github/workflows/demo-reset.yml` (nightly reset),
 `config/demo.toml` (limits) and `scripts/deploy-values.mjs` (secrets). No payment method is needed
@@ -15,7 +16,7 @@ on any of the three.
 
 ## Your steps (each needs your login; sign in with GitHub everywhere)
 
-1. **Neon:** at console.neon.tech, create a project named `brimline` (region Frankfurt). Copy
+1. **Neon:** at console.neon.tech, create a project named `brimline` (region AWS Asia Pacific, Singapore). Copy
    its connection string (role `neondb_owner`, with `?sslmode=require`).
 2. **Values:** in this folder run `node scripts/deploy-values.mjs "<that connection string>"`.
    It prints every secret and where it goes (nothing is saved).
