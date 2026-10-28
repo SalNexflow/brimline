@@ -135,6 +135,11 @@ def test_sql_in_the_question_is_only_text_to_look_for(client: TestClient, owner_
 def test_a_date_that_reads_two_ways_is_asked(client: TestClient) -> None:
     r = ask(client, "U-PLANNER", "orders due 12/11")
     assert r["kind"] == "needs_confirmation" and r["readings"] == ["2026-11-12", "2026-12-11"]
+    # One ready filter per reading, so a click runs it (no model call).
+    assert [o["conditions"] for o in r["options"]] == [
+        [{"field": "due_date", "op": "on", "value": "2026-11-12"}],
+        [{"field": "due_date", "op": "on", "value": "2026-12-11"}],
+    ]
 
 
 def test_the_model_sees_only_the_question_never_order_data(

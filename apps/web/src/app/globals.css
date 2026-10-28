@@ -683,3 +683,33 @@ blockquote.message {
   border: 1px dashed var(--color-border);
   border-radius: var(--radius);
 }
+
+/* M8 search: each condition is a chip with its own edit box and remove button. */
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.chip input {
+  width: 11rem;
+}
+
+/* The accent colour is under 4.5:1 on the chip background (as in notices, DEFECT_LOG #55). */
+.chip .link-button {
+  color: var(--color-fg);
+  text-decoration: underline;
+}

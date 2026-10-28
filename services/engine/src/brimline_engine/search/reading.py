@@ -182,6 +182,7 @@ class Reading(BaseModel):
     filter: Filter | None = None
     reason: str = ""  # why, written by code (field checks, dates): may be shown
     model_reason: str = ""  # the model's own words: kept for the eval, never shown
+    options: list[Filter] = []  # for needs_confirmation: one ready filter per reading
     readings: list[str] = []  # ISO dates, when a date reads two ways
     injection_suspected: bool = False
 
@@ -225,7 +226,18 @@ def interpret(
         today = shop_today(now, tz)
         due = _due(parsed.due, today, now, tz, shifts)
         if isinstance(due, Reading):
-            return due.model_copy(update={"injection_suspected": flagged})
+            options = []
+            for option in due.options:  # the other conditions, plus each reading's date
+                try:
+                    options.append(
+                        check_filter(
+                            Filter(conditions=[*conditions, *option.conditions], sort=parsed.sort),
+                            catalog,
+                        )
+                    )
+                except ValueError as e:
+                    return Reading(kind="unclear", reason=str(e), injection_suspected=flagged)
+            return due.model_copy(update={"injection_suspected": flagged, "options": options})
         conditions.append(due)
     try:
         f = check_filter(Filter(conditions=conditions, sort=parsed.sort), catalog)
@@ -328,36 +340,39 @@ def _nearer(d: date, today: date) -> date:
 def _due(
     due: RawDue, today: date, now: datetime, tz: str, shifts: dict[str, tuple[str, str]]
 ) -> Condition | Reading:
-    if due.rule == "phrase":
-        if not due.phrase:
-            return Reading(kind="unclear", reason="a date was meant but not given")
-        start = phrase_dates(due.phrase, now, tz, shifts)
-        if isinstance(start, str):
-            return Reading(kind="unclear", reason=start)
-        if len(start) > 1:
-            return Reading(
-                kind="needs_confirmation",
-                readings=[d.isoformat() for d in start],
-                reason=f"{due.phrase!r} can be read as {' or '.join(d.isoformat() for d in start)}",
-            )
-        end_day = start[0]
-        if due.op == "between":
-            if not due.phrase_to:
-                return Reading(kind="unclear", reason="a date range needs two dates")
-            end = phrase_dates(due.phrase_to, now, tz, shifts)
-            if isinstance(end, str):
-                return Reading(kind="unclear", reason=end)
-            if len(end) > 1:
-                return Reading(
-                    kind="needs_confirmation",
-                    readings=[d.isoformat() for d in end],
-                    reason=f"{due.phrase_to!r} can be read as {' or '.join(d.isoformat() for d in end)}",
-                )
-            end_day = end[0]
-        first, last = start[0], end_day
-    else:
+    if due.rule != "phrase":
         first, last = rule_range(due.rule, today)
-    return _date_condition(due.op, first, last)
+        return _date_condition(due.op, first, last)
+    if not due.phrase:
+        return Reading(kind="unclear", reason="a date was meant but not given")
+    phrases = [due.phrase]
+    if due.op == "between":
+        if not due.phrase_to:
+            return Reading(kind="unclear", reason="a date range needs two dates")
+        phrases.append(due.phrase_to)
+    found: list[list[date]] = []
+    for phrase in phrases:
+        dates = phrase_dates(phrase, now, tz, shifts)
+        if isinstance(dates, str):
+            return Reading(kind="unclear", reason=dates)
+        found.append(dates)
+    starts, ends = found[0], found[-1]
+    if len(starts) == 1 and len(ends) == 1:
+        return _date_condition(due.op, starts[0], ends[0])
+    # A date reads two ways: never guess. Each reading becomes its own ready filter (the
+    # person picks one); `readings` lists the dates that were in question.
+    unsure = starts if len(starts) > 1 else ends
+    if due.op == "between":
+        choices = [_date_condition(due.op, a, b) for a in starts for b in ends if a <= b]
+    else:
+        choices = [_date_condition(due.op, d, d) for d in starts]
+    words = phrases[0] if len(starts) > 1 else phrases[-1]
+    return Reading(
+        kind="needs_confirmation",
+        readings=[d.isoformat() for d in unsure],
+        reason=f"{words!r} can be read as {' or '.join(d.isoformat() for d in unsure)}",
+        options=[Filter(conditions=[c]) for c in choices],
+    )
 
 
 def _date_condition(op: str, first: date, last: date) -> Condition:

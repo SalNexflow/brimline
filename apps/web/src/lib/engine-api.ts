@@ -603,6 +603,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search */
+        post: operations["search_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Filter
+         * @description Run an edited filter (the chips). No model is called.
+         */
+        post: operations["run_filter_search_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tasks/{task_id}/{action}": {
         parameters: {
             query?: never;
@@ -635,19 +672,6 @@ export interface components {
             at: string;
             /** Model */
             model: string | null;
-        };
-        /** AiInfo */
-        AiInfo: {
-            /** Cost Micro Usd */
-            cost_micro_usd: number;
-            /** Latency Ms */
-            latency_ms: number;
-            /** Model */
-            model: string | null;
-            /** Outcome */
-            outcome: string;
-            /** Prompt Version */
-            prompt_version: string;
         };
         /** BoardJob */
         BoardJob: {
@@ -780,6 +804,21 @@ export interface components {
              * @enum {string}
              */
             status: "pass" | "warn" | "fail" | "skip";
+        };
+        /** Condition */
+        Condition: {
+            /**
+             * Field
+             * @enum {string}
+             */
+            field: "order_number" | "customer" | "order_status" | "job_status" | "material" | "process" | "rush" | "printed" | "can_plan" | "overdue" | "quantity" | "part_name" | "notes" | "due_date";
+            /**
+             * Op
+             * @enum {string}
+             */
+            op: "in" | "is" | "eq" | "lt" | "lte" | "gt" | "gte" | "contains" | "on" | "before" | "after" | "on_or_before" | "on_or_after" | "between";
+            /** Value */
+            value: boolean | number | string | string[];
         };
         /** CustomerOut */
         CustomerOut: {
@@ -945,6 +984,20 @@ export interface components {
             uploaded_at: string;
             /** Uploaded By */
             uploaded_by: string;
+        };
+        /**
+         * Filter
+         * @description What a search runs. Conditions are joined with AND.
+         */
+        Filter: {
+            /** Conditions */
+            conditions?: components["schemas"]["Condition"][];
+            /**
+             * Sort
+             * @default due_date
+             * @enum {string}
+             */
+            sort: "due_date" | "created";
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1337,6 +1390,11 @@ export interface components {
             /** Setup Cents */
             setup_cents: number;
         };
+        /** QuestionIn */
+        QuestionIn: {
+            /** Question */
+            question: string;
+        };
         /** Queue */
         Queue: {
             /** Machine */
@@ -1409,7 +1467,7 @@ export interface components {
         };
         /** QuoteDetail */
         QuoteDetail: {
-            ai: components["schemas"]["AiInfo"] | null;
+            ai: components["schemas"]["brimline_engine__quotes__AiInfo"] | null;
             /** Can Decide */
             can_decide: boolean;
             /** Can Edit */
@@ -1575,6 +1633,38 @@ export interface components {
              */
             overall: "pass" | "warn" | "fail";
         };
+        /** Row */
+        Row: {
+            /** Can Plan */
+            can_plan: boolean;
+            /** Customer Code */
+            customer_code: string;
+            /** Customer Name */
+            customer_name: string;
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
+            /** Job Status */
+            job_status: string;
+            /** Line No */
+            line_no: number;
+            /** Material Code */
+            material_code: string;
+            /** Order Number */
+            order_number: string;
+            /** Order Status */
+            order_status: string;
+            /** Part Name */
+            part_name: string;
+            /** Printed */
+            printed: boolean;
+            /** Quantity */
+            quantity: number;
+            /** Rush */
+            rush: boolean;
+        };
         /** ScheduleOut */
         ScheduleOut: {
             /**
@@ -1642,6 +1732,37 @@ export interface components {
             /** Version */
             version: number;
         };
+        /** SearchOut */
+        SearchOut: {
+            ai: components["schemas"]["brimline_engine__search__service__AiInfo"] | null;
+            /** Description */
+            description: string;
+            filter: components["schemas"]["Filter"] | null;
+            /** Injection Suspected */
+            injection_suspected: boolean;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "filter" | "unclear" | "needs_confirmation";
+            /** Limited */
+            limited: boolean;
+            /** Notices */
+            notices: string[];
+            /**
+             * Options
+             * @default []
+             */
+            options: components["schemas"]["Filter"][];
+            /** Readings */
+            readings: string[];
+            /** Reason */
+            reason: string;
+            /** Rows */
+            rows: components["schemas"]["Row"][];
+            /** Total */
+            total: number;
+        };
         /** TimeWindow */
         TimeWindow: {
             /**
@@ -1676,6 +1797,30 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** AiInfo */
+        brimline_engine__quotes__AiInfo: {
+            /** Cost Micro Usd */
+            cost_micro_usd: number;
+            /** Latency Ms */
+            latency_ms: number;
+            /** Model */
+            model: string | null;
+            /** Outcome */
+            outcome: string;
+            /** Prompt Version */
+            prompt_version: string;
+        };
+        /** AiInfo */
+        brimline_engine__search__service__AiInfo: {
+            /** Cost Micro Usd */
+            cost_micro_usd: number;
+            /** Latency Ms */
+            latency_ms: number;
+            /** Model */
+            model: string | null;
+            /** Outcome */
+            outcome: string;
         };
     };
     responses: never;
@@ -2915,6 +3060,76 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_search_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_filter_search_run_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Filter"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
             };
             /** @description Validation Error */
             422: {

@@ -48,6 +48,7 @@ class SearchOut(BaseModel):
     notices: list[str]
     reason: str  # why it is unclear, written by code
     readings: list[str]  # ISO dates, when a date reads two ways
+    options: list[Filter] = []  # one ready filter per reading, already scoped for the asker
     rows: list[query.Row]
     total: int
     limited: bool  # more rows matched than are shown
@@ -75,7 +76,7 @@ UNCLEAR = (
 )
 
 
-def _empty(reading: Reading, ai: AiInfo | None) -> SearchOut:
+def _empty(reading: Reading, ai: AiInfo | None, options: list[Filter] | None = None) -> SearchOut:
     if reading.kind == "needs_confirmation":
         reason = reading.reason
     else:
@@ -87,6 +88,7 @@ def _empty(reading: Reading, ai: AiInfo | None) -> SearchOut:
         notices=[],
         reason=reason,
         readings=reading.readings,
+        options=options or [],
         rows=[],
         total=0,
         limited=False,
@@ -163,6 +165,9 @@ def search(
             else out
         )
     reading = interpret(result.value, now, tz, shifts, cat)
+    if reading.kind == "needs_confirmation":
+        own = _own_code(conn, actor)
+        return _empty(reading, ai, [query.scope(o, actor, own).filter for o in reading.options])
     if reading.kind != "filter" or reading.filter is None:
         return _empty(reading, ai)
     return run_filter(

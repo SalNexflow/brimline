@@ -25,6 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/price-rules">Prices</Link>
             <Link href="/board">Board</Link>
             <Link href="/queues">Queues</Link>
+            <Link href="/search">Search</Link>
           </nav>
           {/* Reads the session cookie, so it streams in behind its own boundary. */}
           <Suspense fallback={<span className="muted">…</span>}>
