@@ -99,15 +99,19 @@ def test_every_call_records_a_hashed_visitor_never_an_address(
 def test_only_the_web_may_call_the_engine_when_a_key_is_set(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    signed_in = login(client, "U-STAFF")  # a valid session, so only the key can refuse
     monkeypatch.setenv("ENGINE_WEB_KEY", "k" * 40)
     get_settings.cache_clear()
     try:
-        assert client.get("/materials").status_code == 401
+        # Signed in but without the key: refused by the key check itself (the gate self-test
+        # found the earlier version passing for a missing sign-in instead, DEFECT_LOG #80).
+        r = client.get("/materials", headers=signed_in)
+        assert r.status_code == 401 and r.json() == {"detail": "not allowed"}
+        wrong = client.get("/materials", headers=signed_in | {"X-Engine-Key": "x" * 40})
+        assert wrong.status_code == 401
+        right = client.get("/materials", headers=signed_in | {"X-Engine-Key": "k" * 40})
+        assert right.status_code == 200
         assert client.get("/health").status_code == 200  # for the host's health check
-        ok = client.post(
-            "/auth/demo-login", json={"user_code": "U-STAFF"}, headers={"X-Engine-Key": "k" * 40}
-        )
-        assert ok.status_code == 200
     finally:
         monkeypatch.delenv("ENGINE_WEB_KEY")
         get_settings.cache_clear()
