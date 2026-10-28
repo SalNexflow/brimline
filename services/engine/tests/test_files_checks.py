@@ -266,3 +266,86 @@ def test_the_checker_does_not_import_any_model_code() -> None:
             name,
             ours,
         )
+
+
+# --- Found by the fresh-context review of M7 ------------------------------------------------------
+
+
+def test_coordinates_far_from_the_origin_are_refused_not_welded_away() -> None:
+    far = np.concatenate([s.box(20, 20, 20), s.box(1e15, 1e15, 1e15, (5e15, 5e15, 5e15))])
+    r = check_file(s.binary_stl(far), "far.stl", "fdm", MACHINES, CFG)
+    assert r.overall == "fail" and "coordinates beyond" in r.checks[0].reason
+
+
+def test_each_piece_is_judged_on_its_own_orientation() -> None:
+    # A 20 mm cube and a separate 10 mm cube wound inside out: 8,000 + 1,000 mm³, not 7,000.
+    mixed = np.concatenate([s.box(20, 20, 20), s.flip(s.box(10, 10, 10, (40, 0, 0)))])
+    r = check_file(s.binary_stl(mixed), "m.stl", "fdm", MACHINES, CFG)
+    assert {c.name: c.status for c in r.checks}["watertight"] == "warn"
+    assert "1 of 2 pieces are inside out" in r.checks[2].reason
+    assert r.measurements is not None and r.measurements.volume_mm3 == pytest.approx(9_000)
+    # A cavity (inner shell facing inwards, inside the outer one) is not "inside out".
+    hollow = check_file(s.binary_stl(s.hollow_box(50, 50, 50, 5)), "h.stl", "fdm", MACHINES, CFG)
+    assert {c.name: c.status for c in hollow.checks}["watertight"] == "pass"
+    assert hollow.measurements is not None
+    assert hollow.measurements.volume_mm3 == pytest.approx(50**3 - 40**3)
+
+
+def test_a_mirroring_3mf_transform_keeps_faces_pointing_outwards() -> None:
+    # The same 10 mm cube placed twice, the second copy mirrored in x and moved away.
+    tris = s.box(10, 10, 10)
+    corners = tris.reshape(-1, 3)
+    keys, index = np.unique(np.round(corners, 6), axis=0, return_inverse=True)
+    vertices = "".join(f'<vertex x="{v[0]:g}" y="{v[1]:g}" z="{v[2]:g}"/>' for v in keys)
+    faces = "".join(f'<triangle v1="{a}" v2="{b}" v3="{c}"/>' for a, b, c in index.reshape(-1, 3))
+    model = (
+        '<?xml version="1.0" encoding="UTF-8"?><model unit="millimeter"'
+        ' xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><resources>'
+        f'<object id="1" type="model"><mesh><vertices>{vertices}</vertices><triangles>{faces}'
+        "</triangles></mesh></object></resources><build>"
+        '<item objectid="1"/><item objectid="1" transform="-1 0 0 0 1 0 0 0 1 -30 0 0"/>'
+        "</build></model>"
+    )
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, "w") as z:
+        z.writestr("3D/3dmodel.model", model)
+    r = check_file(out.getvalue(), "two.3mf", "fdm", MACHINES, CFG)
+    assert {c.name: c.status for c in r.checks}["watertight"] == "pass", r.checks
+    assert r.measurements is not None and r.measurements.volume_mm3 == pytest.approx(2_000)
+
+
+def test_a_doctype_is_refused_in_any_encoding_and_in_the_relationships_file() -> None:
+    utf16 = '<?xml version="1.0" encoding="UTF-16"?><!DOCTYPE m [<!ENTITY a "x">]><model/>'
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, "w") as z:
+        z.writestr("3D/3dmodel.model", utf16.encode("utf-16"))
+    with pytest.raises(ParseError, match="DOCTYPE"):
+        read_mesh(out.getvalue(), "a.3mf", CFG.limits)
+    rels = io.BytesIO()
+    with zipfile.ZipFile(rels, "w") as z:
+        z.writestr("_rels/.rels", '<!DOCTYPE r [<!ENTITY a "x">]><Relationships/>')
+        z.writestr("3D/3dmodel.model", "<model/>")
+    with pytest.raises(ParseError, match="DOCTYPE"):
+        read_mesh(rels.getvalue(), "a.3mf", CFG.limits)
+
+
+def test_a_text_facet_with_four_corners_is_refused_even_if_the_total_adds_up() -> None:
+    def facet(n: int) -> str:
+        return "facet normal 0 0 1\n outer loop\n" + "  vertex 0 0 0\n" * n + " endloop\nendfacet\n"
+
+    data = ("solid x\n" + facet(4) + facet(2) + "endsolid x\n").encode()
+    with pytest.raises(ParseError, match="three vertices"):
+        read_mesh(data, "a.stl", CFG.limits)
+
+
+def test_a_part_a_hair_over_a_whole_mm_is_rounded_up() -> None:
+    r = check_file(s.binary_stl(s.box(400.004, 20, 20)), "b.stl", "fdm", MACHINES, CFG)
+    assert planning_values(r, "PLA-BLACK", "fdm", CFG).part_mm == [401, 20, 20]
+
+
+def test_a_sampled_wall_check_says_it_was_sampled() -> None:
+    grid = np.concatenate([s.box(2, 2, 2, (i * 4, j * 4, 0)) for i in range(25) for j in range(25)])
+    r = check_file(s.binary_stl(grid), "g.stl", "fdm", MACHINES, CFG)
+    walls = next(c for c in r.checks if c.name == "walls")
+    # The budget allows 20,000,000 // 7,500 = 2,666 rays (config [limits]).
+    assert walls.status == "pass" and "measured on 2,666 of 7,500 faces" in walls.reason

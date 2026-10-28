@@ -257,6 +257,46 @@ def main() -> None:
         loose_parts="warn",
     )
 
+    # Added after the fresh-context review of M7 (DEFECT_LOG #57, #58, #59): these used to pass
+    # or be misread.
+    far = np.concatenate([s.box(20, 20, 20), s.box(1e15, 1e15, 1e15, (5e15, 5e15, 5e15))])
+    add(
+        "d24.stl",
+        s.binary_stl(far),
+        "fdm",
+        "broken",
+        "20 mm cube plus a cube 10^15 mm away (coordinates past 100 m)",
+        None,
+    )
+    mixed = np.concatenate([s.box(20, 20, 20), s.flip(s.box(10, 10, 10, (40, 0, 0)))])
+    add(
+        "d25.stl",
+        s.binary_stl(mixed),
+        "fdm",
+        "borderline",
+        "20 mm cube and a separate 10 mm cube wound inside out",
+        [50, 20, 20],
+        watertight="warn",
+        loose_parts="warn",
+    )
+    add(
+        "d26.3mf",
+        s.three_mf(s.box(10, 10, 10), copies=["-1 0 0 0 1 0 0 0 1 -30 0 0"]),
+        "fdm",
+        "borderline",
+        "one 10 mm cube placed twice in a 3MF, the second copy mirrored",
+        [50, 10, 10],
+        loose_parts="warn",
+    )
+    add(
+        "d27.3mf",
+        s.three_mf(cube, doctype=True, encoding="utf-16"),
+        "fdm",
+        "broken",
+        "3MF model in UTF-16 with a DOCTYPE",
+        None,
+    )
+
     lines = []
     for file, data, lab in cases:
         (models / file).write_bytes(data)

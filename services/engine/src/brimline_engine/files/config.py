@@ -20,6 +20,7 @@ class Limits(_Strict):
     max_upload_bytes: int = Field(gt=0)
     max_unzipped_bytes: int = Field(gt=0)
     max_triangles: int = Field(gt=0)
+    max_coordinate_mm: float = Field(gt=0)
     wall_rays: int = Field(gt=0)
     # Ray-triangle tests allowed per file; big meshes get fewer rays so a check stays quick.
     wall_ray_tests: int = Field(gt=0)

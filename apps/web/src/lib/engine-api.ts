@@ -991,6 +991,11 @@ export interface components {
          * @description The latest file uploaded for a quote line, as the quote page shows it.
          */
         LineFile: {
+            /**
+             * Current
+             * @default true
+             */
+            current: boolean;
             /** File Number */
             file_number: string;
             /** Filename */

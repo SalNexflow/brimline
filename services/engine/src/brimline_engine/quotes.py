@@ -106,6 +106,9 @@ class LineFile(BaseModel):
     file_number: str
     filename: str
     overall: Literal["pass", "warn", "fail"]  # after staff overrides of warnings
+    # False when the line was edited since: another part name or material than the file was
+    # checked for (fits, walls and overhangs depend on the material's process).
+    current: bool = True
 
 
 class LinePriceOut(BaseModel):
@@ -372,8 +375,11 @@ def line_files(conn: psycopg.Connection, quote_id: int) -> list[LineFile]:
     """The latest file of each line, with warnings staff accepted counted as passed."""
     rows = conn.execute(
         "SELECT DISTINCT ON (f.quote_line) f.quote_line, f.file_number, f.filename, f.report,"
-        "       (SELECT array_agg(o.check_name) FROM file_overrides o WHERE o.file_id = f.id)"
-        " FROM files f WHERE f.quote_id = %s ORDER BY f.quote_line, f.id DESC",
+        "       (SELECT array_agg(o.check_name) FROM file_overrides o WHERE o.file_id = f.id),"
+        "       l.line_no IS NOT NULL AND f.part_name IS NOT DISTINCT FROM l.part_name"
+        "       AND f.material_id IS NOT DISTINCT FROM l.material_id"
+        " FROM files f LEFT JOIN quote_lines l ON l.quote_id = f.quote_id AND l.line_no = f.quote_line"
+        " WHERE f.quote_id = %s ORDER BY f.quote_line, f.id DESC",
         (quote_id,),
     ).fetchall()
     return [
@@ -382,6 +388,7 @@ def line_files(conn: psycopg.Connection, quote_id: int) -> list[LineFile]:
             file_number=r[1],
             filename=r[2],
             overall=effective_overall(r[3], r[4] or []),
+            current=bool(r[5]),
         )
         for r in rows
     ]
@@ -862,12 +869,21 @@ def decide_quote(
             assert before.due_date is not None
             if before.due_date < today:
                 raise InvalidQuoteError(f"due date {before.due_date} is before today ({today})")
-            failed = [f for f in line_files(conn, qid) if f.overall == "fail"]
+            files = line_files(conn, qid)
+            failed = [f for f in files if f.overall == "fail"]
             if failed:
                 raise InvalidQuoteError(
                     "cannot approve while a file failed its checks: "
                     + "; ".join(f"line {f.line_no}: {f.file_number}" for f in failed)
                     + " (upload a fixed file)"
+                )
+            stale = [f for f in files if not f.current]
+            if stale:
+                raise InvalidQuoteError(
+                    "cannot approve: a file was checked for another part or material than its line"
+                    " has now: "
+                    + "; ".join(f"line {f.line_no}: {f.file_number}" for f in stale)
+                    + " (upload it again so it is checked for this line)"
                 )
             # Price again with the rules in effect today: approval locks today's price.
             mats = _materials(conn)

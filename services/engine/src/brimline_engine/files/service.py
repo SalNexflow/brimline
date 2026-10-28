@@ -100,6 +100,7 @@ class _Resolved(BaseModel):
     job_id: int | None
     material_code: str | None
     process: Process | None
+    part_name: str | None = None
 
 
 def _material(
@@ -120,7 +121,7 @@ def _resolve(conn: psycopg.Connection, actor: Actor, target: Target) -> _Resolve
         raise InvalidError("give either a quote number or an order number")
     if target.quote_number is not None:
         row = conn.execute(
-            "SELECT q.id, q.customer_id, l.material_id FROM quotes q"
+            "SELECT q.id, q.customer_id, l.material_id, l.part_name FROM quotes q"
             " LEFT JOIN quote_lines l ON l.quote_id = q.id AND l.line_no = %(l)s"
             " WHERE q.quote_number = %(n)s AND (%(s)s::bigint IS NULL OR q.customer_id = %(s)s::bigint)",
             {"n": target.quote_number, "l": target.line, "s": scope},
@@ -140,9 +141,11 @@ def _resolve(conn: psycopg.Connection, actor: Actor, target: Target) -> _Resolve
             job_id=None,
             material_code=code,
             process=process,
+            part_name=row[3],
         )
     row = conn.execute(
-        "SELECT j.id, o.customer_id, j.material_id FROM jobs j JOIN orders o ON o.id = j.order_id"
+        "SELECT j.id, o.customer_id, j.material_id, j.part_name FROM jobs j"
+        " JOIN orders o ON o.id = j.order_id"
         " WHERE o.order_number = %(n)s AND j.line_no = %(l)s"
         " AND (%(s)s::bigint IS NULL OR o.customer_id = %(s)s::bigint)",
         {"n": target.order_number, "l": target.line, "s": scope},
@@ -157,6 +160,7 @@ def _resolve(conn: psycopg.Connection, actor: Actor, target: Target) -> _Resolve
         job_id=int(row[0]),
         material_code=code,
         process=process,
+        part_name=row[3],
     )
 
 
@@ -218,9 +222,9 @@ def upload(
         values = planning_values(report, where.material_code, where.process, cfg)
         row = conn.execute(
             "INSERT INTO files (customer_id, quote_id, quote_line, job_id, filename, unit, material_id,"
-            " content, size_bytes, sha256, report, overall, planning, uploaded_by)"
+            " content, size_bytes, sha256, report, overall, planning, uploaded_by, part_name)"
             " VALUES (%s, %s, %s, %s, %s, %s, (SELECT id FROM materials WHERE code = %s),"
-            " %s, %s, %s, %s, %s, %s, %s) RETURNING id, file_number",
+            " %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id, file_number",
             (
                 where.customer_id,
                 where.quote_id,
@@ -236,11 +240,12 @@ def upload(
                 report.overall,
                 Jsonb(values.model_dump(mode="json")),
                 actor.user_id,
+                where.part_name,
             ),
         ).fetchone()
         assert row is not None
         file_id, number = int(row[0]), str(row[1])
-        applied = _apply(conn, where, file_id, number, values, today)
+        applied = _apply(conn, where, file_id, number, report, values, today)
         out = get_file(conn, actor, number).model_copy(update={"applied": applied})
         audit.record(
             conn,
@@ -275,10 +280,25 @@ def _apply(
     where: _Resolved,
     file_id: int,
     number: str,
+    report: Report,
     values: PlanningValues,
     today: date,
 ) -> list[str]:
-    """Write the planning values the file gives into its quote line or job."""
+    """Write the planning values the file gives into its quote line or job. Only the latest file
+    of a line or job writes, and never one that failed its checks (review of M7: an older or a
+    failed file could overwrite a newer file's values)."""
+    if report.overall == "fail":
+        return ["nothing filled in: the file failed its checks"]
+    latest = conn.execute(
+        "SELECT max(o.id) FROM files f JOIN files o"
+        " ON o.quote_id IS NOT DISTINCT FROM f.quote_id"
+        " AND o.quote_line IS NOT DISTINCT FROM f.quote_line"
+        " AND o.job_id IS NOT DISTINCT FROM f.job_id"
+        " WHERE f.id = %s",
+        (file_id,),
+    ).fetchone()
+    if latest is None or latest[0] != file_id:
+        return ["nothing filled in: a newer file has been uploaded for this line"]
     fields: dict[str, Any] = {
         "part_mm": values.part_mm,
         "grams_per_part": values.grams_per_part,
@@ -378,7 +398,7 @@ def override(
             values = planning_values(
                 report, row["material_code"], row["process"], cfg, units_confirmed=True
             )
-            applied = _apply(conn, where, file_id, file_number, values, today)
+            applied = _apply(conn, where, file_id, file_number, report, values, today)
         audit.record(
             conn,
             actor_user_id=actor.user_id,

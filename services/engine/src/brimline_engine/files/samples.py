@@ -79,10 +79,16 @@ def text_stl(tris: Floats, name: str = "part") -> bytes:
 
 
 def three_mf(
-    tris: Floats, unit: str = "millimeter", doctype: bool = False, transform: str = ""
+    tris: Floats,
+    unit: str = "millimeter",
+    doctype: bool = False,
+    transform: str = "",
+    copies: Sequence[str] = (),
+    encoding: str = "utf-8",
 ) -> bytes:
     """A minimal 3MF package: content types, the root relationship and one mesh object, placed
-    by a build item with an optional 3MF transform (12 numbers)."""
+    by a build item with an optional 3MF transform (12 numbers), plus one more item per entry of
+    `copies` (each a transform). `encoding` writes the model in another text encoding."""
     corners = tris.reshape(-1, 3)
     keys, index = np.unique(np.round(corners, 6), axis=0, return_inverse=True)
     vertices = "".join(f'<vertex x="{v[0]:g}" y="{v[1]:g}" z="{v[2]:g}"/>' for v in keys)
@@ -94,7 +100,9 @@ def three_mf(
         f'{head}<model unit="{unit}" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">'
         f'<resources><object id="1" type="model"><mesh><vertices>{vertices}</vertices>'
         f"<triangles>{faces}</triangles></mesh></object></resources>"
-        f'<build><item objectid="1"{f" transform={chr(34)}{transform}{chr(34)}" if transform else ""}/></build></model>'
+        f'<build><item objectid="1"{f" transform={chr(34)}{transform}{chr(34)}" if transform else ""}/>'
+        + "".join(f'<item objectid="1" transform="{t}"/>' for t in copies)
+        + "</build></model>"
     )
     out = io.BytesIO()
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
@@ -109,7 +117,9 @@ def three_mf(
             '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
             '<Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>',
         )
-        z.writestr("3D/3dmodel.model", model)
+        if encoding != "utf-8":
+            model = model.replace('encoding="UTF-8"', f'encoding="{encoding.upper()}"', 1)
+        z.writestr("3D/3dmodel.model", model.encode(encoding))
     return out.getvalue()
 
 

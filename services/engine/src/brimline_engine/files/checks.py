@@ -83,7 +83,11 @@ def _check_mesh(
         for n in CHECKS[1:]:
             add(n, "skip", "the file has no surface")
         return Report(checks=checks, overall="fail", measurements=None)
-    dropped = f" ({mesh.dropped_faces} zero-area triangles ignored)" if mesh.dropped_faces else ""
+    dropped = (
+        f" ({mesh.dropped_faces} triangles with two equal corners ignored)"
+        if mesh.dropped_faces
+        else ""
+    )
     add("parse", "pass", f"{len(mesh.faces):,} triangles read from {mesh.file_format}{dropped}")
 
     size = measure.size_mm(mesh)
@@ -97,8 +101,9 @@ def _check_mesh(
         add("units", "pass", f"{dims} mm, read as {mesh.unit}")
 
     e = measure.edges(mesh)
-    signed = measure.signed_volume_mm3(mesh)
-    outward = -1.0 if e.closed and signed < 0 else 1.0
+    labels = measure.shells(mesh)
+    turn = measure.orientation(mesh, labels)
+    outward = turn.face_sign
     if not e.closed:
         problems = [
             f"{e.boundary} open edges (holes)" if e.boundary else "",
@@ -108,13 +113,19 @@ def _check_mesh(
             else "",
         ]
         add("watertight", "fail", "not a closed surface: " + ", ".join(p for p in problems if p))
-    elif signed < 0:
-        add("watertight", "warn", "closed, but inside out: every face points inwards")
-    elif signed == 0:
+    elif turn.volume_mm3 <= 0:
         add("watertight", "fail", "closed, but encloses no volume")
+    elif turn.inside_out == turn.pieces:
+        add("watertight", "warn", "closed, but inside out: every face points inwards")
+    elif turn.inside_out:
+        add(
+            "watertight",
+            "warn",
+            f"closed, but {turn.inside_out} of {turn.pieces} pieces are inside out",
+        )
     else:
-        add("watertight", "pass", f"closed surface, {signed / 1000:.2f} cm³")
-    closed = e.closed and signed != 0
+        add("watertight", "pass", f"closed surface, {turn.volume_mm3 / 1000:.2f} cm³")
+    closed = e.closed and turn.volume_mm3 > 0
 
     fits_on = [m.code for m in machines if _fits(size, m.build_mm)]
     if process is None:
@@ -144,6 +155,12 @@ def _check_mesh(
             outward,
         )
         area = cfg.walls.min_thin_area_mm2
+        # A big mesh is sampled: say so, since a small thin patch can then be missed (review).
+        sampled = (
+            f"; measured on {walls.sampled:,} of {len(mesh.faces):,} faces"
+            if walls.sampled < len(mesh.faces)
+            else ""
+        )
         thin = (
             f"thinnest wall about {walls.thinnest_mm:.2f} mm"
             if walls.thinnest_mm is not None
@@ -165,7 +182,8 @@ def _check_mesh(
             add(
                 "walls",
                 "pass",
-                f"no wall thinner than {lim.warn_mm} mm over more than {area:g} mm² ({thin})",
+                f"no wall thinner than {lim.warn_mm} mm over more than {area:g} mm² ({thin})"
+                + sampled,
             )
 
     share = None
@@ -183,13 +201,12 @@ def _check_mesh(
             text + (": needs support" if share > cfg.overhangs.warn_share else ""),
         )
 
-    labels = measure.shells(mesh)
-    count = int(labels.max()) + 1
+    count = turn.pieces
     if count == 1:
         add("loose_parts", "pass", "one connected part")
     else:
         vols = measure.shell_volumes_mm3(mesh, labels)
-        debris = sum(v < cfg.loose_parts.debris_mm3 for v in vols)
+        debris = sum(abs(v) < cfg.loose_parts.debris_mm3 for v in vols)
         tiny = (
             f", {debris} of them tiny (under {cfg.loose_parts.debris_mm3:g} mm³)" if debris else ""
         )
@@ -203,7 +220,7 @@ def _check_mesh(
             unit=mesh.unit,
             triangles=len(mesh.faces),
             size_mm=list(size),
-            volume_mm3=abs(signed) if closed else None,
+            volume_mm3=turn.volume_mm3 if closed else None,
             surface_mm2=measure.surface_mm2(mesh),
             shells=count,
             thinnest_wall_mm=walls.thinnest_mm if walls else None,
@@ -249,8 +266,9 @@ def planning_values(
         )
     part_mm: list[int] | None = None
     if report.status("units") == "pass" or units_confirmed:
-        # Rounded up to whole mm, so a part never looks smaller than it is.
-        x, y, z = (max(1, math.ceil(round(s, 2))) for s in m.size_mm)
+        # Rounded up to whole mm, so a part never looks smaller than it is (the tolerance only
+        # absorbs float noise, as the fits check does; review of M7: 400.004 became 400).
+        x, y, z = (max(1, math.ceil(s - 1e-6)) for s in m.size_mm)
         part_mm = [x, y, z]
     else:
         notes.append(

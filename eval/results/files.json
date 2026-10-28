@@ -1,68 +1,68 @@
 {
- "date": "2026-10-27",
+ "date": "2026-10-28",
  "scores": {
   "dev (builder)": {
-   "n": 23,
-   "overall_agreement": 23,
-   "broken": 10,
+   "n": 27,
+   "overall_agreement": 27,
+   "broken": 12,
    "false_pass": 0,
    "broken_as_warn": 0,
    "labelled_pass": 5,
    "false_alarm": 0,
-   "size_within_0_01_mm": 19,
-   "sized": 19,
+   "size_within_0_01_mm": 21,
+   "sized": 21,
    "per_check": {
     "parse": {
-     "agreement": 23,
-     "n": 23,
-     "labelled_fail": 4,
+     "agreement": 27,
+     "n": 27,
+     "labelled_fail": 6,
      "false_pass": 0,
      "fail_as_warn": 0
     },
     "units": {
-     "agreement": 23,
-     "n": 23,
+     "agreement": 27,
+     "n": 27,
      "labelled_fail": 0,
      "false_pass": 0,
      "fail_as_warn": 0
     },
     "watertight": {
-     "agreement": 23,
-     "n": 23,
+     "agreement": 27,
+     "n": 27,
      "labelled_fail": 2,
      "false_pass": 0,
      "fail_as_warn": 0
     },
     "fits": {
-     "agreement": 23,
-     "n": 23,
+     "agreement": 27,
+     "n": 27,
      "labelled_fail": 2,
      "false_pass": 0,
      "fail_as_warn": 0
     },
     "walls": {
-     "agreement": 23,
-     "n": 23,
+     "agreement": 27,
+     "n": 27,
      "labelled_fail": 2,
      "false_pass": 0,
      "fail_as_warn": 0
     },
     "overhangs": {
-     "agreement": 23,
-     "n": 23,
+     "agreement": 27,
+     "n": 27,
      "labelled_fail": 0,
      "false_pass": 0,
      "fail_as_warn": 0
     },
     "loose_parts": {
-     "agreement": 23,
-     "n": 23,
+     "agreement": 27,
+     "n": 27,
      "labelled_fail": 0,
      "false_pass": 0,
      "fail_as_warn": 0
     }
    },
-   "slowest_seconds": 0.734,
+   "slowest_seconds": 0.774,
    "disagreements": []
   },
   "dev (blind)": {
@@ -126,7 +126,7 @@
      "fail_as_warn": 0
     }
    },
-   "slowest_seconds": 0.001,
+   "slowest_seconds": 0.02,
    "disagreements": []
   },
   "held out (blind)": {
@@ -190,7 +190,7 @@
      "fail_as_warn": 0
     }
    },
-   "slowest_seconds": 0.002,
+   "slowest_seconds": 0.021,
    "disagreements": []
   }
  },
@@ -235,7 +235,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.001
+   "seconds": 0.007
   },
   {
    "id": "d02",
@@ -279,7 +279,7 @@
     100.0,
     0.6
    ],
-   "seconds": 0.001
+   "seconds": 0.009
   },
   {
    "id": "d03",
@@ -323,7 +323,7 @@
     100.0,
     0.9
    ],
-   "seconds": 0.002
+   "seconds": 0.018
   },
   {
    "id": "d04",
@@ -368,7 +368,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.0
+   "seconds": 0.004
   },
   {
    "id": "d05",
@@ -412,7 +412,7 @@
     30.0,
     30.0
    ],
-   "seconds": 0.001
+   "seconds": 0.005
   },
   {
    "id": "d06",
@@ -454,7 +454,7 @@
     60.0,
     20.0
    ],
-   "seconds": 0.001
+   "seconds": 0.006
   },
   {
    "id": "d07",
@@ -542,7 +542,7 @@
     0.03999999910593033,
     0.03999999910593033
    ],
-   "seconds": 0.001
+   "seconds": 0.011
   },
   {
    "id": "d09",
@@ -584,7 +584,7 @@
     38.099999999999994,
     38.099999999999994
    ],
-   "seconds": 0.001
+   "seconds": 0.013
   },
   {
    "id": "d10",
@@ -628,7 +628,7 @@
     20.0,
     20.0
    ],
-   "seconds": 0.001
+   "seconds": 0.006
   },
   {
    "id": "d11",
@@ -672,7 +672,7 @@
     20.0,
     40.0
    ],
-   "seconds": 0.001
+   "seconds": 0.012
   },
   {
    "id": "d12",
@@ -717,7 +717,7 @@
     50.0,
     50.0
    ],
-   "seconds": 0.001
+   "seconds": 0.013
   },
   {
    "id": "d13",
@@ -759,7 +759,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.0
+   "seconds": 0.006
   },
   {
    "id": "d14",
@@ -792,7 +792,7 @@
    },
    "got_overall": "fail",
    "reasons": {
-    "parse": "this 3MF contains a DOCTYPE or ENTITY declaration, which is refused",
+    "parse": "this 3MF's model declares a DOCTYPE or entities, which is refused",
     "units": "the file could not be read",
     "watertight": "the file could not be read",
     "fits": "the file could not be read",
@@ -801,7 +801,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.0
+   "seconds": 0.014
   },
   {
    "id": "d15",
@@ -846,7 +846,7 @@
     40.0,
     60.0
    ],
-   "seconds": 0.001
+   "seconds": 0.008
   },
   {
    "id": "d16",
@@ -890,7 +890,7 @@
     50.0,
     20.0
    ],
-   "seconds": 0.001
+   "seconds": 0.005
   },
   {
    "id": "d17",
@@ -974,7 +974,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.0
+   "seconds": 0.011
   },
   {
    "id": "d19",
@@ -1016,7 +1016,7 @@
     20.0,
     20.0
    ],
-   "seconds": 0.001
+   "seconds": 0.005
   },
   {
    "id": "d20",
@@ -1060,7 +1060,7 @@
     20.0,
     20.0
    ],
-   "seconds": 0.001
+   "seconds": 0.004
   },
   {
    "id": "d21",
@@ -1104,7 +1104,7 @@
     40.0,
     60.0
    ],
-   "seconds": 0.004
+   "seconds": 0.007
   },
   {
    "id": "d22",
@@ -1148,7 +1148,7 @@
     98.0,
     2.0
    ],
-   "seconds": 0.734
+   "seconds": 0.774
   },
   {
    "id": "d23",
@@ -1193,7 +1193,180 @@
     197.0,
     0.5
    ],
-   "seconds": 0.725
+   "seconds": 0.728
+  },
+  {
+   "id": "d24",
+   "file": "models/d24.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "20 mm cube plus a cube 10^15 mm away (coordinates past 100 m)",
+   "expected": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "overall": "fail",
+   "size_mm": null,
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d24.stl",
+   "author": "builder",
+   "got": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "parse": "the file has coordinates beyond 100,000 mm from its origin",
+    "units": "the file could not be read",
+    "watertight": "the file could not be read",
+    "fits": "the file could not be read",
+    "walls": "the file could not be read",
+    "overhangs": "the file could not be read",
+    "loose_parts": "the file could not be read"
+   },
+   "got_size_mm": null,
+   "seconds": 0.006
+  },
+  {
+   "id": "d25",
+   "file": "models/d25.stl",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "20 mm cube and a separate 10 mm cube wound inside out",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "warn",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "overall": "warn",
+   "size_mm": [
+    50,
+    20,
+    20
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d25.stl",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "warn",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "watertight": "closed, but 1 of 2 pieces are inside out",
+    "loose_parts": "2 separate pieces: intended?"
+   },
+   "got_size_mm": [
+    50.0,
+    20.0,
+    20.0
+   ],
+   "seconds": 0.014
+  },
+  {
+   "id": "d26",
+   "file": "models/d26.3mf",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "borderline",
+   "description": "one 10 mm cube placed twice in a 3MF, the second copy mirrored",
+   "expected": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "overall": "warn",
+   "size_mm": [
+    50,
+    10,
+    10
+   ],
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d26.3mf",
+   "author": "builder",
+   "got": {
+    "parse": "pass",
+    "units": "pass",
+    "watertight": "pass",
+    "fits": "pass",
+    "walls": "pass",
+    "overhangs": "pass",
+    "loose_parts": "warn"
+   },
+   "got_overall": "warn",
+   "reasons": {
+    "loose_parts": "2 separate pieces: intended?"
+   },
+   "got_size_mm": [
+    50.0,
+    10.0,
+    10.0
+   ],
+   "seconds": 0.01
+  },
+  {
+   "id": "d27",
+   "file": "models/d27.3mf",
+   "split": "dev",
+   "process": "fdm",
+   "kind": "broken",
+   "description": "3MF model in UTF-16 with a DOCTYPE",
+   "expected": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "overall": "fail",
+   "size_mm": null,
+   "path": "C:\\Users\\Salman\\Desktop\\Projects\\AI Engineer\\BrimLine\\eval\\datasets\\files\\dev\\models\\d27.3mf",
+   "author": "builder",
+   "got": {
+    "parse": "fail",
+    "units": "skip",
+    "watertight": "skip",
+    "fits": "skip",
+    "walls": "skip",
+    "overhangs": "skip",
+    "loose_parts": "skip"
+   },
+   "got_overall": "fail",
+   "reasons": {
+    "parse": "this 3MF's model declares a DOCTYPE or entities, which is refused",
+    "units": "the file could not be read",
+    "watertight": "the file could not be read",
+    "fits": "the file could not be read",
+    "walls": "the file could not be read",
+    "overhangs": "the file could not be read",
+    "loose_parts": "the file could not be read"
+   },
+   "got_size_mm": null,
+   "seconds": 0.004
   },
   {
    "id": "b01",
@@ -1235,7 +1408,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.001
+   "seconds": 0.017
   },
   {
    "id": "b02",
@@ -1279,7 +1452,7 @@
     300.0,
     150.0
    ],
-   "seconds": 0.001
+   "seconds": 0.016
   },
   {
    "id": "b03",
@@ -1321,7 +1494,7 @@
     60.0,
     20.0
    ],
-   "seconds": 0.001
+   "seconds": 0.019
   },
   {
    "id": "b04",
@@ -1363,7 +1536,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.001
+   "seconds": 0.014
   },
   {
    "id": "b05",
@@ -1408,7 +1581,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.0
+   "seconds": 0.016
   },
   {
    "id": "b06",
@@ -1453,7 +1626,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.001
+   "seconds": 0.013
   },
   {
    "id": "b07",
@@ -1497,7 +1670,7 @@
     76.19999999999999,
     76.19999999999999
    ],
-   "seconds": 0.001
+   "seconds": 0.02
   },
   {
    "id": "b08",
@@ -1539,7 +1712,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.0
+   "seconds": 0.004
   },
   {
    "id": "b09",
@@ -1583,7 +1756,7 @@
     40.0,
     0.8100000023841858
    ],
-   "seconds": 0.001
+   "seconds": 0.011
   },
   {
    "id": "b10",
@@ -1627,7 +1800,7 @@
     40.0,
     0.79
    ],
-   "seconds": 0.001
+   "seconds": 0.015
   },
   {
    "id": "b11",
@@ -1669,7 +1842,7 @@
     40.0,
     25.0
    ],
-   "seconds": 0.001
+   "seconds": 0.016
   },
   {
    "id": "b12",
@@ -1713,7 +1886,7 @@
     30.0,
     30.0
    ],
-   "seconds": 0.001
+   "seconds": 0.016
   },
   {
    "id": "b13",
@@ -1757,7 +1930,7 @@
     40.0,
     30.0
    ],
-   "seconds": 0.001
+   "seconds": 0.018
   },
   {
    "id": "b14",
@@ -1799,7 +1972,7 @@
     40.0,
     30.0
    ],
-   "seconds": 0.001
+   "seconds": 0.017
   },
   {
    "id": "b15",
@@ -1841,7 +2014,7 @@
     40.0,
     30.0
    ],
-   "seconds": 0.001
+   "seconds": 0.014
   },
   {
    "id": "b16",
@@ -1886,7 +2059,7 @@
     40.0,
     40.0
    ],
-   "seconds": 0.001
+   "seconds": 0.019
   },
   {
    "id": "b17",
@@ -1931,7 +2104,7 @@
     40.0,
     60.0
    ],
-   "seconds": 0.001
+   "seconds": 0.015
   },
   {
    "id": "b18",
@@ -1964,7 +2137,7 @@
    },
    "got_overall": "fail",
    "reasons": {
-    "parse": "this 3MF contains a DOCTYPE or ENTITY declaration, which is refused",
+    "parse": "this 3MF's model declares a DOCTYPE or entities, which is refused",
     "units": "the file could not be read",
     "watertight": "the file could not be read",
     "fits": "the file could not be read",
@@ -1973,7 +2146,7 @@
     "loose_parts": "the file could not be read"
    },
    "got_size_mm": null,
-   "seconds": 0.0
+   "seconds": 0.018
   },
   {
    "id": "b19",
@@ -2017,7 +2190,7 @@
     130.0,
     130.0
    ],
-   "seconds": 0.001
+   "seconds": 0.015
   },
   {
    "id": "b20",
@@ -2062,7 +2235,7 @@
     30.0,
     30.0
    ],
-   "seconds": 0.001
+   "seconds": 0.021
   },
   {
    "id": "b21",
@@ -2106,7 +2279,7 @@
     10.0,
     80.0
    ],
-   "seconds": 0.001
+   "seconds": 0.014
   },
   {
    "id": "b22",
@@ -2150,7 +2323,7 @@
     40.0,
     30.0
    ],
-   "seconds": 0.001
+   "seconds": 0.018
   },
   {
    "id": "b23",
@@ -2194,7 +2367,7 @@
     80.0,
     25.0
    ],
-   "seconds": 0.002
+   "seconds": 0.018
   },
   {
    "id": "b24",
@@ -2238,7 +2411,7 @@
     30.0,
     30.0
    ],
-   "seconds": 0.002
+   "seconds": 0.02
   }
  ]
 }

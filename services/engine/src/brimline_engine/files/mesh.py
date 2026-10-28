@@ -9,6 +9,7 @@ import re
 import xml.etree.ElementTree as ET
 import zipfile
 from dataclasses import dataclass
+from xml.parsers import expat
 
 import numpy as np
 import numpy.typing as npt
@@ -33,7 +34,7 @@ WELD_MM = 1e-4
 STL_RECORD = np.dtype([("normal", "<f4", (3,)), ("v", "<f4", (9,)), ("attr", "<u2")])
 NUMBER = r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?"
 VERTEX = re.compile(rf"\bvertex\s+({NUMBER})\s+({NUMBER})\s+({NUMBER})")
-FACET = re.compile(r"\bfacet\b")
+FACET_BLOCK = re.compile(r"\bfacet\b(.*?)\bendfacet\b", re.DOTALL)
 
 
 class ParseError(Exception):
@@ -69,7 +70,14 @@ def read_mesh(data: bytes, filename: str, limits: Limits, unit: str = "millimete
         raise ParseError("the file holds no triangles")
     if not np.isfinite(triangles).all():
         raise ParseError("the file holds coordinates that are not numbers (NaN or infinity)")
-    return _weld(triangles * UNITS_MM[unit], fmt, unit)
+    mm = triangles * UNITS_MM[unit]
+    # Far past any machine; also keeps the welding grid exact (review of M7: coordinates near
+    # 1e15 mm overflowed it and whole pieces vanished as "zero-area").
+    if np.abs(mm).max() > limits.max_coordinate_mm:
+        raise ParseError(
+            f"the file has coordinates beyond {limits.max_coordinate_mm:,.0f} mm from its origin"
+        )
+    return _weld(mm, fmt, unit)
 
 
 def _read_stl(data: bytes, limits: Limits) -> tuple[Floats, str]:
@@ -93,12 +101,13 @@ def _read_stl(data: bytes, limits: Limits) -> tuple[Floats, str]:
         text = data.decode("ascii")
     except UnicodeDecodeError as e:
         raise ParseError("this text STL holds characters that are not plain text") from e
-    numbers = VERTEX.findall(text)
-    if len(numbers) % 3 != 0 or len(numbers) // 3 != len(FACET.findall(text)):
-        # Each "facet normal ... endfacet" block has three vertices ("endfacet" does not match).
+    blocks = FACET_BLOCK.findall(text)
+    numbers = [VERTEX.findall(block) for block in blocks]
+    # Every "facet ... endfacet" block has exactly three vertices, and none sits outside one.
+    if any(len(n) != 3 for n in numbers) or len(VERTEX.findall(text)) != 3 * len(blocks):
         raise ParseError("this text STL is damaged: its facets do not each have three vertices")
-    if len(numbers) // 3 > limits.max_triangles:
-        raise ParseError(_too_many(len(numbers) // 3, limits))
+    if len(blocks) > limits.max_triangles:
+        raise ParseError(_too_many(len(blocks), limits))
     return np.array(numbers, dtype=np.float64).reshape(-1, 3, 3), "stl-text"
 
 
@@ -111,14 +120,7 @@ def _read_3mf(data: bytes, limits: Limits) -> tuple[Floats, str]:
         names = set(archive.namelist())
         path = _model_path(archive, names, limits)
         xml = _read_member(archive, path, limits)
-    # The standard library parser does not fetch external entities, but nested entities can
-    # still blow up in memory. A 3MF model never needs a DOCTYPE, so any is refused.
-    if b"<!DOCTYPE" in xml or b"<!ENTITY" in xml:
-        raise ParseError("this 3MF contains a DOCTYPE or ENTITY declaration, which is refused")
-    try:
-        root = ET.fromstring(xml)
-    except ET.ParseError as e:
-        raise ParseError(f"this 3MF's model is not valid XML ({e})") from e
+    root = _xml(xml, "model")
     unit = root.get("unit", "millimeter")
     if unit not in UNITS_MM:
         raise ParseError(f"this 3MF uses an unknown unit {unit!r}")
@@ -141,10 +143,7 @@ def _read_3mf(data: bytes, limits: Limits) -> tuple[Floats, str]:
 def _model_path(archive: zipfile.ZipFile, names: set[str], limits: Limits) -> str:
     """The 3D model part named in _rels/.rels, or the usual 3D/3dmodel.model."""
     if "_rels/.rels" in names:
-        try:
-            rels = ET.fromstring(_read_member(archive, "_rels/.rels", limits))
-        except ET.ParseError as e:
-            raise ParseError("this 3MF's _rels/.rels is not valid XML") from e
+        rels = _xml(_read_member(archive, "_rels/.rels", limits), "_rels/.rels")
         for rel in _all(rels, "Relationship"):
             if rel.get("Type", "").endswith("/3dmodel"):
                 target = rel.get("Target", "").lstrip("/")
@@ -153,6 +152,24 @@ def _model_path(archive: zipfile.ZipFile, names: set[str], limits: Limits) -> st
     if "3D/3dmodel.model" in names:
         return "3D/3dmodel.model"
     raise ParseError("this 3MF has no 3D model part")
+
+
+def _xml(data: bytes, what: str) -> ET.Element:
+    """Parse XML that must not declare a DOCTYPE or entities. A 3MF never needs one, and nested
+    entities can blow up in memory. The check runs inside an XML parser, so it holds in any text
+    encoding (review of M7: a byte search missed a UTF-16 DOCTYPE)."""
+
+    def refuse(*_args: object) -> None:
+        raise ParseError(f"this 3MF's {what} declares a DOCTYPE or entities, which is refused")
+
+    guard = expat.ParserCreate()
+    guard.StartDoctypeDeclHandler = refuse
+    guard.EntityDeclHandler = refuse
+    try:
+        guard.Parse(data, True)
+        return ET.fromstring(data)
+    except (expat.ExpatError, ET.ParseError) as e:
+        raise ParseError(f"this 3MF's {what} is not valid XML ({e})") from e
 
 
 def _read_member(archive: zipfile.ZipFile, name: str, limits: Limits) -> bytes:
@@ -198,7 +215,11 @@ def _object_triangles(
             raise ParseError(_too_many(sum(len(p) for p in out) + len(index), limits))
         if len(index) and (index.min() < 0 or index.max() >= len(vertices)):
             raise ParseError("this 3MF has a triangle pointing at a vertex that does not exist")
-        out.append(_apply(matrix, vertices)[index])
+        triangles = _apply(matrix, vertices)[index]
+        if np.linalg.det(matrix[:3, :3]) < 0:
+            # A mirroring transform turns the winding round; turn it back (review of M7).
+            triangles = triangles[:, [0, 2, 1]]
+        out.append(triangles)
     for comp in _all(obj, "component"):
         _object_triangles(
             objects, comp.get("objectid"), _transform(comp) @ matrix, out, limits, depth + 1

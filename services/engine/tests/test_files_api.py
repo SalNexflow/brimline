@@ -118,7 +118,13 @@ def test_a_customer_file_fills_size_grams_and_minutes_on_their_quote(client: Tes
     )
     assert line["sources"]["part_mm"] == line["sources"]["grams_per_part"] == "file"
     assert staff["files"] == [
-        {"line_no": 1, "file_number": f["file_number"], "filename": "part.stl", "overall": "pass"}
+        {
+            "line_no": 1,
+            "file_number": f["file_number"],
+            "filename": "part.stl",
+            "overall": "pass",
+            "current": True,
+        }
     ]
     assert staff["price_pending"] == []  # code priced it from the file's numbers
     # The customer sees the size, not the shop's working numbers.
@@ -164,11 +170,11 @@ def test_staff_editing_a_line_keeps_the_files_values_and_their_source(client: Te
 def test_a_new_file_replaces_values_an_earlier_file_gave(client: TestClient) -> None:
     number = new_quote(client)
     upload(client, "U-STAFF", CUBE, quote=number)
-    f = upload(client, "U-STAFF", OPEN_CUBE, quote=number).json()  # size yes, volume no
+    f = upload(client, "U-STAFF", METRES, quote=number).json()  # unit warning: gives nothing
     line = client.get(f"/quotes/{number}", headers=login(client, "U-STAFF")).json()["lines"][0]
-    assert line["part_mm"] == [40, 40, 40] and line["grams_per_part"] is None
-    assert line["sources"]["grams_per_part"] == "missing"
-    assert any("grams per part: cleared" in a for a in f["applied"])
+    assert line["part_mm"] is None and line["grams_per_part"] is None
+    assert line["sources"]["part_mm"] == line["sources"]["grams_per_part"] == "missing"
+    assert any("part size: cleared" in a for a in f["applied"])
 
 
 def test_a_failed_file_blocks_approval_and_a_fixed_one_gives_the_job_its_size(
@@ -356,3 +362,44 @@ def test_advice_is_stored_apart_and_changes_no_check(
         f"/files/{f['file_number']}/advice", headers=login(client, "U-OPERATOR") | key()
     )
     assert op.status_code == 403
+
+
+# --- Found by the fresh-context review of M7 ------------------------------------------------------
+
+
+def test_a_failed_file_fills_nothing(client: TestClient, owner_url: str) -> None:
+    order = new_order(client)
+    f = upload(client, "U-PLANNER", OPEN_CUBE, order=order).json()
+    assert f["overall"] == "fail" and f["applied"] == [
+        "nothing filled in: the file failed its checks"
+    ]
+    assert job_row(owner_url, order)[:4] == (None, None, None, None)
+
+
+def test_accepting_a_warning_on_an_older_file_changes_nothing(
+    client: TestClient, owner_url: str
+) -> None:
+    order = new_order(client)
+    old = upload(client, "U-PLANNER", METRES, order=order).json()
+    upload(client, "U-PLANNER", CUBE, order=order)  # the newer file sets 40 mm
+    r = client.post(
+        f"/files/{old['file_number']}/overrides",
+        json={"check": "units", "reason": "confirmed with the customer"},
+        headers=login(client, "U-PLANNER") | key(),
+    )
+    assert r.status_code == 200 and "a newer file" in r.json()["applied"][0]
+    assert job_row(owner_url, order)[:3] == (40, 40, 40)
+
+
+def test_a_file_checked_for_another_material_must_be_uploaded_again(client: TestClient) -> None:
+    number = new_quote(client)
+    assert edit(client, "U-STAFF", number, COMPLETE_EDIT).status_code == 200  # PETG
+    upload(client, "U-STAFF", CUBE, quote=number)
+    resin = COMPLETE_EDIT | {"lines": [COMPLETE_EDIT["lines"][0] | {"material_code": "RESIN-GREY"}]}
+    assert edit(client, "U-STAFF", number, resin).status_code == 200
+    quote = client.get(f"/quotes/{number}", headers=login(client, "U-STAFF")).json()
+    assert quote["files"][0]["current"] is False
+    r = decide(client, "U-STAFF", number, "approve")
+    assert r.status_code == 422 and "another part or material" in r.json()["detail"]
+    upload(client, "U-STAFF", CUBE, quote=number)  # checked again, for resin
+    assert decide(client, "U-STAFF", number, "approve").status_code == 200

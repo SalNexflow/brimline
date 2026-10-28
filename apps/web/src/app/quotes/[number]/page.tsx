@@ -123,6 +123,9 @@ function Files({ quote }: { quote: QuoteDetail }) {
                 <>
                   <Link href={`/files/${f.file_number}`}>{f.filename}</Link>{" "}
                   <span className={`check check-${f.overall}`}>{label[f.overall]}</span>
+                  {f.current ? null : (
+                    <strong> Checked for an earlier version of this line (another part or material): upload it again.</strong>
+                  )}
                 </>
               ) : (
                 <span className="muted">no file yet</span>

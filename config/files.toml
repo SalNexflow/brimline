@@ -12,6 +12,7 @@ checked = 2026-10-28
 # Safety limits on what we read, not quality judgements.
 max_upload_bytes = 26_214_400         # 25 MiB per file. Shop setting, assumed.
 max_unzipped_bytes = 104_857_600      # 100 MiB inside a 3MF (stops zip bombs). Shop setting, assumed.
+max_coordinate_mm = 100_000.0          # 100 m from the origin: far past any machine, and keeps the vertex welding exact. Shop setting, assumed.
 max_triangles = 300_000               # larger meshes are refused with a clear message. Shop setting, assumed (numpy rays stay under a few seconds).
 wall_rays = 4_000                     # faces sampled for wall thickness; all faces when fewer
 wall_ray_tests = 20_000_000           # ray-to-box distance tests per file: a big mesh gets fewer rays (at least 200), so a check takes about a second (measured: 43,200 triangles, 0.9 s). Shop setting, assumed.

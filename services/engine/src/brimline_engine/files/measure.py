@@ -87,15 +87,59 @@ def shells(mesh: Mesh) -> Ints:
 
 
 def shell_volumes_mm3(mesh: Mesh, labels: Ints) -> list[float]:
+    """Signed volume of each shell: negative when that shell's faces point inwards."""
     a, b, c = corners(mesh)
     per_face = np.einsum("ij,ij->i", a, np.cross(b, c)) / 6.0
-    return [float(abs(per_face[labels == s].sum())) for s in range(int(labels.max()) + 1)]
+    return [float(per_face[labels == s].sum()) for s in range(int(labels.max()) + 1)]
 
 
-def overhang_share(mesh: Mesh, max_from_vertical_deg: float, outward: float) -> float:
+@dataclass(frozen=True)
+class Orientation:
+    face_sign: Floats  # +1, or -1 for faces of a piece that is inside out
+    volume_mm3: float  # solid volume: pieces added, cavities taken away
+    inside_out: int  # separate pieces (not cavities) whose faces point inwards
+    pieces: int
+
+
+def orientation(mesh: Mesh, labels: Ints) -> Orientation:
+    """Judge each shell on its own (review of M7: one piece inside out used to cancel part of
+    another's volume). A shell with negative volume inside the box of a larger outward shell is
+    a cavity; any other is a piece wound inside out, counted with its faces turned round."""
+    volumes = shell_volumes_mm3(mesh, labels)
+    points = mesh.vertices[mesh.faces]
+    boxes = [
+        (
+            points[labels == s].reshape(-1, 3).min(axis=0),
+            points[labels == s].reshape(-1, 3).max(axis=0),
+        )
+        for s in range(len(volumes))
+    ]
+
+    def inside(s: int, t: int) -> bool:
+        return bool((boxes[s][0] >= boxes[t][0]).all() and (boxes[s][1] <= boxes[t][1]).all())
+
+    sign = np.ones(len(volumes))
+    volume = 0.0
+    for s, v in enumerate(volumes):
+        cavity = v < 0 and any(
+            volumes[t] > -v and inside(s, t) for t in range(len(volumes)) if t != s
+        )
+        if v < 0 and not cavity:
+            sign[s] = -1.0
+        volume += v if cavity else abs(v)
+    face_sign: Floats = sign[labels]
+    return Orientation(
+        face_sign=face_sign,
+        volume_mm3=volume,
+        inside_out=int((sign < 0).sum()),
+        pieces=len(volumes),
+    )
+
+
+def overhang_share(mesh: Mesh, max_from_vertical_deg: float, outward: float | Floats) -> float:
     """Share of the surface facing down more steeply than allowed, not counting the bed.
-    `outward` is +1 or -1: -1 flips the normals of an inside-out mesh."""
-    cross = face_cross(mesh) * outward
+    `outward` is +1 or -1, for the whole mesh or per face: -1 turns an inside-out face round."""
+    cross = face_cross(mesh) * np.asarray(outward, dtype=np.float64).reshape(-1, 1)
     double_area = np.linalg.norm(cross, axis=1)
     total = double_area.sum()
     if total == 0:
@@ -116,12 +160,12 @@ class Walls:
 
 
 def walls(
-    mesh: Mesh, limits_mm: list[float], max_rays: int, max_tests: int, outward: float
+    mesh: Mesh, limits_mm: list[float], max_rays: int, max_tests: int, outward: float | Floats
 ) -> Walls:
     """From the centre of each sampled face, cast a ray straight inwards and take the distance to
     the first surface it meets: the local wall thickness there. Only distances under the largest
     limit are measured; a thicker wall is just "thick enough"."""
-    cross = face_cross(mesh) * outward
+    cross = face_cross(mesh) * np.asarray(outward, dtype=np.float64).reshape(-1, 1)
     double_area = np.linalg.norm(cross, axis=1)
     m = len(mesh.faces)
     rays = max(1, min(max_rays, m, max(200, max_tests // max(m, 1))))

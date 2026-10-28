@@ -76,9 +76,10 @@ const MUTATIONS = [
     // A permission widening changes no types at all; only the hand-written permission table sees it.
     name: "permission widened (operators may create orders)",
     file: "services/engine/src/brimline_engine/permissions.py",
-    find: '{"order.list", "order.read", "material.list", "schedule.read", "queue.read", "task.update"}',
-    // Swapped rather than added, so the line stays short and only the tests can catch it.
-    replace: '{"order.list", "order.read", "material.list", "order.create", "queue.read", "task.update"}',
+    // The operator's set (the only one listing task.update right after queue.read and before file.read).
+    find: '            "queue.read",\n            "task.update",\n            "file.read",',
+    // Swapped rather than added, so the formatting stays the same and only the tests can catch it.
+    replace: '            "queue.read",\n            "task.update",\n            "order.create",',
     expect: "engine: tests",
   },
   {
