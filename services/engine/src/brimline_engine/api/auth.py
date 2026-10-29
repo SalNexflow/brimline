@@ -14,7 +14,6 @@ from brimline_engine.api.deps import (
     SessionUser,
     current_user,
 )
-from brimline_engine.demo import check_storage
 from brimline_engine.permissions import Role, capabilities
 from brimline_engine.session import issue_token
 from brimline_engine.text import SafeText
@@ -80,7 +79,6 @@ def demo_login(
     body: DemoLoginRequest, conn: Conn, settings: CurrentSettings, now: Now
 ) -> DemoLoginResponse:
     _require_demo_login(settings)
-    check_storage(conn, "sessions")  # demo mode only: each sign-in stores a session row
     row = conn.execute(
         "SELECT id, session_version FROM users WHERE code = %s", (body.user_code,)
     ).fetchone()

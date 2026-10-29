@@ -204,3 +204,24 @@ def test_a_replayed_reply_marks_only_its_own_call() -> None:
     REPLAYED.set(True)
     assert _replayed() is True
     assert _replayed() is False  # the next call in the same request is not a replay
+
+
+# --- Found by deploying the hosted demo -------------------------------------------------------------
+
+
+def test_demo_sign_in_works_in_demo_mode(client: TestClient, demo_on: None) -> None:
+    # Sign-in checked a row cap on a "sessions" table that does not exist (sessions are signed
+    # tokens, not rows), so every sign-in on the hosted demo answered 500 (DEFECT_LOG #81).
+    r = client.post("/auth/demo-login", json={"user_code": "U-PLANNER"})
+    assert r.status_code == 200 and r.json()["user"]["role"] == "planner"
+
+
+def test_every_capped_table_exists(owner_url: str) -> None:
+    with psycopg.connect(owner_url) as conn:
+        tables = {
+            r[0]
+            for r in conn.execute(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+            ).fetchall()
+        }
+    assert set(demo_config().storage.max_rows) <= tables

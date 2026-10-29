@@ -16,7 +16,7 @@ be safe to leave open, not to hold anything real. This page says plainly which p
 | No superuser in the app's path (D34, closed in M11) | Migrations run as a non-superuser owner; the app role has only the grants it needs; the running engine has the owner's credentials removed from its environment (the Dockerfile unsets them after migrating) | `test_migrations.py` |
 | Only the web may call the engine | `ENGINE_WEB_KEY`, checked on every request except `/health` | `test_only_the_web_may_call_the_engine_when_a_key_is_set` |
 | Model spend | A daily budget counted from recorded call costs and a per-visitor hourly limit; then recorded replies or the by-hand path | `test_demo.py` |
-| Storage | Every write first checks the database size (in the request middleware); the tables visitors grow (files, quotes, orders, disruptions, planning runs, model calls, sign-ins) also have row caps; nightly reset | `test_every_write_checks_the_database_size_in_demo_mode`, `test_demo_mode_refuses_writes_past_the_row_cap` |
+| Storage | Every write first checks the database size (in the request middleware); the tables visitors grow (files, quotes, orders, disruptions, planning runs, model calls) also have row caps; sign-ins store no row (sessions are signed tokens); nightly reset | `test_every_write_checks_the_database_size_in_demo_mode`, `test_demo_mode_refuses_writes_past_the_row_cap` |
 | Uploaded files | Size, triangle and unzipped-size caps; DOCTYPE refused by the XML parser | `test_files_checks.py` |
 | Secrets | Only in `.env` and the hosts' dashboards; a gate step scans tracked files for keys | `scripts/secrets_scan.mjs` (in the gate) |
 | Session cookies | httpOnly, SameSite=Lax, signed, revocable | `orders.spec.ts`, `test_session.py` |
