@@ -261,11 +261,12 @@ def _parse(phrase: str, today: date, past_ok: bool = False) -> _Parts | str:
             text = text.replace(ending, " ")
 
     # "in 2 hours", "in einer Stunde", "dans 2 heures", "en 2 horas", and "another 2 hours",
-    # "noch 2 Stunden", "encore 2 heures" (d10 on the dev set), or "2 more hours", "2 hours more"
+    # "noch 2 Stunden", "encore 2 heures" (d10 on the dev set), or "2 more hours", "2 hours more";
+    # "for 4 hours" (down for a while from when it was reported) means the same.
     unit_words = r"(min|mins|minutes?|minuten|minutos?|h|hrs?|hours?|stunden?|std|horas?|heures?)"
     count_word = r"(\d+(?:[.,]5)?|[a-zäéè]+)"
     m, text = _take(
-        rf"\b(?:in|dans|en|another|noch|encore|otras?)\s+{count_word}\s*{unit_words}\b", text
+        rf"\b(?:in|dans|en|another|noch|encore|otras?|for)\s+{count_word}\s*{unit_words}\b", text
     )
     if m is None:
         m, text = _take(rf"\b{count_word}\s*more\s+{unit_words}\b", text)

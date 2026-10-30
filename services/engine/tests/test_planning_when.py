@@ -71,6 +71,10 @@ def berlin(month: int, day: int, hour: int, minute: int = 0) -> datetime:
         ("noch 2 Stunden", RECEIVED.astimezone(UTC) + timedelta(hours=2)),
         ("encore 2 heures", RECEIVED.astimezone(UTC) + timedelta(hours=2)),
         ("another 45 min", RECEIVED.astimezone(UTC) + timedelta(minutes=45)),
+        # "For" a while, from when it was reported (the live demo's example, which works at any
+        # hour unlike "until 5pm"): received 15:20, so 19:20 and 16:50.
+        ("for 4 hours", berlin(11, 3, 19, 20)),
+        ("for 90 min", berlin(11, 3, 16, 50)),
     ],
 )
 def test_phrases_resolve_to_the_moment_they_mean(phrase: str, expected: datetime) -> None:

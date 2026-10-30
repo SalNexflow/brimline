@@ -90,6 +90,8 @@ def _fake_disruption(message: str) -> str:
     unclear, injection = False, "ignore" in message
     if "printer 3 jammed until 5pm" in message:
         events.append(_fake_event("machine_down", machine="FDM-3", until_phrase="5pm"))
+    elif "printer 1 jammed for 4 hours" in message:  # the demo's example (works at any hour)
+        events.append(_fake_event("machine_down", machine="FDM-1", until_phrase="for 4 hours"))
     elif "resin printer is down until 12/11" in message:
         events.append(_fake_event("machine_down", machine="RESIN-1", until_phrase="12/11"))
     elif "cancel bl-0005 and bl-0006" in message:
