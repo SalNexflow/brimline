@@ -50,6 +50,8 @@ const ENGINE_UNIT = step("engine: tests", ENGINE, "uv run --locked pytest");
 // Order: fastest checks first, so most mistakes fail in seconds.
 const GATE = [
   step("secrets: none in git", ROOT, "node scripts/secrets_scan.mjs"),
+  // Every script parses, including ones the gate never runs (the self-test, DEFECT_LOG #86).
+  step("scripts: parse", ROOT, "node -e \"for (const f of require('fs').readdirSync('scripts')) if (f.endsWith('.mjs')) require('child_process').execFileSync(process.execPath, ['--check', 'scripts/' + f], { stdio: 'inherit' })\""),
   step("readme: matches eval/results", ROOT, "node scripts/readme.mjs --check"),
   step("db: start", ROOT, "docker compose up -d --wait"),
   step("api types: up to date", ROOT, "node scripts/tasks.mjs api-types --check"),

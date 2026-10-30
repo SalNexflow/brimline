@@ -187,10 +187,8 @@ const MUTATIONS = [
     // M10: reprints would look free, hiding what failures cost the shop.
     name: "failed attempts left out of the actual cost",
     file: "services/engine/src/brimline_engine/costing/outcome.py",
-    find: "    for a in attempts:
-        used =",
-    replace: "    for a in (x for x in attempts if not x.failed):
-        used =",
+    find: "    for a in attempts:\n        used =",
+    replace: "    for a in (x for x in attempts if not x.failed):\n        used =",
     expect: "engine: tests",
   },
   {
