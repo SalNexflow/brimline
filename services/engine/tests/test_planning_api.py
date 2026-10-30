@@ -39,6 +39,11 @@ def fresh_planning_state(client: TestClient, owner_url: str) -> Iterator[None]:
 
     def reset() -> None:
         with psycopg.connect(owner_url) as conn:
+            # A job finishes once in real life; tests finish the same seeded jobs again, so the
+            # outcomes they froze go too (the owner lifts the append-only trigger for this only).
+            conn.execute("ALTER TABLE job_outcomes DISABLE TRIGGER job_outcomes_append_only")
+            conn.execute("DELETE FROM job_outcomes WHERE NOT synthetic")
+            conn.execute("ALTER TABLE job_outcomes ENABLE TRIGGER job_outcomes_append_only")
             conn.execute("TRUNCATE tasks, schedules, planning_runs CASCADE")
             conn.execute("UPDATE jobs SET status = 'pending'")
             conn.execute("UPDATE orders SET status = 'open'")
@@ -398,7 +403,11 @@ def test_task_rules(client: TestClient, planner: dict[str, str], operator: dict[
     assert act(client, planner, prep["id"], "start").status_code == 403  # planners do not
     assert act(client, operator, prep["id"], "start").status_code == 200
     assert act(client, operator, prep["id"], "start").status_code == 409  # already running
-    assert act(client, operator, prep["id"], "fail").status_code == 200
+    assert act(client, operator, prep["id"], "fail").status_code == 422  # a failure needs a reason
+    failed = client.post(
+        f"/tasks/{prep['id']}/fail", json={"failure_reason": "other"}, headers=operator | key()
+    )
+    assert failed.status_code == 200
     assert act(client, operator, prep["id"], "done").status_code == 409  # failed is final
     after = tasks_of(client.get("/queues", headers=operator).json(), "BL-0003-1")
     assert after[0]["status"] == "failed" and not after[1]["can_start"]

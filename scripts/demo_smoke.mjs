@@ -97,6 +97,11 @@ async function main() {
       check(!JSON.stringify(r.json ?? "").includes("cannot read the time"), "the example disruption's time is understood");
     }
   }
+  // M10: the report reads the seeded, labelled history and flags its under-quoted material.
+  const report = await call("GET", "/reports/quoted-vs-actual", { token: tokens.staff });
+  const flagged = (report.json?.types ?? []).filter((t) => t.flagged).map((t) => t.material_code);
+  check(report.status === 200 && report.json.synthetic_jobs > 0 && flagged.length === 1, `quoted-versus-actual report: ${report.status}, flagged ${flagged.join(", ") || "nothing"}`);
+
   const covered = WRITES.map(([t]) => t).sort();
   check(JSON.stringify(covered) === JSON.stringify(cappedTables()), `every row-capped table in config/demo.toml has a write here (${cappedTables().join(", ")})`);
 

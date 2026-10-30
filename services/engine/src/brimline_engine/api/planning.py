@@ -27,6 +27,7 @@ ERRORS: dict[type[Exception], int] = {
     queues.NotFoundError: 404,
     queues.ForbiddenError: 403,
     queues.ConflictError: 409,
+    queues.InvalidError: 422,
     IdempotencyConflictError: 409,
 }
 MESSAGES = {404: "not found", 403: "not allowed"}
@@ -176,7 +177,10 @@ def get_queues(conn: Conn, user: CurrentUser, tz: Tz) -> queues.QueuesOut:
 
 @router.post(
     "/tasks/{task_id}/{action}",
-    responses={409: {"description": "not allowed in the task's current state"}},
+    responses={
+        409: {"description": "not allowed in the task's current state"},
+        422: {"description": "the recorded reason or grams do not fit the action or the task"},
+    },
 )
 def act_on_task(
     task_id: Id,
@@ -186,9 +190,12 @@ def act_on_task(
     user: CurrentUser,
     now: Now,
     key: IdempotencyKey,
+    mark: queues.TaskMark | None = None,
 ) -> dict[str, Any]:
+    """Start, finish or fail a task. Failing needs a reason; a print or machining task may record
+    the grams it used (M10)."""
     try:
-        stored, replayed = queues.act(conn, user.actor, task_id, action, key, now)
+        stored, replayed = queues.act(conn, user.actor, task_id, action, key, now, mark)
     except tuple(ERRORS) as exc:
         raise _http_error(exc) from None
     return _write(response, stored, replayed)

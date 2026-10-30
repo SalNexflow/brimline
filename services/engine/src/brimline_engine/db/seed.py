@@ -7,6 +7,9 @@ timestamps, makes every seed produce identical rows (ids and order numbers inclu
 
 import psycopg
 
+from brimline_engine.costing.config import costing_config
+from brimline_engine.costing.scenario import history
+from brimline_engine.costing.store import insert_synthetic
 from brimline_engine.shop_config import ShopConfig, load_shop_config
 
 
@@ -117,6 +120,22 @@ def seed(owner_url: str, config: ShopConfig | None = None) -> None:
                         at,
                     ),
                 )
+
+        # Finished jobs from before the seed, for the quoted-versus-actual report (M10). Synthetic,
+        # and labelled so on the Reports page; one material is truly under-quoted.
+        sc = costing_config().scenario
+        insert_synthetic(
+            conn,
+            history(
+                cfg,
+                sc,
+                seed=sc.demo_seed,
+                jobs_per_type=sc.demo_jobs_per_material,
+                biased=sc.demo_biased_material,
+                bias=sc.demo_bias,
+                end=at,
+            ),
+        )
 
 
 def seed_price_rules(

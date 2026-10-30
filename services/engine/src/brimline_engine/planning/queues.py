@@ -14,11 +14,13 @@ from datetime import datetime
 from typing import Any, Literal
 
 import psycopg
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from brimline_engine import audit, idempotency
+from brimline_engine.costing.store import record_outcome
 from brimline_engine.permissions import Actor, can
 from brimline_engine.planning.inputs import job_key
+from brimline_engine.text import SafeText
 
 TaskAction = Literal["start", "done", "fail"]
 TaskStatus = Literal["planned", "running", "done", "failed", "cancelled"]
@@ -34,6 +36,34 @@ class ForbiddenError(Exception):
 
 class ConflictError(Exception):
     """Not allowed in the task's current state (409)."""
+
+
+class InvalidError(Exception):
+    """What was recorded does not fit the action or the task (422)."""
+
+
+FailureReason = Literal[
+    "warping", "bed_adhesion", "layer_shift", "clog", "spaghetti", "damaged_in_finishing", "other"
+]
+
+
+class TaskMark(BaseModel):
+    """What the operator records with Done or Failed (M10). A failure needs its reason; grams are
+    for print and machining tasks only and may be left out (the report then assumes the quote's)."""
+
+    model_config = ConfigDict(extra="forbid")
+    failure_reason: FailureReason | None = None
+    failure_note: SafeText | None = Field(default=None, max_length=500)
+    material_used_g: int | None = Field(default=None, gt=0, le=1_000_000)
+
+
+def _check_mark(action: TaskAction, kind: str, mark: TaskMark) -> None:
+    if action == "fail" and mark.failure_reason is None:
+        raise InvalidError("say why it failed (failure_reason)")
+    if action != "fail" and (mark.failure_reason or mark.failure_note):
+        raise InvalidError("a reason is recorded only when a task fails")
+    if mark.material_used_g is not None and (action == "start" or kind != "machine"):
+        raise InvalidError("grams are recorded when a print or machining task ends")
 
 
 class QueueTask(BaseModel):
@@ -52,6 +82,7 @@ class QueueTask(BaseModel):
     actual_end: datetime | None
     can_start: bool
     waiting_for: str | None  # why it cannot start yet, in plain words
+    attempt: int  # 2 or more: a reprint after a failed attempt
 
 
 class Queue(BaseModel):
@@ -70,7 +101,9 @@ class QueuesOut(BaseModel):
 _ROWS = (
     "SELECT t.id, t.kind, t.status, o.order_number, j.line_no, j.part_name, j.quantity,"
     "       mat.code, o.rush, t.planned_start, t.planned_end, t.actual_start, t.actual_end,"
-    "       m.code, m.name, t.job_id, t.seq"
+    "       m.code, m.name, t.job_id, t.seq,"
+    # Attempt 2 or more is a reprint: the job failed before and was planned again (M10).
+    "       1 + (SELECT count(*) FROM tasks f WHERE f.job_id = t.job_id AND f.status = 'failed')"
     " FROM tasks t JOIN schedules s ON s.id = t.schedule_id AND s.status = 'approved'"
     " JOIN jobs j ON j.id = t.job_id JOIN orders o ON o.id = j.order_id"
     " JOIN materials mat ON mat.id = j.material_id LEFT JOIN machines m ON m.id = t.machine_id"
@@ -126,6 +159,7 @@ def get_queues(conn: psycopg.Connection, actor: Actor, tz: str) -> QueuesOut:
             actual_end=r[12],
             can_start=may_update and r[2] == "planned" and waiting is None,
             waiting_for=waiting,
+            attempt=r[17],
         )
         (queues[r[13]] if r[13] is not None else manual).tasks.append(task)
     return QueuesOut(
@@ -143,13 +177,19 @@ def act(
     action: TaskAction,
     key: str,
     now: datetime,
+    mark: TaskMark | None = None,
 ) -> tuple[idempotency.StoredResponse, bool]:
     if not can(actor, "task.update"):
         raise ForbiddenError("task.update")
+    mark = mark or TaskMark()
     endpoint = f"POST /tasks/{task_id}/{action}"
     with conn.transaction():
         stored = idempotency.claim(
-            conn, user_id=actor.user_id, endpoint=endpoint, key=key, req_hash=action
+            conn,
+            user_id=actor.user_id,
+            endpoint=endpoint,
+            key=key,
+            req_hash=action + mark.model_dump_json(),
         )
         if stored is not None:
             return stored, True
@@ -176,6 +216,7 @@ def act(
             raise ConflictError("this task belongs to a plan that is no longer the approved one")
         if "cancelled" in (j_st, o_st):
             raise ConflictError("this job or its order was cancelled")
+        _check_mark(action, kind, mark)
         before = {"status": status}
         if action == "start":
             if status != "planned":
@@ -224,9 +265,22 @@ def act(
             new = "done" if action == "done" else "failed"
             end = max(now, a_start)  # the server clock never runs backwards for one task
             conn.execute(
-                "UPDATE tasks SET status = %s, actual_end = %s WHERE id = %s", (new, end, task_id)
+                "UPDATE tasks SET status = %s, actual_end = %s, failure_reason = %s,"
+                " failure_note = %s, material_used_g = %s WHERE id = %s",
+                (
+                    new,
+                    end,
+                    mark.failure_reason,
+                    mark.failure_note,
+                    mark.material_used_g,
+                    task_id,
+                ),
             )
-            after = {"status": new, "actual_end": end.isoformat()}
+            after = {
+                "status": new,
+                "actual_end": end.isoformat(),
+                **mark.model_dump(exclude_none=True),
+            }
             if new == "failed":
                 conn.execute("UPDATE jobs SET status = 'failed' WHERE id = %s", (job_id,))
             else:
@@ -238,6 +292,7 @@ def act(
                 assert left is not None
                 if left[0] == 0:
                     conn.execute("UPDATE jobs SET status = 'done' WHERE id = %s", (job_id,))
+                    record_outcome(conn, job_id, end)  # quoted versus actual (M10)
                     conn.execute(
                         "UPDATE orders SET status = 'done', updated_at = %s WHERE id = %s"
                         " AND NOT EXISTS (SELECT 1 FROM jobs WHERE order_id = %s"

@@ -112,6 +112,11 @@ TABLE: list[tuple[Actor, Action, OrderTarget | None, bool]] = [
     (OPERATOR, "disruption.report", None, False),
     (STAFF, "disruption.report", None, False),
     (CUSTOMER_1, "disruption.report", None, False),
+    # M10: the quoted-versus-actual report is for the shop's office, not the floor or customers.
+    (STAFF, "report.read", None, True),
+    (PLANNER, "report.read", None, True),
+    (OPERATOR, "report.read", None, False),
+    (CUSTOMER_1, "report.read", None, False),
     # M7: model files. Customers upload and read files for their own quotes only; operators read
     # (to see a part before printing); staff and planners upload, and accept a warning with a
     # reason. Nobody can override a failed check (enforced in files/service.py, not here).
@@ -191,6 +196,7 @@ def test_capabilities_per_role() -> None:
         "quote.list",
         "quote.read",
         "quote.submit",
+        "report.read",
         "schedule.read",
     ]
     assert capabilities(PLANNER) == [
@@ -207,6 +213,7 @@ def test_capabilities_per_role() -> None:
         "queue.read",
         "quote.list",
         "quote.read",
+        "report.read",
         "schedule.approve",
         "schedule.plan",
         "schedule.read",

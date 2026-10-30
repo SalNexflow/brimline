@@ -23,6 +23,7 @@ from brimline_engine.api import (
     price_rules,
     quotes,
     reference,
+    reports,
     search,
 )
 from brimline_engine.api.deps import Conn
@@ -63,6 +64,7 @@ app.include_router(planning.router)
 app.include_router(disruptions.router)
 app.include_router(files.router)
 app.include_router(search.router)
+app.include_router(reports.router)
 
 CallNext = Callable[[Request], Awaitable[Response]]
 WRITES = {"POST", "PUT", "PATCH", "DELETE"}

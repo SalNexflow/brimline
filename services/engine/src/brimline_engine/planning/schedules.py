@@ -541,10 +541,12 @@ def _stop_work(
     """Running work that the approved disruptions end: lost prints and cancelled jobs' work."""
     lost = [x["task_id"] for x in effects.get("lost", [])]
     cancelled = _job_ids(conn, [c["job"] for c in effects.get("cancelled", [])])
+    # A failed task always says why (M10); these two reasons are set by code only.
     conn.execute(
-        "UPDATE tasks SET status = 'failed', actual_end = greatest(%s, actual_start)"
+        "UPDATE tasks SET status = 'failed', actual_end = greatest(%s, actual_start),"
+        " failure_reason = CASE WHEN id = ANY(%s) THEN 'machine_down' ELSE 'order_cancelled' END"
         " WHERE schedule_id = %s AND status = 'running' AND (id = ANY(%s) OR job_id = ANY(%s))",
-        (now, old_id, lost, cancelled),
+        (now, lost, old_id, lost, cancelled),
     )
 
 

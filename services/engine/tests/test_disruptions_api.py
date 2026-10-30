@@ -261,12 +261,13 @@ def test_a_running_print_on_a_machine_that_goes_down_is_lost_and_said_so(
     assert approve(client, planner, draft["id"]).status_code == 200
     old = scalar(
         owner_url,
-        "SELECT t.status FROM tasks t JOIN schedules s ON s.id = t.schedule_id"
+        "SELECT t.status || ' ' || t.failure_reason FROM tasks t"
+        " JOIN schedules s ON s.id = t.schedule_id"
         " WHERE s.id = %s AND t.kind = 'machine' AND t.machine_id ="
         " (SELECT id FROM machines WHERE code = 'FDM-3') AND t.actual_start IS NOT NULL",
         first["id"],
     )
-    assert old == "failed"
+    assert old == "failed machine_down"  # a failed task always says why (M10)
     # The job is planned again from the start, and not on FDM-3 before 17:00.
     again = job_tasks(client, operator, job)
     assert again[0]["kind"] == "prep" and again[0]["status"] == "planned"
