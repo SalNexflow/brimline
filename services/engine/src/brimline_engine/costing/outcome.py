@@ -67,17 +67,29 @@ def machine_cents(seconds: int, cents_per_minute: int) -> int:
     return (seconds * cents_per_minute + 30) // 60
 
 
+def assumed_grams(e: Estimate, a: Attempt) -> int:
+    """Grams for an attempt nobody weighed. A finished attempt used the quote's grams; a failed one
+    used the share of them its machine time reached of the quoted time (a print lost 10 minutes in
+    used little), never more than the whole job. Integers only, rounded half up."""
+    quoted_grams = e.quantity * e.grams_per_part
+    if not a.failed:
+        return quoted_grams
+    quoted_seconds = e.quantity * e.minutes_per_part * 60
+    share = (2 * quoted_grams * a.machine_seconds + quoted_seconds) // (2 * quoted_seconds)
+    return min(quoted_grams, share)
+
+
 def outcome(e: Estimate, r: Rates, attempts: Sequence[Attempt]) -> Outcome:
     """The job's estimate against every attempt it took. An attempt with no recorded grams is
-    taken to have used the quoted grams for the whole job (counted in `grams_assumed`, so the
-    report can say how many values are assumed rather than measured)."""
+    given assumed grams (counted in `grams_assumed`, so the report can say how many values are
+    assumed rather than measured): see `assumed_grams`."""
     if not attempts:
         raise ValueError("a finished job has at least one attempt")
     quoted_grams = e.quantity * e.grams_per_part
     actual = 0
     grams = 0
     for a in attempts:
-        used = quoted_grams if a.grams_used is None else a.grams_used
+        used = assumed_grams(e, a) if a.grams_used is None else a.grams_used
         grams += used
         actual += (
             r.setup_cents

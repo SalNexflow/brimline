@@ -63,9 +63,11 @@ filled in instead of leaving empty. *Injection flagged* = the model put the inje
 
 ## Quoted versus actual: the under-quote flag (M10)
 
-Code only, no model. Rule (config/costing.toml): a material is flagged when at least 5 quoted jobs finished and more of them cost over 1.15x their estimate than a one-sided sign test allows at alpha 0.05. Synthetic histories (8 materials, noise and reprints as in config/costing.toml); TPU-BLACK truly takes the bias times its quote. 200 held-out runs per cell (seeds 10000+); the rule was not tuned. Generated 2026-10-30T12:46:40+00:00.
+Code only, no model. Rule (config/costing.toml): a material is flagged when at least 5 quoted jobs finished and more of them cost over 1.15x their estimate than a one-sided sign test allows at alpha 0.05. Synthetic histories (8 materials, noise and reprints as in config/costing.toml); TPU-BLACK truly takes the bias times its quote. 200 held-out runs per cell (seeds 10000+); the rule was not tuned. Generated 2026-10-30T12:59:46+00:00.
 
 ### Detection rate (runs that flag the biased type)
+
+At 1.00 and 1.10 the type is not under-quoted past the threshold, so any flag there is a false alarm (counted again below).
 
 | True bias | 5 jobs/type | 10 jobs/type | 20 jobs/type | 40 jobs/type |
 |---|---|---|---|---|
@@ -75,6 +77,8 @@ Code only, no model. Rule (config/costing.toml): a material is flagged when at l
 | 1.40 | 82 % | 93 % | 100 % | 100 % |
 
 ### False alarms per run, all job types together
+
+The sign test's alpha (0.05) holds per material at the threshold, not per run; with 8 materials tested together this per-run rate is measured here, not guaranteed by the rule.
 
 | True bias | 5 jobs/type | 10 jobs/type | 20 jobs/type | 40 jobs/type |
 |---|---|---|---|---|

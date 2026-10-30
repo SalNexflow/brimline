@@ -57,6 +57,7 @@ class TypeSummary(BaseModel):
     median_time_ratio: float | None
     attempts: int
     failed_attempts: int
+    synthetic_jobs: int  # of the quoted jobs, seeded history (said in `reason`)
     flagged: bool
     reason: str  # plain words: why flagged, or why not
     suggestion: str | None  # "Review the price rule for X" when flagged; never applied by code
@@ -125,6 +126,10 @@ def summarise(material: str, rows: Sequence[JobRow], rule: FlagRule) -> TypeSumm
             f"{k} of {n} jobs cost more than {pct} % over their quote (median "
             f"{_signed_pct(med_cost)}); not more than chance explains (p = {float(p or 0):.3f})."
         )
+    synthetic = sum(r.synthetic for r in quoted)
+    if synthetic:
+        # The flag counts every quoted job alike; say how much of it is made-up history.
+        reason += f" {synthetic} of the {n} quoted jobs are synthetic history."
     return TypeSummary(
         material_code=material,
         process=rows[0].process,
@@ -136,6 +141,7 @@ def summarise(material: str, rows: Sequence[JobRow], rule: FlagRule) -> TypeSumm
         median_time_ratio=float(median(time_ratios)) if time_ratios else None,
         attempts=sum(r.attempts for r in rows),
         failed_attempts=sum(r.failed_attempts for r in rows),
+        synthetic_jobs=synthetic,
         flagged=flagged,
         reason=reason,
         suggestion=f"Review the price rule for {material}." if flagged else None,

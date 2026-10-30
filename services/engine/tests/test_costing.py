@@ -11,6 +11,7 @@ from brimline_engine.costing.outcome import (
     Attempt,
     Estimate,
     Rates,
+    assumed_grams,
     estimated_cents,
     machine_cents,
     outcome,
@@ -40,13 +41,23 @@ def test_a_failed_attempt_is_part_of_the_actual_cost() -> None:
     failed = Attempt(machine_seconds=120 * 60, grams_used=None, failed=True)
     # Done: 1500 + 210 g x 7 = 1470 + 650 min x 5 = 3250 -> 6220.
     assert outcome(TEN_STANDS, RATES, [done]).actual_cents == 6220
-    # Failed, grams not recorded so the quoted 200 g are assumed: 1500 + 1400 + 600 = 3500.
+    # Failed after 120 of the quoted 600 min, grams not recorded: 120/600 of the quoted 200 g
+    # = 40 g are assumed. 1500 + 40 x 7 = 280 + 120 x 5 = 600 -> 2380.
     both = outcome(TEN_STANDS, RATES, [failed, done])
-    assert both.actual_cents == 6220 + 3500
+    assert both.actual_cents == 6220 + 2380
     assert both.estimated_cents == 5900  # the estimate does not move: a reprint is the shop's cost
     assert (both.attempts, both.failed_attempts, both.grams_assumed) == (2, 1, 1)
-    assert (both.actual_grams, both.estimated_grams) == (410, 200)
+    assert (both.actual_grams, both.estimated_grams) == (250, 200)
     assert (both.actual_seconds, both.estimated_minutes) == (770 * 60, 600)
+
+
+def test_assumed_grams_follow_how_far_a_failed_attempt_got() -> None:
+    # Quoted 200 g over 600 min. Done, not weighed: all 200 g. Failed at 10 min: 200 x 10/600 =
+    # 3.33 -> 3 g. Failed at 45 min: 15 g. Failed after running longer than quoted: capped at 200 g.
+    assert assumed_grams(TEN_STANDS, Attempt(30 * 60, None, failed=False)) == 200
+    assert assumed_grams(TEN_STANDS, Attempt(10 * 60, None, failed=True)) == 3
+    assert assumed_grams(TEN_STANDS, Attempt(45 * 60, None, failed=True)) == 15
+    assert assumed_grams(TEN_STANDS, Attempt(900 * 60, None, failed=True)) == 200
 
 
 def test_a_job_with_no_attempt_is_refused() -> None:

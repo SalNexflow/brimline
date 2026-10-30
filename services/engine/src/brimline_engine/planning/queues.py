@@ -189,7 +189,8 @@ def act(
             user_id=actor.user_id,
             endpoint=endpoint,
             key=key,
-            req_hash=action + mark.model_dump_json(),
+            # A plain action hashes as before M10, so a retry across that deploy still replays.
+            req_hash=action if mark == TaskMark() else action + mark.model_dump_json(),
         )
         if stored is not None:
             return stored, True

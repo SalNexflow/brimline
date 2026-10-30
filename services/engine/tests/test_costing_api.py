@@ -218,5 +218,26 @@ def test_the_seeded_history_flags_the_under_quoted_type_and_is_labelled(
     flagged = [t["material_code"] for t in report["types"] if t["flagged"]]
     assert flagged == ["TPU-BLACK"]  # config/costing.toml: the demo's biased material
     assert report["types"][0]["suggestion"] == "Review the price rule for TPU-BLACK."
+    assert "8 of the 8 quoted jobs are synthetic history." in report["types"][0]["reason"]
     assert report["synthetic_jobs"] == 64  # 8 materials x 8 jobs
     assert all(j["synthetic"] for j in report["jobs"] if j["label"].startswith("History "))
+
+
+def test_a_finished_print_copied_into_a_new_plan_keeps_its_grams(
+    client: TestClient, quoted_job: str, owner_url: str
+) -> None:
+    t0 = FIXED_NOW
+    prep, machine, *rest = tasks_of(replan(client, t0), quoted_job)
+    for t, action in ((prep, "start"), (prep, "done"), (machine, "start")):
+        assert run(client, t0, t["id"], action).status_code == 200
+    t1 = t0 + timedelta(minutes=360)  # exactly as quoted
+    assert run(client, t1, machine["id"], "done", material_used_g=150).status_code == 200
+    # A new plan copies the done print (without its grams) before the finishing work is done.
+    rest = [t for t in tasks_of(replan(client, t1), quoted_job) if t["status"] == "planned"]
+    for t in rest:
+        assert run(client, t1, t["id"], "start").status_code == 200
+        assert run(client, t1, t["id"], "done").status_code == 200
+    o = outcome_row(owner_url, quoted_job.rsplit("-", 1)[0] + " line 1")
+    # Counted once, with the weighed 150 g: 1500 + 150 x 4 + 360 x 6 = 1500 + 600 + 2160 = 4260.
+    assert (o["attempts"], o["actual_grams"], o["grams_assumed"]) == (1, 150, 0)
+    assert (o["actual_seconds"], o["actual_cents"]) == (360 * 60, 4260)

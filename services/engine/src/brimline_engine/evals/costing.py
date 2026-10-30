@@ -97,7 +97,9 @@ def main() -> int:
         "tuned": False,  # the rule was not changed after looking at dev seeds (DECISIONS D141)
     }
     RESULTS.mkdir(parents=True, exist_ok=True)
-    (RESULTS / "costing.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    (RESULTS / "costing.json").write_text(
+        json.dumps(result, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
     write_results_md(RESULTS)
     ok = check(result)
     print(markdown_section(result))
@@ -147,6 +149,9 @@ def markdown_section(result: dict) -> str:  # type: ignore[type-arg]
         "",
         "### Detection rate (runs that flag the biased type)",
         "",
+        "At 1.00 and 1.10 the type is not under-quoted past the threshold, so any flag there is a "
+        "false alarm (counted again below).",
+        "",
         "| True bias | " + " | ".join(f"{n} jobs/type" for n in sizes) + " |",
         "|---" * (len(sizes) + 1) + "|",
     ]
@@ -160,6 +165,10 @@ def markdown_section(result: dict) -> str:  # type: ignore[type-arg]
     lines += [
         "",
         "### False alarms per run, all job types together",
+        "",
+        f"The sign test's alpha ({rule['alpha']}) holds per material at the threshold, not per run; "
+        f"with {result['types']} materials tested together this per-run rate is measured here, "
+        "not guaranteed by the rule.",
         "",
         "| True bias | " + " | ".join(f"{n} jobs/type" for n in sizes) + " |",
         "|---" * (len(sizes) + 1) + "|",

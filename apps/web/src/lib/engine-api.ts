@@ -1926,6 +1926,8 @@ export interface components {
             reason: string;
             /** Suggestion */
             suggestion: string | null;
+            /** Synthetic Jobs */
+            synthetic_jobs: number;
         };
         /** Unplannable */
         Unplannable: {
