@@ -67,7 +67,29 @@ the gate fails if this table and the results disagree. Full tables, every miss a
 | Independent checker | Plans checked valid / disagreements with the scheduler | 60/60 / 0 | `make bench` |
 | Re-planning | Jobs moved after a breakdown: stability costs / none, same hint | 3.7 / 14.3 of 32.7 | `make replan-bench` |
 | Re-planning | Re-plans that pass the independent checker | 60/60 | `make replan-bench` |
+| Quoted vs actual (code) | Under-quoted type flagged: true bias 1.40, 40 jobs/type | 100 % of 200 runs | `make eval` |
+| Quoted vs actual (code) | Flagged at 1.10 (under the 15 % threshold), any sample size | 0 runs of 800 | `make eval` |
+| Quoted vs actual (code) | Control false alarms per run, all job types together, worst sample size | 0 % | `make eval` |
 <!-- generated:results:end -->
+
+### Quoted versus actual: does the under-quote flag find a real bias, and only that?
+
+A material is flagged for a price review when more of its finished jobs ran over 15 % of their quote
+than chance explains (a sign test); a type 10 % over must never be flagged. The report only suggests:
+prices change when a person adds a new price version.
+
+<!-- generated:costing:start (scripts/readme.mjs; do not edit by hand) -->
+Runs that flag the under-quoted material (TPU-BLACK), 200 held-out synthetic histories per cell, 8 materials each (`make eval`, rule in `config/costing.toml`):
+
+| True bias | 5 jobs/type | 10 jobs/type | 20 jobs/type | 40 jobs/type |
+|---|---|---|---|---|
+| 1.00 (control) | 0 % | 0 % | 0 % | 0 % |
+| 1.10 | 0 % | 0 % | 0 % | 0 % |
+| 1.20 | 11 % | 6 % | 16 % | 36 % |
+| 1.40 | 82 % | 93 % | 100 % | 100 % |
+
+Control false alarms per run, across all 8 materials together: 0 % at 5, 0 % at 10, 0 % at 20, 0 % at 40. Seeded demo history: flags TPU-BLACK; the same history without the bias: flags nothing.
+<!-- generated:costing:end -->
 
 ## Resume claims, each with its measured number
 
@@ -137,8 +159,11 @@ The hosted demo at https://brimline-alpha.vercel.app (Vercel + Render + Neon, al
 - Print-time and weight estimates from a model file are rough formulas (`config/files.toml`), not a slicer.
   File checks judge overhangs in the orientation the file was saved in, wall thickness with one ray per face,
   and units with a size rule that a small part modelled in centimetres can pass.
-- Material deliveries are modelled as delays (M6); stock levels and purchasing (M9) and quoted-versus-actual
-  reporting (M10) are not built.
+- Material deliveries are modelled as delays (M6); stock levels and purchasing (M9) are not built.
+- Quoted versus actual (M10) times come from operators pressing Start and Done, so a late press counts as
+  machine time; the flag uses counts over a threshold, which a few late presses cannot swing. Grams not
+  recorded are assumed to be the quote's, and the report says how many. A failed job is reprinted whole,
+  not only its failed parts. The demo's history is synthetic and labelled so on the Reports page.
 - When a new plan replaces the approved one, finished manual work (prep, post-processing) of jobs that are not
   yet done is planned again; only machine work carries over as fixed.
 - The evaluations are small (tens of items per set) and partly synthetic; each results file says what its

@@ -26,6 +26,7 @@ const search = read("search_deepseek-flash.json").summary.held_out;
 const files = read("files.json").scores["held out (blind)"];
 const bench = read("bench.json");
 const replan = read("replan.json");
+const costing = read("costing.json");
 
 const bySize = (jobs, method) => bench.main.filter((r) => r.jobs === jobs && r.method === method);
 const late = (jobs, method) => mean(bySize(jobs, method).map((r) => r.late_or_unscheduled));
@@ -38,6 +39,10 @@ const moved = (scenario, costs) =>
   mean(replan.rows.filter((r) => r.scenario === scenario && r.costs === costs).map((r) => r.jobs_moved));
 const movable = (scenario) => mean(replan.rows.filter((r) => r.scenario === scenario).map((r) => r.jobs_movable));
 const replanValid = replan.rows.filter((r) => r.valid).length;
+const flagCell = (bias, n) => costing.held_out.find((r) => r.bias === bias && r.jobs_per_type === n);
+const flagRate = (bias, n, field = "detected") => pct(flagCell(bias, n)[field] / flagCell(bias, n).runs);
+const sizes = [...new Set(costing.held_out.map((r) => r.jobs_per_type))].sort((a, b) => a - b);
+const biases = [...new Set(costing.held_out.map((r) => r.bias))].sort((a, b) => a - b);
 
 const results = `| Area | Measure (held-out set where there is one) | Result | Command |
 |---|---|---|---|
@@ -55,7 +60,18 @@ const results = `| Area | Measure (held-out set where there is one) | Result | C
 | Independent checker | Corrupted plans caught | ${frac(caught, applied)} (${mutations.length} kinds) | \`make bench\` |
 | Independent checker | Plans checked valid / disagreements with the scheduler | ${frac(bench.checker.plans_valid, bench.checker.plans_checked)} / ${bench.checker.metric_disagreements.length} | \`make bench\` |
 | Re-planning | Jobs moved after a breakdown: stability costs / none, same hint | ${one(moved("machine_down", "configured"))} / ${one(moved("machine_down", "none, approved hint"))} of ${one(movable("machine_down"))} | \`make replan-bench\` |
-| Re-planning | Re-plans that pass the independent checker | ${frac(replanValid, replan.rows.length)} | \`make replan-bench\` |`;
+| Re-planning | Re-plans that pass the independent checker | ${frac(replanValid, replan.rows.length)} | \`make replan-bench\` |
+| Quoted vs actual (code) | Under-quoted type flagged: true bias 1.40, ${sizes.at(-1)} jobs/type | ${flagRate(1.4, sizes.at(-1))} of ${flagCell(1.4, sizes.at(-1)).runs} runs | \`make eval\` |
+| Quoted vs actual (code) | Flagged at 1.10 (under the 15 % threshold), any sample size | ${sizes.reduce((sum, n) => sum + flagCell(1.1, n).detected, 0)} runs of ${sizes.reduce((sum, n) => sum + flagCell(1.1, n).runs, 0)} | \`make eval\` |
+| Quoted vs actual (code) | Control false alarms per run, all job types together, worst sample size | ${pct(Math.max(...sizes.map((n) => flagCell(1.0, n).false_alarm_runs / flagCell(1.0, n).runs)))} | \`make eval\` |`;
+
+const flagTable = `Runs that flag the under-quoted material (TPU-BLACK), ${flagCell(1.0, sizes[0]).runs} held-out synthetic histories per cell, ${costing.types} materials each (\`make eval\`, rule in \`config/costing.toml\`):
+
+| True bias | ${sizes.map((n) => `${n} jobs/type`).join(" | ")} |
+|---${"|---".repeat(sizes.length)}|
+${biases.map((b) => `| ${b.toFixed(2)}${b === 1 ? " (control)" : ""} | ${sizes.map((n) => flagRate(b, n)).join(" | ")} |`).join("\n")}
+
+Control false alarms per run, across all ${costing.types} materials together: ${sizes.map((n) => `${flagRate(1.0, n, "false_alarm_runs")} at ${n}`).join(", ")}. Seeded demo history: flags ${costing.seeded.biased.join(", ") || "nothing"}; the same history without the bias: flags ${costing.seeded.control.join(", ") || "nothing"}.`;
 
 const claims = `- Built an **independent plan checker** that shares no code with the scheduler and caught **${frac(caught, applied)}** deliberately corrupted plans across ${mutations.length} kinds of error (\`make bench\`).
 - Scheduled with **OR-Tools CP-SAT**: on 80-job instances, **${one(late(80, "cpsat-simple"))}** late or unscheduled jobs on average against **${one(late(80, "edd"))}** for earliest-due-date (\`make bench\`).
@@ -75,7 +91,7 @@ function fill(text, name, body) {
 }
 
 const current = readFileSync(README, "utf8");
-const next = fill(fill(current, "results", results), "claims", claims);
+const next = fill(fill(fill(current, "results", results), "claims", claims), "costing", flagTable);
 if (process.argv.includes("--check")) {
   if (next !== current) {
     console.error("✗ README.md does not match eval/results (run `make readme` and commit it)");

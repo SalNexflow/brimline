@@ -138,3 +138,9 @@ Acceptance: jobs are never started before their material arrives, checked by the
 Deliverables: recording of actual times and failures, reprint handling, a report of estimated versus actual cost and time, and a flag for systematically underquoted job types.
 
 Acceptance: a seeded scenario shows the report correctly identifying an underquoted job type.
+
+Added at approval (2026-10-30): a control scenario with no under-quoting flags nothing; an eval over true
+bias 1.0 / 1.10 / 1.20 / 1.40 and 5 / 10 / 20 / 40 jobs per type, 200 seeds each, with a detection-rate table
+generated into RESULTS.md and the README (1.10 must not be flagged); the control's false-alarm rate per run
+across all job types together (tune on dev seeds only if above 5 %); the report may suggest a price rule to
+review but never changes one; the demo's seeded history is labelled synthetic. No model calls.

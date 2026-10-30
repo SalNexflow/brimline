@@ -31,3 +31,7 @@ Bigger "nice to have" ideas, one-line pitch each. Not commitments.
 - **Saved searches:** name a filter and show its count on the home page ("overdue rush jobs: 2").
 - **Explain an unclear question with code:** list which words the reading could not place in any field, instead of one general message.
 - **A lint rule for accent links on grey backgrounds,** since the same contrast mistake happened twice (#55, #65).
+- **Reprint only the failed parts:** when 3 of 10 parts fail, plan a reprint job for 3, not the whole line.
+- **Correct a recorded time:** let a planner fix a Done pressed hours late, with the change audited, so actual times stay honest.
+- **Flag by material and post-processing, or by machine,** once the shop has enough jobs that the smaller groups still reach the minimum sample.
+- **Flag over-quoting too** (types that always finish well under their quote), where the shop may be losing work on price.

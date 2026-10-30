@@ -168,6 +168,32 @@ const MUTATIONS = [
     expect: "engine: tests",
   },
   {
+    // M10: a type exactly at the threshold would count as over.
+    name: "under-quote flag counts a job at the threshold as over",
+    file: "services/engine/src/brimline_engine/costing/report.py",
+    find: "return row.actual_cents * threshold.denominator > row.estimated_cents * threshold.numerator",
+    replace: "return row.actual_cents * threshold.denominator >= row.estimated_cents * threshold.numerator",
+    expect: "engine: tests",
+  },
+  {
+    // M10: a type could be flagged from too few jobs.
+    name: "under-quote flag ignores the minimum number of jobs",
+    file: "services/engine/src/brimline_engine/costing/report.py",
+    find: "flagged = n >= rule.min_jobs and p is not None",
+    replace: "flagged = n >= 0 and p is not None",
+    expect: "engine: tests",
+  },
+  {
+    // M10: reprints would look free, hiding what failures cost the shop.
+    name: "failed attempts left out of the actual cost",
+    file: "services/engine/src/brimline_engine/costing/outcome.py",
+    find: "    for a in attempts:
+        used =",
+    replace: "    for a in (x for x in attempts if not x.failed):
+        used =",
+    expect: "engine: tests",
+  },
+  {
     name: "a failed file check can be accepted like a warning",
     file: "services/engine/src/brimline_engine/files/service.py",
     find: '        if check.status != "warn":',
