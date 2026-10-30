@@ -9,6 +9,9 @@ Production planning for a **fictional** made-to-order 3D-print and CNC shop. One
 **AI reads language and explains; code decides prices, dates, permissions and plans.** Every AI step is
 evaluated blind, and every number below is written by a command, never by hand. All data is fake.
 
+**Live demo: https://brimline-alpha.vercel.app** (sign in as any demo person; no password). It runs on free
+hosting: after a quiet spell the first visit shows "The demo is waking up" for about a minute.
+
 ![The production board with an approved plan](docs/screenshots/board.png)
 
 ## The AI-versus-code boundary
@@ -18,7 +21,7 @@ evaluated blind, and every number below is written by a command, never by hand. 
 | Quote request | Reads the message into a draft (parts, quantities, material, the due-date wording) | Works out the date, lists what is missing, computes every price; a person approves |
 | Model file | Optional advice on a preview, labelled as advice (off by default) | Measures the file: closed surface, size and units, fit per printer, walls, overhangs, loose parts |
 | Planning | Nothing | CP-SAT plans; an independent checker that shares no code with the scheduler re-checks every plan |
-| Disruption | Reads "printer 3 jammed until 5pm" into typed events or "unclear", copying times as written | Resolves the times in shop time, re-plans with stability costs, shows the diff; a planner approves |
+| Disruption | Reads "Printer 1 jammed for 4 hours" into typed events or "unclear", copying times as written | Resolves the times in shop time, re-plans with stability costs, shows the diff; a planner approves |
 | Re-plan summary | Writes a summary from the diff only | Rejects any summary mentioning something the diff does not contain |
 | Search | Turns a question into a typed filter (never SQL) | Checks the filter, resolves dates, adds permissions, builds a parameterised query |
 
@@ -114,6 +117,7 @@ model evaluations replay saved replies, so they need no key either.
 | `gate-selftest` | Proves the gate fails: plants deliberate errors in a throwaway copy and checks each is caught at the right step |
 | `test` | Unit tests only (web and engine) |
 | `demo` / `demo-stop` | The whole app in Docker (db, engine, web) |
+| `demo-smoke` | The engine image in demo mode with a web key: sign in as every role, one write per row-capped table |
 | `eval` | Quote, disruption, file-checker and search evaluations into `eval/results/` |
 | `bench` | Scheduler benchmark against two baselines, every plan re-checked (slow; `--quick` for a smoke run) |
 | `replan-bench` | Re-planning scenarios: lateness versus jobs moved, every re-plan checked |
@@ -121,7 +125,8 @@ model evaluations replay saved replies, so they need no key either.
 | `screenshots` / `demo-video` | The README screenshots, and the captioned walkthrough video (`-- --record` records replies once) |
 | `db-reset` / `api-types` | Reset the dev database; regenerate the web's types from the engine's OpenAPI schema |
 
-The hosted demo (Vercel + Render + Neon, all free tiers) is described in `docs/DEPLOY.md`.
+The hosted demo at https://brimline-alpha.vercel.app (Vercel + Render + Neon, all free tiers) is described in
+`docs/DEPLOY.md`; `make demo-smoke` (also a CI job) checks the engine image the way it runs there.
 
 ## Known limits
 

@@ -150,13 +150,13 @@ test("the Brimline story, end to end", async ({ page }) => {
   // 4. Something breaks.
   await card(page, "4 · Disruption", ["The planner types what broke. AI reads it; code resolves the times."], 3);
   await page.goto("/board"); // the title card replaced the page
-  await page.getByLabel("What happened?").fill("printer 3 jammed until 5pm");
+  await page.getByLabel("What happened?").fill("Printer 1 jammed for 4 hours");
   await page.getByRole("button", { name: "Read message" }).click();
-  const review = page.getByRole("article").filter({ hasText: "printer 3 jammed until 5pm" });
+  const review = page.getByRole("article").filter({ hasText: "Printer 1 jammed for 4 hours" });
   await expect(review.getByRole("heading", { name: "Check how this was understood" })).toBeVisible();
   await review.scrollIntoViewIfNeeded();
   await shot(page, "disruption-review", "Check how this was understood");
-  await say(page, "Read as: FDM-3 down until 5 pm, with the time worked out by code. The planner checks it first.", 5);
+  await say(page, "Read as: FDM-1 down for 4 hours from when it was reported, with the time worked out by code. The planner checks it first.", 5);
   await review.getByRole("button", { name: "Confirm these events" }).click();
   await page.getByRole("button", { name: "Plan day" }).click();
   await expect(page.getByRole("heading", { name: "What changes against the approved plan" })).toBeVisible({ timeout: 180_000 });
