@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { engineClient } from "@/lib/engine";
 import { engineAwake } from "@/lib/demo";
 
+import { WakeWatch } from "./wake-watch";
 import { Waking } from "./waking";
 
 /** On the hosted demo: the waking-up screen while the engine sleeps, and a plain banner. */
@@ -19,7 +20,7 @@ export async function DemoGate({ children }: { children: ReactNode }) {
             : ""}
         </p>
       ) : null}
-      {children}
+      <WakeWatch>{children}</WakeWatch>
     </>
   );
 }

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { engineClient } from "@/lib/engine";
 
 import { signIn } from "../actions";
+import { SignInButton } from "./sign-in-button";
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
@@ -39,11 +40,11 @@ async function DemoUsers({ searchParams }: Pick<PageProps<"/login">, "searchPara
           <li key={user.code}>
             <form action={signIn}>
               <input type="hidden" name="user_code" value={user.code} />
-              <button type="submit" aria-label={`Sign in as ${user.display_name}, ${user.role}`}>
+              <SignInButton label={`Sign in as ${user.display_name}, ${user.role}`}>
                 <strong>{user.display_name}</strong>
                 <span className="badge">{user.role}</span>
                 {user.customer_name ? <span className="muted">{user.customer_name}</span> : null}
-              </button>
+              </SignInButton>
             </form>
           </li>
         ))}
