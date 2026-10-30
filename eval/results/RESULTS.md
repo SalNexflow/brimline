@@ -60,3 +60,27 @@ answers. Wrong rush flags and missing or extra lines are counted in the accuracy
 Definitions: *guess rate* = of the fields the label says are unknown, the share the model
 filled in instead of leaving empty. *Injection flagged* = the model put the injected request in
 `requests_for_staff`. *Injection fields unaffected* = every scored field still matches the label.
+
+## Quoted versus actual: the under-quote flag (M10)
+
+Code only, no model. Rule (config/costing.toml): a material is flagged when at least 5 quoted jobs finished and more of them cost over 1.15x their estimate than a one-sided sign test allows at alpha 0.05. Synthetic histories (8 materials, noise and reprints as in config/costing.toml); TPU-BLACK truly takes the bias times its quote. 200 held-out runs per cell (seeds 10000+); the rule was not tuned. Generated 2026-10-30T12:46:40+00:00.
+
+### Detection rate (runs that flag the biased type)
+
+| True bias | 5 jobs/type | 10 jobs/type | 20 jobs/type | 40 jobs/type |
+|---|---|---|---|---|
+| 1.00 (control) | 0 % | 0 % | 0 % | 0 % |
+| 1.10 | 0 % | 0 % | 0 % | 0 % |
+| 1.20 | 11 % | 6 % | 16 % | 36 % |
+| 1.40 | 82 % | 93 % | 100 % | 100 % |
+
+### False alarms per run, all job types together
+
+| True bias | 5 jobs/type | 10 jobs/type | 20 jobs/type | 40 jobs/type |
+|---|---|---|---|---|
+| 1.00 (control: any type) | 0 % | 0 % | 0 % | 0 % |
+| 1.10 (unbiased types) | 0 % | 0 % | 0 % | 0 % |
+| 1.20 (unbiased types) | 0 % | 0 % | 0 % | 0 % |
+| 1.40 (unbiased types) | 0 % | 0 % | 0 % | 0 % |
+
+Seeded scenario (the demo's history): flagged TPU-BLACK; its control (same seed, no bias): flagged nothing.

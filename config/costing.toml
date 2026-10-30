@@ -1,0 +1,34 @@
+# Quoted versus actual (M10): when a job type counts as systematically under-quoted (hard rule 8:
+# config, not memory). These are the shop's judgement, chosen for a small shop and stated plainly,
+# not industry figures. The report uses only recorded data and code; no model is called.
+
+checked = 2026-10-30
+# Why an attempt failed, as operators pick it. The engine, the form and the database check the same
+# list (tests/test_config_consistency.py); the database also allows two reasons set by code only,
+# "machine_down" (a print lost to a breakdown) and "order_cancelled".
+failure_reasons = ["warping", "bed_adhesion", "layer_shift", "clog", "spaghetti", "damaged_in_finishing", "other"]
+
+[flag]
+# A job type (a material, which also fixes the process) is flagged for review when MORE jobs ran
+# over the threshold than chance explains, if its typical overrun were the threshold or less:
+# a one-sided sign test of "median actual/estimated cost <= threshold".
+threshold_ratio = 1.15   # 15 % over the quoted cost
+min_jobs = 5             # fewer finished, quoted jobs than this: never flagged, "too few to tell"
+alpha = 0.05             # the sign test's chance of a false alarm for one type, at the threshold
+
+
+[scenario]
+# The synthetic history behind the eval and the demo seed (brimline_engine.costing.scenario).
+# Actual/quoted varies from job to job; these are the spreads of that noise (log-normal sigma).
+time_noise_sigma = 0.15
+grams_noise_sigma = 0.08
+# Chance that one attempt fails, and how much of the job a failed attempt had used by then.
+failure_chance = 0.06
+failed_share_min = 0.1
+failed_share_max = 0.9
+max_attempts = 3
+# The demo's history: this material really takes `demo_bias` times what it is quoted.
+demo_biased_material = "TPU-BLACK"
+demo_bias = 1.4
+demo_jobs_per_material = 8
+demo_seed = 7

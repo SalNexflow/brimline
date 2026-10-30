@@ -1,0 +1,143 @@
+{
+  "generated_at": "2026-10-30T12:46:40+00:00",
+  "rule": {
+    "threshold_ratio": 1.15,
+    "min_jobs": 5,
+    "alpha": 0.05
+  },
+  "scenario": {
+    "time_noise_sigma": 0.15,
+    "grams_noise_sigma": 0.08,
+    "failure_chance": 0.06,
+    "failed_share_min": 0.1,
+    "failed_share_max": 0.9,
+    "max_attempts": 3,
+    "demo_biased_material": "TPU-BLACK",
+    "demo_bias": 1.4,
+    "demo_jobs_per_material": 8,
+    "demo_seed": 7
+  },
+  "biased_type": "TPU-BLACK",
+  "types": 8,
+  "held_out": [
+    {
+      "bias": 1.0,
+      "jobs_per_type": 5,
+      "runs": 200,
+      "detected": 0,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.0,
+      "jobs_per_type": 10,
+      "runs": 200,
+      "detected": 0,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.0,
+      "jobs_per_type": 20,
+      "runs": 200,
+      "detected": 0,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.0,
+      "jobs_per_type": 40,
+      "runs": 200,
+      "detected": 0,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.1,
+      "jobs_per_type": 5,
+      "runs": 200,
+      "detected": 0,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.1,
+      "jobs_per_type": 10,
+      "runs": 200,
+      "detected": 0,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.1,
+      "jobs_per_type": 20,
+      "runs": 200,
+      "detected": 0,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.1,
+      "jobs_per_type": 40,
+      "runs": 200,
+      "detected": 0,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.2,
+      "jobs_per_type": 5,
+      "runs": 200,
+      "detected": 21,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.2,
+      "jobs_per_type": 10,
+      "runs": 200,
+      "detected": 11,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.2,
+      "jobs_per_type": 20,
+      "runs": 200,
+      "detected": 31,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.2,
+      "jobs_per_type": 40,
+      "runs": 200,
+      "detected": 71,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.4,
+      "jobs_per_type": 5,
+      "runs": 200,
+      "detected": 163,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.4,
+      "jobs_per_type": 10,
+      "runs": 200,
+      "detected": 185,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.4,
+      "jobs_per_type": 20,
+      "runs": 200,
+      "detected": 200,
+      "false_alarm_runs": 0
+    },
+    {
+      "bias": 1.4,
+      "jobs_per_type": 40,
+      "runs": 200,
+      "detected": 200,
+      "false_alarm_runs": 0
+    }
+  ],
+  "seeded": {
+    "biased": [
+      "TPU-BLACK"
+    ],
+    "control": []
+  },
+  "tuned": false
+}

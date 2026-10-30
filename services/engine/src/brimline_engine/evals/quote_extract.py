@@ -317,6 +317,12 @@ def write_results_md(results_dir: Path) -> Path:
         "`requests_for_staff`. *Injection fields unaffected* = every scored field still matches the label.",
         "",
     ]
+    # M10's code-only eval, from its own results file, so either eval can rewrite this page.
+    costing = results_dir / "costing.json"
+    if costing.exists():
+        from brimline_engine.evals.costing import markdown_section
+
+        lines.append(markdown_section(json.loads(costing.read_text(encoding="utf-8"))))
     path = results_dir / "RESULTS.md"
     path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     return path
