@@ -572,6 +572,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reports/quoted-vs-actual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Quoted Vs Actual
+         * @description Estimated against actual cost and time per finished job, and which job types look
+         *     systematically under-quoted. It suggests a price rule to review; it never changes one.
+         */
+        get: operations["quoted_vs_actual_reports_quoted_vs_actual_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/schedules/{schedule_id}": {
         parameters: {
             query?: never;
@@ -669,7 +690,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Act On Task */
+        /**
+         * Act On Task
+         * @description Start, finish or fail a task. Failing needs a reason; a print or machining task may record
+         *     the grams it used (M10).
+         */
         post: operations["act_on_task_tasks__task_id___action__post"];
         delete?: never;
         options?: never;
@@ -839,6 +864,25 @@ export interface components {
             op: "in" | "is" | "eq" | "lt" | "lte" | "gt" | "gte" | "contains" | "on" | "before" | "after" | "on_or_before" | "on_or_after" | "between";
             /** Value */
             value: boolean | number | string | string[];
+        };
+        /** CostReport */
+        CostReport: {
+            /** Alpha */
+            alpha: number;
+            /** Currency */
+            currency: string;
+            /** Jobs */
+            jobs: components["schemas"]["JobLine"][];
+            /** Min Jobs */
+            min_jobs: number;
+            /** Not Quoted Jobs */
+            not_quoted_jobs: number;
+            /** Synthetic Jobs */
+            synthetic_jobs: number;
+            /** Threshold Ratio */
+            threshold_ratio: number;
+            /** Types */
+            types: components["schemas"]["TypeSummary"][];
         };
         /** CustomerOut */
         CustomerOut: {
@@ -1071,6 +1115,36 @@ export interface components {
             } | null;
             /** Idempotency Key */
             idempotency_key: string | null;
+        };
+        /** JobLine */
+        JobLine: {
+            /** Actual Cents */
+            actual_cents: number | null;
+            /** Actual Minutes */
+            actual_minutes: number;
+            /** Attempts */
+            attempts: number;
+            /** Cost Ratio */
+            cost_ratio: number | null;
+            /** Estimated Cents */
+            estimated_cents: number | null;
+            /** Estimated Minutes */
+            estimated_minutes: number;
+            /** Failure Reasons */
+            failure_reasons: string[];
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /** Grams Assumed */
+            grams_assumed: number;
+            /** Label */
+            label: string;
+            /** Material Code */
+            material_code: string;
+            /** Synthetic */
+            synthetic: boolean;
         };
         /**
          * LineFile
@@ -1443,6 +1517,8 @@ export interface components {
             actual_end: string | null;
             /** Actual Start */
             actual_start: string | null;
+            /** Attempt */
+            attempt: number;
             /** Can Start */
             can_start: boolean;
             /** Id */
@@ -1796,6 +1872,19 @@ export interface components {
             /** Total */
             total: number;
         };
+        /**
+         * TaskMark
+         * @description What the operator records with Done or Failed (M10). A failure needs its reason; grams are
+         *     for print and machining tasks only and may be left out (the report then assumes the quote's).
+         */
+        TaskMark: {
+            /** Failure Note */
+            failure_note?: string | null;
+            /** Failure Reason */
+            failure_reason?: ("warping" | "bed_adhesion" | "layer_shift" | "clog" | "spaghetti" | "damaged_in_finishing" | "other") | null;
+            /** Material Used G */
+            material_used_g?: number | null;
+        };
         /** TimeWindow */
         TimeWindow: {
             /**
@@ -1808,6 +1897,35 @@ export interface components {
              * Format: date-time
              */
             start: string;
+        };
+        /** TypeSummary */
+        TypeSummary: {
+            /** Attempts */
+            attempts: number;
+            /** Failed Attempts */
+            failed_attempts: number;
+            /** Flagged */
+            flagged: boolean;
+            /** Jobs */
+            jobs: number;
+            /** Material Code */
+            material_code: string;
+            /** Median Cost Ratio */
+            median_cost_ratio: number | null;
+            /** Median Time Ratio */
+            median_time_ratio: number | null;
+            /** Over Threshold */
+            over_threshold: number;
+            /** P Value */
+            p_value: number | null;
+            /** Process */
+            process: string;
+            /** Quoted Jobs */
+            quoted_jobs: number;
+            /** Reason */
+            reason: string;
+            /** Suggestion */
+            suggestion: string | null;
         };
         /** Unplannable */
         Unplannable: {
@@ -3012,6 +3130,37 @@ export interface operations {
             };
         };
     };
+    quoted_vs_actual_reports_quoted_vs_actual_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CostReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_schedule_schedules__schedule_id__get: {
         parameters: {
             query?: never;
@@ -3208,7 +3357,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TaskMark"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -3228,14 +3381,12 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Validation Error */
+            /** @description the recorded reason or grams do not fit the action or the task */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
+                content?: never;
             };
         };
     };

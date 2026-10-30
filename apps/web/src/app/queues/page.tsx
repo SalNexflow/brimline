@@ -21,6 +21,7 @@ function TaskRow({ t, timeZone, canUpdate }: { t: QueueTask; timeZone: string; c
       <td data-label="Job">
         {t.order_number} {t.part_name}, {t.quantity} × {t.material_code}
         {t.rush ? <span className="badge badge-rush">rush</span> : null}
+        {t.attempt > 1 ? <span className="badge badge-rush">reprint, attempt {t.attempt}</span> : null}
       </td>
       <td data-label="Task">{kindLabel(t.kind)}</td>
       <td data-label="Status">
@@ -34,6 +35,7 @@ function TaskRow({ t, timeZone, canUpdate }: { t: QueueTask; timeZone: string; c
         {canUpdate && actions.length > 0 ? (
           <TaskActions
             taskId={t.id}
+            kind={t.kind}
             label={describe(t)}
             actions={[...actions]}
             keys={{ start: crypto.randomUUID(), done: crypto.randomUUID(), fail: crypto.randomUUID() }}

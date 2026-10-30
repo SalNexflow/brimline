@@ -30,6 +30,7 @@ export type DisruptionEvent = components["schemas"]["Event"];
 export type DisruptionCatalog = components["schemas"]["CatalogOut"];
 export type DemoStatus = components["schemas"]["DemoStatus"];
 export type FileReport = components["schemas"]["FileOut"];
+export type CostReport = components["schemas"]["CostReport"];
 
 function baseUrl(): string {
   const url = process.env.ENGINE_URL;
