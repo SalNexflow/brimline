@@ -18,6 +18,7 @@
     "replan-bench": "node scripts/tasks.mjs replan-bench",
     "gate-selftest": "node scripts/tasks.mjs gate-selftest",
     "demo": "node scripts/tasks.mjs demo",
+    "demo-smoke": "node scripts/tasks.mjs demo-smoke",
     "demo-stop": "node scripts/tasks.mjs demo-stop",
     "screenshots": "node scripts/tasks.mjs screenshots",
     "demo-video": "node scripts/tasks.mjs demo-video",

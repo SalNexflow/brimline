@@ -234,6 +234,18 @@ const TASKS = {
     if (code === 0) console.log("\nOpen http://localhost:3000 and sign in as any demo user. Stop with: make demo-stop");
     return code;
   },
+  // The engine image as the hosted demo runs it (demo mode, a web key), checked over HTTP: sign in as
+  // every role and one write per row-capped table (scripts/demo_smoke.mjs). Also a CI job.
+  "demo-smoke": () => {
+    const compose = "docker compose -f docker-compose.yml -f docker-compose.smoke.yml --profile app";
+    const env = { ...ENV, SMOKE_ENGINE_KEY: randomBytes(24).toString("hex") };
+    const run = (cmd) => spawnSync(cmd, { cwd: ROOT, env, shell: true, stdio: "inherit" }).status ?? 1;
+    let code = run(`${compose} up --build -d --wait engine`);
+    if (code === 0) code = run(`node "${join(ROOT, "scripts", "demo_smoke.mjs")}"`);
+    if (code !== 0) run(`${compose} logs --tail 60 engine`);
+    run(`${compose} stop engine`);
+    return code;
+  },
   "demo-stop": () => runSteps("demo-stop", [step("stop the app containers", ROOT, "docker compose --profile app stop engine web")]),
   screenshots: () => spawnSync(`node "${join(ROOT, "scripts", "showcase.mjs")}" screenshots`, { cwd: ROOT, env: ENV, shell: true, stdio: "inherit" }).status ?? 1,
   // Extra arguments pass through: node scripts/tasks.mjs demo-video --record

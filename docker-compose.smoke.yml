@@ -1,0 +1,8 @@
+# `make demo-smoke`: the engine image as the hosted demo runs it (demo mode, a web key), on top of
+# docker-compose.yml. Its model is the offline stand-in, so no key or money is needed.
+services:
+  engine:
+    environment:
+      DEMO_MODE: "true"
+      AI_MODE: fake
+      ENGINE_WEB_KEY: ${SMOKE_ENGINE_KEY:?set by scripts/tasks.mjs demo-smoke}

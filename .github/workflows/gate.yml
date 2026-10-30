@@ -48,3 +48,21 @@ jobs:
           name: playwright-report
           path: apps/web/playwright-report/
           retention-days: 7
+
+  # The engine's Docker image as the hosted demo runs it (demo mode, a web key, real Postgres with
+  # the non-superuser roles): sign in as every role, one write per row-capped table. Catches
+  # hosted-only bugs like DEFECT_LOG #81 before Render deploys them.
+  demo-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Demo smoke test
+        run: |
+          export SESSION_SECRET="$(openssl rand -hex 32)"
+          node scripts/tasks.mjs demo-smoke
