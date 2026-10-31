@@ -40,18 +40,17 @@ function baseUrl(): string {
 
 /** A typed client for the engine, optionally signed in with a session token. */
 export function engineClient(token?: string) {
-  const client = createClient<paths>({
+  return createClient<paths>({
     baseUrl: baseUrl(),
     headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  // Hosted demo only: the web key and the visitor's hashed id (nothing is added locally).
-  client.use({
-    async onRequest({ request }) {
+    // Hosted demo only: the web key and the visitor's hashed id (nothing is added locally). Added
+    // in fetch, not as openapi-fetch middleware: middleware gives each request a Math.random() id,
+    // which Next.js refuses while prerendering (it logged a warning on every page).
+    async fetch(request: Request) {
       for (const [name, value] of Object.entries(await engineHeaders())) request.headers.set(name, value);
-      return request;
+      return globalThis.fetch(request);
     },
   });
-  return client;
 }
 
 /** The engine client for the signed-in user. Sends people without a session to the login page. */
