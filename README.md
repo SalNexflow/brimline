@@ -99,6 +99,7 @@ Control false alarms per run, across all 8 materials together: 0 % at 5, 0 % at 
 - Made re-planning stable: after a machine breakdown the re-plan moves **3.7** of 32.7 jobs instead of **14.3** without stability costs, with all **60/60** re-plans checker-valid (`make replan-bench`).
 - Kept the LLM out of decisions: natural-language search turns a question into a typed filter (never SQL) with **18/20** exactly right on a blind held-out set and **2/2** access-widening attacks blocked (`make eval`).
 - Evaluated every AI step blind, with dev and held-out sets written by a fresh agent: the disruption reader is exactly right on **92 %** of held-out messages with **0** unsafe cancellations (`make eval`).
+- Closed the quote-versus-actual loop with a code-only under-quote flag (a sign test against a 15 % threshold): on held-out synthetic histories it flags a material quoted 40 % low in **93 %** of runs at 10 jobs per material and **100 %** at 40, flags a 10 % under-quote in **0** of 800 runs and raises **0 %** false alarms per run; its weak spot is a 20 % under-quote, caught in only **36 %** of runs even at 40 jobs (`make eval`).
 <!-- generated:claims:end -->
 
 ## Screenshots
