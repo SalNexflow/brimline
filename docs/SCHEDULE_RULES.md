@@ -33,6 +33,24 @@ Job fields that are easy to misread: `arrival` is the **order** in which jobs ca
 sorts by it), not a minute, so no rule compares it with a time. `release` is the minute the
 material is on hand. `due` is the minute by which the job should be packed.
 
+## Material stock (optional, M9)
+
+An instance may state how much of each material there is and when more arrives. Without a
+`stock` section there is no stock rule (older documents and the benchmark instances).
+
+- `stock`: grams of each material available to the work in this plan at `plan_start`, a map
+  from material code to a whole number `>= 0`. A material that is not listed has 0 grams.
+  Prints already running or done (fixed machine tasks) took their material before this number
+  was stated, so they use nothing here.
+- `deliveries`: a list of `{material, at, grams}`: `grams` (`>= 1`) of `material` arrive at
+  minute `at`. A delivery at minute `t` can be used by a machine task starting at `t`.
+- `grams_per_part` on each job (`>= 1`): a job uses `quantity * grams_per_part` grams of its
+  material, all of it at the **start of its machine task**.
+
+The **level** of a material at minute `t` is its `stock`, plus the grams of its deliveries with
+`at <= t`, minus the grams used by every planned job that has no fixed task and whose machine
+task starts at or before `t`. Unscheduled jobs use nothing.
+
 ## Rules
 
 Each rule has a code the checker reports.
@@ -57,9 +75,10 @@ Each rule has a code the checker reports.
 | R16 `past_horizon` | Every task ends at or before the horizon, except a fixed machine task (it is a fact). |
 | R18 `before_plan_start` | No task starts before `plan_start`, the moment of planning (0 when the document does not say), except a fixed machine task. You cannot plan work into the past. |
 | R19 `machine_down` | No task runs on a machine during one of its downtimes (`[start, end)`; touching is fine). A downtime needs no changeover before or after it. A fixed task inside a downtime is an impossible instance (R17): a print lost to a breakdown must not be fixed. |
-| R17 `bad_instance` | The instance itself is impossible or does not match the config: a fixed task for an unknown job or machine, two fixed tasks overlapping on a machine, a job with quantity or minutes_per_part below 1, a negative post time, a part side below 1 mm, two jobs or machines with the same id, a horizon below 1, a fixed task whose end is not after its start, a downtime on an unknown machine or ending before it starts, a fixed task inside a downtime, or shifts or staff in the document that differ from `config/scheduler.toml`. The plan is not judged further. |
+| R20 `material_short` | When the instance has `stock`: the level of every material is `>= 0` at every minute. Each planned job without a fixed task whose machine task starts at a minute when its material's level is below 0 is reported: it would start before the material it needs is there. (The level only falls when a machine task starts, so these are the only minutes to check.) |
+| R17 `bad_instance` | The instance itself is impossible or does not match the config: a fixed task for an unknown job or machine, two fixed tasks overlapping on a machine, a job with quantity or minutes_per_part below 1, a negative post time, a part side below 1 mm, two jobs or machines with the same id, a horizon below 1, a fixed task whose end is not after its start, a downtime on an unknown machine or ending before it starts, a fixed task inside a downtime, shifts or staff in the document that differ from `config/scheduler.toml`, a negative `stock`, `deliveries` without `stock`, a delivery of fewer than 1 gram, a `grams_per_part` below 1, or (when there is `stock`) a job without a fixed task that has no `grams_per_part`. The plan is not judged further. |
 
-Fixed machine tasks are facts: R08, R09, R10, R16 and R18 do not apply to them. A job with a fixed
+Fixed machine tasks are facts: R08, R09, R10, R16, R18 and R20 do not apply to them. A job with a fixed
 task may still be listed as unscheduled (when its later tasks cannot fit); its fixed task then
 keeps blocking the machine (R13), the job counts in "late or unscheduled", and the checker
 warns if it looks like it could have fitted (below).
@@ -78,6 +97,8 @@ witness exists that it might have fitted:
 
 - its material is on hand before the horizon (`release` < horizon), and
 - some eligible machine has a free stretch, starting at or after the release and inside a shift,
+  and (when there is `stock`) at or after the first minute from which the material's level,
+  with the plan's own use, never falls below the job's grams again,
   long enough for the machine task, keeping `changeover_minutes` from any task of a different
   material on that machine (planned or fixed), ending by the horizon, and
 - its post-processing and finishing then fit in shifts before the horizon.
