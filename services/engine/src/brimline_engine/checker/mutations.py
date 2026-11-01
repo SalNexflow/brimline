@@ -385,6 +385,70 @@ def shrink_horizon(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
     return out
 
 
+def _stock_uses(doc: Doc) -> list[tuple[int, str, int]]:
+    """(machine start, material, grams) of planned jobs that take from stock (rule R20)."""
+    fixed = _fixed_ids(doc)
+    out = []
+    for pj in _jobs(doc):
+        t = _task(pj, "machine")
+        if pj["job_id"] in fixed or t is None:
+            continue
+        j = _instance_job(doc, pj["job_id"])
+        out.append((t["start"], j["material"], j["quantity"] * j["grams_per_part"]))
+    return out
+
+
+def _stock_level(doc: Doc, material: str, t: int) -> int:
+    inst = doc["instance"]
+    arrived: int = sum(
+        d["grams"] for d in inst["deliveries"] if d["material"] == material and d["at"] <= t
+    )
+    used = sum(g for s, m, g in _stock_uses(doc) if m == material and s <= t)
+    on_hand: int = inst["stock"].get(material, 0)
+    return on_hand + arrived - used
+
+
+def stock_reduced(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
+    """Lower one material's stock until the level is 1 g short at one of its jobs' starts."""
+    if "stock" not in doc["instance"] or not (uses := _stock_uses(doc)):
+        return None
+    out = copy.deepcopy(doc)
+    material = rng.choice(sorted({m for _, m, _ in uses}))
+    lowest = min(_stock_level(out, material, s) for s, m, _ in uses if m == material)
+    out["instance"]["stock"][material] = out["instance"]["stock"].get(material, 0) - lowest - 1
+    if out["instance"]["stock"][material] < 0:
+        return None  # it would be an impossible instance (R17), not a short plan
+    return out
+
+
+def _needed_deliveries(doc: Doc) -> list[tuple[int, int]]:
+    """(delivery index, minute of a use) pairs where moving the delivery to one minute after
+    that use leaves the material short at it."""
+    pairs = []
+    for i, d in enumerate(doc["instance"]["deliveries"]):
+        for s, m, _ in _stock_uses(doc):
+            if m == d["material"] and s >= d["at"] and _stock_level(doc, m, s) - d["grams"] < 0:
+                pairs.append((i, s))
+    return pairs
+
+
+def delivery_removed(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
+    if "stock" not in doc["instance"] or not (pairs := _needed_deliveries(doc)):
+        return None
+    out = copy.deepcopy(doc)
+    del out["instance"]["deliveries"][rng.choice(pairs)[0]]
+    return out
+
+
+def delivery_one_minute_late(doc: Doc, rng: random.Random, r: Rules) -> Doc | None:
+    if "stock" not in doc["instance"] or not (pairs := _needed_deliveries(doc)):
+        return None
+    out = copy.deepcopy(doc)
+    i, s = rng.choice(pairs)
+    out["instance"]["deliveries"][i]["at"] = s + 1
+    return out
+
+
 OPERATORS: dict[str, tuple[str, Operator]] = {
     "shorten_machine": ("wrong_duration", shorten_machine),
     "lengthen_manual": ("wrong_duration", lengthen_manual),
@@ -412,6 +476,9 @@ OPERATORS: dict[str, tuple[str, Operator]] = {
     "into_downtime": ("machine_down", into_downtime),
     "move_fixed": ("fixed_moved", move_fixed),
     "shrink_horizon": ("past_horizon", shrink_horizon),
+    "stock_reduced": ("material_short", stock_reduced),
+    "delivery_removed": ("material_short", delivery_removed),
+    "delivery_one_minute_late": ("material_short", delivery_one_minute_late),
 }
 
 

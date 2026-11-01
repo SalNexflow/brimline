@@ -7,7 +7,7 @@
 The bench runs the same mutation test on every benchmark plan (eval/results/BENCH.md).
 """
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from functools import cache
 
 import pytest
@@ -19,7 +19,7 @@ from brimline_engine.scheduling.baselines import edd, fcfs
 from brimline_engine.scheduling.config import SchedulerConfig, load_scheduler_config
 from brimline_engine.scheduling.cpsat import solve
 from brimline_engine.scheduling.export import document
-from brimline_engine.scheduling.generator import generate
+from brimline_engine.scheduling.generator import generate, with_stock
 from brimline_engine.scheduling.metrics import evaluate
 from brimline_engine.scheduling.model import Fixed, Instance, Schedule
 from brimline_engine.shop_config import load_shop_config
@@ -37,15 +37,7 @@ def with_fixed(inst: Instance) -> Instance:
         slot = p.slot("machine")
         assert slot is not None
         fixed.append(Fixed(p.job_id, p.machine, slot.start))
-    return Instance(
-        inst.name + "-fixed",
-        inst.horizon,
-        inst.machines,
-        inst.jobs,
-        inst.shifts,
-        inst.staff,
-        tuple(fixed),
-    )
+    return replace(inst, name=inst.name + "-fixed", fixed=tuple(fixed))
 
 
 @cache
@@ -54,7 +46,7 @@ def corpus() -> list[tuple[Instance, Schedule]]:
     out = []
     for seed in (1, 2):
         base = generate(seed, 20, shop, CFG)
-        for inst in (base, with_fixed(base)):
+        for inst in (base, with_fixed(base), with_stock(with_fixed(base), seed)):
             hint = edd(inst, CFG.durations)
             out += [
                 (inst, fcfs(inst, CFG.durations)),

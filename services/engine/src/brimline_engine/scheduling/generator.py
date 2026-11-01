@@ -6,12 +6,14 @@ dates; ~10 % large parts that only the large printer takes; ~30 % with post-proc
 waiting for a material delivery during the first week; due dates two to nine working days out.
 """
 
+import math
 import random
+from dataclasses import replace
 
 from brimline_engine.scheduling.calendar import horizon_minutes, shift_windows
 from brimline_engine.scheduling.config import SchedulerConfig
 from brimline_engine.scheduling.durations import eligible_machines
-from brimline_engine.scheduling.model import Instance, Job, Machine, Process
+from brimline_engine.scheduling.model import Delivery, Instance, Job, Machine, Process
 from brimline_engine.shop_config import ShopConfig
 
 _MINUTES_PER_PART: dict[str, tuple[int, int]] = {
@@ -82,4 +84,43 @@ def generate(seed: int, n_jobs: int, shop: ShopConfig, cfg: SchedulerConfig) -> 
         jobs=tuple(jobs),
         shifts=windows,
         staff=cfg.staff.people_per_shift,
+    )
+
+
+# Grams per part by process (invented): small prints, resin parts, aluminium blanks.
+_GRAMS_PER_PART: dict[str, tuple[int, int]] = {
+    "fdm": (10, 120),
+    "resin": (10, 80),
+    "cnc": (50, 400),
+}
+PACK_GRAMS = 1000  # deliveries come in whole 1 kg packs
+
+
+def with_stock(inst: Instance, seed: int, cover: float = 0.6, slip: int = 0) -> Instance:
+    """The same instance with material limits (M9): each job gets grams per part; each material
+    has `cover` of its jobs' grams on hand and one delivery with the rest (whole packs), arriving
+    on a working day 1-4 (+ `slip` minutes). Its own random stream: the jobs stay the same."""
+    rng = random.Random(seed * 7919 + 1)
+    windows = inst.shifts
+    fixed = {f.job_id for f in inst.fixed}
+    jobs = tuple(
+        replace(j, grams_per_part=rng.randint(*_GRAMS_PER_PART[j.process])) for j in inst.jobs
+    )
+    stock: list[tuple[str, int]] = []
+    deliveries: list[Delivery] = []
+    for material in sorted({j.material for j in jobs}):
+        need = sum(j.grams for j in jobs if j.material == material and j.id not in fixed)
+        on_hand = math.floor(cover * need)
+        stock.append((material, on_hand))
+        rest = need - on_hand
+        at = windows[rng.randint(1, 4)][0] + rng.randint(0, 240)
+        if rest > 0:
+            packs = math.ceil(rest / PACK_GRAMS)
+            deliveries.append(Delivery(material, at + slip, packs * PACK_GRAMS))
+    return replace(
+        inst,
+        name=f"{inst.name}-stock{round(cover * 100)}" + (f"-slip{slip}" if slip else ""),
+        jobs=jobs,
+        stock=tuple(stock),
+        deliveries=tuple(deliveries),
     )
