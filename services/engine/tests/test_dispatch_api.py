@@ -149,7 +149,9 @@ def test_calls_nobody_approved_are_refused_and_logged(
     assert task_row(owner_url, r["task_id"])[0] == "planned"
     with psycopg.connect(owner_url) as conn:
         assert conn.execute("SELECT count(*) FROM dispatch_calls").fetchone() == (4,)
-        assert conn.execute("SELECT DISTINCT made_by FROM dispatch_calls").fetchall() == [("scripted",)]
+        assert conn.execute("SELECT DISTINCT made_by FROM dispatch_calls").fetchall() == [
+            ("scripted",)
+        ]
 
 
 def test_a_stale_plan_stops_the_approved_start(client: TestClient, floor: Floor) -> None:
