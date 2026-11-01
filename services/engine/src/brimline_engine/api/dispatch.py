@@ -180,34 +180,35 @@ def ask_dispatcher(
     tz: Tz,
 ) -> dict[str, Any]:
     """Ask the dispatcher for proposals. Nothing reaches a machine until a person presses Proceed."""
+    if not can(user.actor, "dispatch.ask"):
+        raise HTTPException(403, "not allowed")
     floor = _floor(request)
     endpoint = "POST /dispatch/runs"
-    stored = idempotency.claim(conn, user_id=user.actor.user_id, endpoint=endpoint, key=key,
-                               req_hash="ask")  # fmt: skip
-    if stored is not None:
-        return stored.body
     try:
-        run_id = service.propose(
-            conn,
-            user.actor,
-            floor.shop,
-            sources(),
-            now,
-            tz,
-            client_for(settings.ai_mode, models_config().task("dispatch_propose").model),
-            settings.ai_mode,
-            budget_reason(conn, settings),
-        )
+        # One transaction: a refused request leaves no claimed key behind.
+        with conn.transaction():
+            stored = idempotency.claim(
+                conn, user_id=user.actor.user_id, endpoint=endpoint, key=key, req_hash="ask"
+            )
+            if stored is not None:
+                return stored.body
+            run_id = service.propose(
+                conn,
+                user.actor,
+                floor.shop,
+                sources(),
+                now,
+                tz,
+                client_for(settings.ai_mode, models_config().task("dispatch_propose").model),
+                settings.ai_mode,
+                budget_reason(conn, settings),
+            )
+            response = idempotency.StoredResponse(201, {"run_id": run_id})
+            idempotency.store(
+                conn, user_id=user.actor.user_id, endpoint=endpoint, key=key, response=response
+            )
     except tuple(ERRORS) as exc:
-        conn.execute(
-            "DELETE FROM idempotency_keys WHERE user_id = %s AND endpoint = %s AND key = %s",
-            (user.actor.user_id, endpoint, key),
-        )
         raise _error(exc) from None
-    response = idempotency.StoredResponse(201, {"run_id": run_id})
-    idempotency.store(
-        conn, user_id=user.actor.user_id, endpoint=endpoint, key=key, response=response
-    )
     return response.body
 
 

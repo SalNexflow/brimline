@@ -42,10 +42,14 @@ def sources(cfg: MachinesConfig | None = None) -> dict[str, str]:
 
 
 def open_floor(
-    pool: ConnectionPool | None, *, free_ports: bool = False, watch: bool = True
+    pool: ConnectionPool | None,
+    *,
+    free_ports: bool = False,
+    watch: bool = True,
+    timeout: float | None = None,
 ) -> Floor:
     cfg = machines_config()
-    fleet = start_fleet(cfg, free_ports=free_ports)
+    fleet = start_fleet(cfg, free_ports=free_ports, timeout=timeout)
     shop = shop_for(fleet)
     stop = threading.Event()
     watcher = None

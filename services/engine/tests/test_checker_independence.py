@@ -76,6 +76,8 @@ def test_checker_source_imports_only_stdlib_and_itself(path: Path) -> None:
     [
         "from brimline_engine.scheduling.durations import task_durations",
         "import brimline_engine.scheduling",
+        "from brimline_engine.dispatch.guard import check",  # M12: nor the dispatch agent's code
+        "import brimline_engine.machines.fleet",
         "from brimline_engine import shop_config",
         "from ..scheduling import model",
         "import pydantic",

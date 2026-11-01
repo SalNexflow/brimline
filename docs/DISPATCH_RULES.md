@@ -34,7 +34,7 @@ adapter itself; it never uses what the model says a status is.
 | G02 `already_executed` | That approved action has not been executed before (a second Proceed, a repeated call or a retry starts nothing twice). |
 | G03 `stale_plan` | The task belongs to the approved plan, and that plan is the one the proposal was made against (not superseded since). |
 | G04 `task_state` | `start_task`: the task is a machine task, `planned`, its job's earlier tasks are done, and the call's machine is the task's planned machine. `stop_task`: the task is `running` on that machine. |
-| G05 `machine_state` | `start_task`: the adapter reports the machine `idle`. `stop_task`: it reports `running`. An adapter that does not answer within its timeout fails this rule. |
+| G05 `machine_state` | `start_task`: the adapter reports the machine `idle` (or `done`: finished its last job and ready). `stop_task`: it reports `running`. An adapter that does not answer within its timeout fails this rule. |
 | G06 `plan_check` | `start_task`: the approved plan document with this task's machine task moved to now (its prep placed just before it, as done) is given to the independent checker through its JSON format. The call is refused if that adds any violation of `not_eligible`, `before_release`, `machine_off_shift`, `machine_overlap`, `changeover`, `machine_down`, `material_short` or `past_horizon`, on any job, that the approved plan did not have. |
 | G07 `material_now` | `start_task`: the material's stock now (on hand, less what running prints use) covers the job's grams (R20 at this moment). |
 | G08 `not_allowed` | The Proceed was given by a planner or an operator; the dispatch was asked for by a planner. |

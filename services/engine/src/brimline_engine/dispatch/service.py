@@ -427,8 +427,7 @@ def _run_call(
     with conn.transaction():
         prop = conn.execute(
             "SELECT p.id FROM dispatch_proposals p JOIN dispatch_approvals a ON a.proposal_id = p.id"
-            " WHERE p.run_id = %s AND p.action = %s AND p.task_id = %s AND p.machine_code = %s"
-            " FOR UPDATE OF p",  # a second Proceed or retry waits here, then sees it executed (G02)
+            " WHERE p.run_id = %s AND p.action = %s AND p.task_id = %s AND p.machine_code = %s",
             (run_id, c.tool, c.task_id, c.machine),
         ).fetchone()
         proposal_id = None if prop is None else int(prop[0])
@@ -442,9 +441,9 @@ def _run_call(
     # not answer undoes the task change and the refusal is logged instead.
     try:
         with conn.transaction():
-            conn.execute(
-                "SELECT 1 FROM dispatch_proposals WHERE id = %s FOR UPDATE", (proposal_id,)
-            )
+            # The task's row is the lock: a second Proceed or a retry of the same action waits here,
+            # then finds it executed (G02); the app role may not lock append-only rows.
+            conn.execute("SELECT 1 FROM tasks WHERE id = %s FOR UPDATE", (c.task_id,))
             again = check(call, gather(conn, run_id, call, shop.adapters, now, tz))
             if not again.allowed:  # someone else carried it out a moment ago
                 _log(
