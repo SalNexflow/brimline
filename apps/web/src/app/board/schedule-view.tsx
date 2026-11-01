@@ -218,6 +218,11 @@ export function PlanTable({ schedule, timeZone }: Omit<Props, "now">) {
                   <>
                     {job.order_number} {job.part_name}, {job.quantity} × {job.material_code}
                     {job.rush ? <span className="badge badge-rush">rush</span> : null}
+                    {job.material_short && t.kind === "machine" ? (
+                      <Link href="/materials" className="badge badge-rush" data-testid={`waits-${job.key}`}>
+                        waits for {job.material_code}
+                      </Link>
+                    ) : null}
                   </>
                 ) : (
                   t.job
@@ -267,6 +272,12 @@ export function NotPlanned({ schedule, canAttach = false }: { schedule: Schedule
             {unscheduled.map((j) => (
               <li key={j.key}>
                 {j.order_number} {j.part_name}
+                {j.material_short ? (
+                  <>
+                    {" "}
+                    (not enough {j.material_code}: <Link href="/materials">see Materials</Link>)
+                  </>
+                ) : null}
               </li>
             ))}
           </ul>

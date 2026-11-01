@@ -483,6 +483,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/purchase-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Purchase Order
+         * @description Record an order a person has already placed with a supplier (Brimline never orders).
+         */
+        post: operations["record_purchase_order_purchase_orders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/purchase-orders/{number}/receive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive Purchase Order
+         * @description The delivery arrived: its grams go into stock.
+         */
+        post: operations["receive_purchase_order_purchase_orders__number__receive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/queues": {
         parameters: {
             query?: never;
@@ -681,6 +721,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Stock
+         * @description Stock, purchase orders, and for the approved plan and the newest draft: each material
+         *     that runs short, when, the jobs affected, and what to order by when. Suggestions only.
+         */
+        get: operations["get_stock_stock_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tasks/{task_id}/{action}": {
         parameters: {
             query?: never;
@@ -718,6 +779,24 @@ export interface components {
             /** Model */
             model: string | null;
         };
+        /** AffectedJob */
+        AffectedJob: {
+            /** Grams */
+            grams: number;
+            /** Job */
+            job: string;
+            /** Late Minutes */
+            late_minutes: number | null;
+            /**
+             * Needed At
+             * Format: date-time
+             */
+            needed_at: string;
+            /** Planned Start */
+            planned_start: string | null;
+            /** Waits After Order */
+            waits_after_order: boolean;
+        };
         /** BoardJob */
         BoardJob: {
             /** Completion */
@@ -727,12 +806,16 @@ export interface components {
              * Format: date-time
              */
             due: string;
+            /** Grams Per Part */
+            grams_per_part: number | null;
             /** Key */
             key: string;
             /** Late Minutes */
             late_minutes: number;
             /** Material Code */
             material_code: string;
+            /** Material Short */
+            material_short: boolean;
             /** Order Number */
             order_number: string;
             /** Part Name */
@@ -1190,6 +1273,36 @@ export interface components {
             /** Process */
             process: string;
         };
+        /** MaterialShortage */
+        MaterialShortage: {
+            /** Affected */
+            affected: components["schemas"]["AffectedJob"][];
+            /** Material */
+            material: string;
+            /**
+             * Short At
+             * Format: date-time
+             */
+            short_at: string;
+            /** Short By G */
+            short_by_g: number;
+            suggestion: components["schemas"]["Suggestion"] | null;
+        };
+        /** MaterialsOut */
+        MaterialsOut: {
+            /** Checked */
+            checked: string;
+            /** Movements */
+            movements: components["schemas"]["Movement"][];
+            /** Plans */
+            plans: components["schemas"]["PlanShortages"][];
+            /** Purchase Orders */
+            purchase_orders: components["schemas"]["PurchaseOrderOut"][];
+            /** Stock */
+            stock: components["schemas"]["StockRow"][];
+            /** Time Zone */
+            time_zone: string;
+        };
         /** Me */
         Me: {
             /** Capabilities */
@@ -1235,6 +1348,26 @@ export interface components {
         MessageIn: {
             /** Message */
             message: string;
+        };
+        /** Movement */
+        Movement: {
+            /** Assumed */
+            assumed: boolean;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Grams */
+            grams: number;
+            /** Material */
+            material: string;
+            /** Missing G */
+            missing_g: number;
+            /** Reason */
+            reason: string;
+            /** What */
+            what: string;
         };
         /** OrderCreate */
         OrderCreate: {
@@ -1374,6 +1507,22 @@ export interface components {
             /** Reason */
             reason: string;
         };
+        /** PlanShortages */
+        PlanShortages: {
+            /**
+             * Made At
+             * Format: date-time
+             */
+            made_at: string;
+            /** Material Known */
+            material_known: boolean;
+            /** Schedule Id */
+            schedule_id: number;
+            /** Shortages */
+            shortages: components["schemas"]["MaterialShortage"][];
+            /** Status */
+            status: string;
+        };
         /** PlanningRun */
         PlanningRun: {
             /**
@@ -1496,6 +1645,42 @@ export interface components {
             rush_multiplier_percent: number;
             /** Setup Cents */
             setup_cents: number;
+        };
+        /** PurchaseOrderIn */
+        PurchaseOrderIn: {
+            /**
+             * Expected At
+             * Format: date-time
+             */
+            expected_at: string;
+            /** Grams */
+            grams: number;
+            /** Material Code */
+            material_code: string;
+            /** Supplier */
+            supplier: string;
+        };
+        /** PurchaseOrderOut */
+        PurchaseOrderOut: {
+            /**
+             * Expected At
+             * Format: date-time
+             */
+            expected_at: string;
+            /** Grams */
+            grams: number;
+            /** Material */
+            material: string;
+            /** Number */
+            number: string;
+            /** Overdue */
+            overdue: boolean;
+            /** Received At */
+            received_at: string | null;
+            /** Status */
+            status: string;
+            /** Supplier */
+            supplier: string;
         };
         /** QuestionIn */
         QuestionIn: {
@@ -1871,6 +2056,46 @@ export interface components {
             rows: components["schemas"]["Row"][];
             /** Total */
             total: number;
+        };
+        /** StockRow */
+        StockRow: {
+            /** Lead Time Days */
+            lead_time_days: number | null;
+            /** Material */
+            material: string;
+            /** Name */
+            name: string;
+            /** On Hand G */
+            on_hand_g: number;
+            /** On Order G */
+            on_order_g: number;
+            /** Supplier */
+            supplier: string | null;
+        };
+        /** Suggestion */
+        Suggestion: {
+            /**
+             * Arrives At
+             * Format: date-time
+             */
+            arrives_at: string;
+            /** Grams */
+            grams: number;
+            /** In Time */
+            in_time: boolean;
+            /** Lead Time Days */
+            lead_time_days: number;
+            /**
+             * Order By
+             * Format: date
+             */
+            order_by: string;
+            /** Pack Grams */
+            pack_grams: number;
+            /** Packs */
+            packs: number;
+            /** Supplier */
+            supplier: string;
         };
         /**
          * TaskMark
@@ -2925,6 +3150,80 @@ export interface operations {
             };
         };
     };
+    record_purchase_order_purchase_orders_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    receive_purchase_order_purchase_orders__number__receive_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_queues_queues_get: {
         parameters: {
             query?: never;
@@ -3333,6 +3632,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_stock_stock_get: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialsOut"];
                 };
             };
             /** @description Validation Error */

@@ -16,6 +16,8 @@ from pydantic import BaseModel
 
 from brimline_engine import audit, idempotency
 from brimline_engine.checker import CheckResult, check_document
+from brimline_engine.materials.config import purchasing_config
+from brimline_engine.materials.shortage import for_document
 from brimline_engine.materials.stock import take_for_print
 from brimline_engine.permissions import Actor, can
 from brimline_engine.planning.clock import at_minute, minute_at_or_after
@@ -78,6 +80,8 @@ class BoardJob(BaseModel):
     completion: datetime | None  # None when unscheduled
     late_minutes: int  # from the checker's deadline report
     unscheduled: bool
+    grams_per_part: int | None  # what the plan used (M9); None in a plan made before M9
+    material_short: bool  # its material runs short for it in this plan (materials/shortage.py)
 
 
 class BoardTask(BaseModel):
@@ -200,6 +204,11 @@ def _schedule_out(
         ).fetchall()
     }
     deadlines = {d.job: d for d in result.deadlines}
+    short = {
+        a.job
+        for s in for_document(doc, anchor, tz, cfg.durations, purchasing_config(), now)
+        for a in s.affected
+    }
     jobs = []
     for j in inst["jobs"]:
         r = refs.get(j["id"])
@@ -216,6 +225,8 @@ def _schedule_out(
                 completion=None if d is None else at_minute(d.completion, anchor, tz),
                 late_minutes=0 if d is None else d.tardiness,
                 unscheduled=j["id"] in plan["unscheduled"],
+                grams_per_part=j.get("grams_per_part"),
+                material_short=j["id"] in short,
             )
         )
 

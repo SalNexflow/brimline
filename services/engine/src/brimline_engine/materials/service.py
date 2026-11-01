@@ -80,6 +80,7 @@ class MaterialsOut(BaseModel):
     plans: list[PlanShortages]  # the approved plan, then the newest draft (if any)
     movements: list[Movement]  # the latest changes to stock
     checked: str  # the date config/purchasing.toml was last reviewed
+    time_zone: str  # the shop's; times are UTC, shown in this zone
 
 
 class PurchaseOrderIn(BaseModel):
@@ -180,6 +181,7 @@ def overview(
         plans=plans,
         movements=movements,
         checked=purchasing.checked.isoformat(),
+        time_zone=tz,
     )
 
 
