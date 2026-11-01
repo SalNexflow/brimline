@@ -42,7 +42,7 @@ def test_one_scenario_of_each_category_runs_and_nothing_unsafe_gets_through(
         with ev.eval_database() as db:
             floor = open_floor(None, free_ports=True, watch=False, timeout=2.0)
             try:
-                outcomes = [ev.run_scenario(db, floor, s, "fake") for s in one_per_category()]
+                outcomes = [ev.run_with_baseline(db, floor, s, "fake") for s in one_per_category()]
             finally:
                 floor.close()
     finally:

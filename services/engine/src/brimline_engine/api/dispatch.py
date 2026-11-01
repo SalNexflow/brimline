@@ -239,6 +239,9 @@ def proceed(
         stored, replayed = service.proceed(conn, user.actor, run_id, body.proposal_ids, key, now)
     except tuple(ERRORS) as exc:
         raise _error(exc) from None
+    if replayed:  # the same request again: what it did is already done and logged
+        response.headers["Idempotent-Replayed"] = "true"
+        return {**stored.body, "calls": []}
     outcomes = service.execute(
         conn,
         run_id,
@@ -250,9 +253,8 @@ def proceed(
         settings.ai_mode,
         budget_reason(conn, settings),
         user.actor.user_id,
+        only=body.proposal_ids,  # only what this person approved now (review of M12)
     )
-    if replayed:
-        response.headers["Idempotent-Replayed"] = "true"
     return {**stored.body, "calls": [o.__dict__ for o in outcomes]}
 
 
@@ -280,16 +282,35 @@ def set_simulation(
     sim = floor.fleet.sims.get(code)
     if sim is None:
         raise HTTPException(404, "not found")
+    endpoint = f"POST /machines/{code}/simulation"
+    try:
+        with conn.transaction():
+            stored = idempotency.claim(
+                conn,
+                user_id=user.actor.user_id,
+                endpoint=endpoint,
+                key=key,
+                req_hash=idempotency.request_hash(body.model_dump()),
+            )
+            if stored is not None:
+                return stored.body
+            audit.record(
+                conn,
+                actor_user_id=user.actor.user_id,
+                action="machine.simulation",
+                entity_type="machine",
+                entity_id=code,
+                before=None,
+                after=body.model_dump(),
+                idempotency_key=key,
+            )
+            out = idempotency.StoredResponse(200, {"machine": code, **body.model_dump()})
+            idempotency.store(
+                conn, user_id=user.actor.user_id, endpoint=endpoint, key=key, response=out
+            )
+    except IdempotencyConflictError as exc:
+        raise _error(exc) from None
+    # Recorded first, then changed: a change is never left without its audit row.
     sim.mode, sim.message = body.mode, body.message
     sim.external_job = "someone-elses-job" if body.busy else None
-    audit.record(
-        conn,
-        actor_user_id=user.actor.user_id,
-        action="machine.simulation",
-        entity_type="machine",
-        entity_id=code,
-        before=None,
-        after=body.model_dump(),
-        idempotency_key=key,
-    )
     return {"machine": code, **body.model_dump()}

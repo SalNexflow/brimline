@@ -28,6 +28,7 @@ KLIPPER_STATE = {
 class Moonraker:
     protocol = "moonraker"
     can_stop = True
+    reports_job = True
 
     def __init__(self, cfg: MachineConfig, host: str, port: int, timeout: float) -> None:
         self.code = cfg.code
@@ -91,6 +92,7 @@ class Bambu:
 
     protocol = "bambu"
     can_stop = True
+    reports_job = True
 
     def __init__(self, cfg: MachineConfig, host: str, port: int, timeout: float) -> None:
         self.code = cfg.code
@@ -198,6 +200,7 @@ class Grbl:
 
     protocol = "grbl"
     can_stop = True
+    reports_job = False  # no job names or "done": idle again means finished
 
     def __init__(self, cfg: MachineConfig, host: str, port: int, timeout: float) -> None:
         self.code = cfg.code

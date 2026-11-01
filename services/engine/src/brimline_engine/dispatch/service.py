@@ -5,6 +5,7 @@ machine's answer; a start or stop that reaches a machine is also an audit-log ro
 machine without a Proceed on that exact action, and nothing runs twice (G02, enforced by a unique row).
 """
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -26,6 +27,7 @@ from brimline_engine.permissions import Actor, can
 from brimline_engine.planning.inputs import job_key
 from brimline_engine.planning.queues import TaskAction, TaskMark, apply_action
 
+log = logging.getLogger(__name__)
 PROPOSE_SCHEMA: dict[str, Any] = anthropic.transform_schema(agent.Proposals)
 EXECUTE_SCHEMA: dict[str, Any] = anthropic.transform_schema(agent.ToolCalls)
 
@@ -292,15 +294,19 @@ class CallOutcome:
     detail: str
 
 
-def _approved_open(conn: psycopg.Connection, run_id: int) -> list[dict[str, Any]]:
+def _approved_open(
+    conn: psycopg.Connection, run_id: int, only: list[int] | None
+) -> list[dict[str, Any]]:
+    """Approved, not yet executed proposals of a run; `only`: just these (the ones a person has
+    just pressed Proceed on, so an older approval is never sent again by someone else's click)."""
     return [
         {"proposal_id": int(r[0]), "action": r[1], "task_id": int(r[2]), "machine": r[3]}
         for r in conn.execute(
             "SELECT p.id, p.action, p.task_id, p.machine_code FROM dispatch_proposals p"
             " JOIN dispatch_approvals a ON a.proposal_id = p.id"
-            " WHERE p.run_id = %s AND NOT EXISTS"
+            " WHERE p.run_id = %s AND (%s::bigint[] IS NULL OR p.id = ANY(%s)) AND NOT EXISTS"
             " (SELECT 1 FROM dispatch_executions e WHERE e.proposal_id = p.id) ORDER BY p.id",
-            (run_id,),
+            (run_id, only, only),
         ).fetchall()
     ]
 
@@ -317,11 +323,12 @@ def execute(
     budget_reason: str | None,
     actor_user_id: int,
     calls_override: list[agent.ToolCallOut] | None = None,
+    only: list[int] | None = None,
 ) -> list[CallOutcome]:
     """Carry out the approved, not yet executed actions of a run. The agent issues the tool calls;
     when it cannot be used, code issues exactly the approved actions ("executed by code").
     `calls_override` replaces the agent's calls (the eval's scripted misbehaving agent)."""
-    approved = _approved_open(conn, run_id)
+    approved = _approved_open(conn, run_id, only)
     if not approved and calls_override is None:
         return []
     made_by, why = "agent", ""
@@ -456,7 +463,14 @@ def _run_call(
                     conn, actor_user_id, c.task_id, "start", now, TaskMark(), time_source="machine"
                 )
                 shop.prepare(c.machine, job, _machine_seconds(conn, c.task_id))
-                adapter.start(job)
+                try:
+                    adapter.start(job)
+                except AdapterError as e:
+                    # No clear answer is not a "no": ask the machine whether it started (review
+                    # of M12). Only a running machine showing this job (or, for protocols that
+                    # name no job, running at all after being idle) counts as started.
+                    if e.kind not in ("timeout", "protocol") or not _confirms(adapter, job):
+                        raise
             else:
                 mark = TaskMark(failure_reason="other", failure_note="Stopped through dispatch.")
                 kind, before, after = apply_action(
@@ -503,6 +517,14 @@ def _run_call(
     return CallOutcome(c.tool, c.machine, c.task_id, "allowed", "carried out")
 
 
+def _confirms(adapter: Adapter, job: str) -> bool:
+    try:
+        s = adapter.get_status()
+    except AdapterError:
+        return False
+    return s.state == "running" and (s.job == job or (s.job is None and not adapter.reports_job))
+
+
 def _job_of(conn: psycopg.Connection, task_id: int) -> str:
     row = conn.execute(
         "SELECT o.order_number, j.line_no FROM tasks t JOIN jobs j ON j.id = t.job_id"
@@ -524,67 +546,161 @@ def _machine_seconds(conn: psycopg.Connection, task_id: int) -> int:
 # --- Watch -------------------------------------------------------------------------------------
 
 
+def _plain(text: str) -> str:
+    """Machine text made safe to store as a note: no control characters (a NUL would fail the
+    database's text check and stop the watcher), at most 400 characters. Still untrusted data."""
+    return "".join(ch for ch in text if ch.isprintable())[:400]
+
+
 def poll_once(conn: psycopg.Connection, shop: Shop, now: datetime) -> list[tuple[int, str]]:
-    """Check every running task that dispatch started; record the ones the machine has finished or
-    failed. Returns (task id, new status). Machine text goes into the note as the machine's words."""
+    """Check every running task that dispatch started and record the ones the machine has finished
+    or failed; adopt a start a machine accepted after its answer timed out. Returns (task id, new
+    status). One task's trouble never stops the others (review of M12)."""
     rows = conn.execute(
         "SELECT t.id, m.code, o.order_number, j.line_no, t.actual_start FROM tasks t"
         " JOIN schedules s ON s.id = t.schedule_id AND s.status = 'approved'"
         " JOIN machines m ON m.id = t.machine_id JOIN jobs j ON j.id = t.job_id"
         " JOIN orders o ON o.id = j.order_id"
-        " WHERE t.kind = 'machine' AND t.status = 'running' AND EXISTS ("
+        " WHERE t.kind = 'machine' AND t.status = 'running'"
+        " AND j.status <> 'cancelled' AND o.status <> 'cancelled' AND EXISTS ("
         "   SELECT 1 FROM dispatch_executions e JOIN dispatch_proposals p ON p.id = e.proposal_id"
         "   WHERE p.task_id = t.id AND p.action = 'start_task')"
     ).fetchall()
     done: list[tuple[int, str]] = []
     for task_id, machine, number, line_no, started in rows:
+        try:
+            result = _poll_task(
+                conn, shop, int(task_id), machine, job_key(number, line_no), started, now
+            )
+        except Exception:
+            log.exception("watching task %s failed", task_id)
+            continue
+        if result is not None:
+            done.append((int(task_id), result))
+    _adopt_late_starts(conn, shop, now)
+    return done
+
+
+def _poll_task(
+    conn: psycopg.Connection,
+    shop: Shop,
+    task_id: int,
+    machine: str,
+    job: str,
+    started: datetime,
+    now: datetime,
+) -> str | None:
+    adapter = shop.adapters.get(machine)
+    if adapter is None:
+        return None
+    try:
+        s = adapter.get_status()
+    except AdapterError:
+        return None  # no answer: look again next time
+    if s.state == "running":
+        return None
+    if adapter.reports_job and s.job not in (None, job):
+        return None  # the machine reports another job: not ours to record
+    if s.seconds is not None:
+        source, seconds = "machine", s.seconds
+    else:  # the protocol reports no time: code's watch, on the simulated clock
+        source, seconds = "polled", int((now - started).total_seconds() * shop.speed)
+    action: TaskAction
+    if s.state == "done" or (s.state == "idle" and not adapter.reports_job):
+        action, mark = "done", TaskMark()
+    elif s.state in ("failed", "offline", "idle"):
+        # A machine that names its jobs but no longer shows ours was restarted or cleared: we
+        # cannot say it finished, so it is recorded as failed, saying why.
+        if s.message:
+            note = f"Machine reported: {_plain(s.message)}"
+        elif s.state == "idle":
+            note = "The machine no longer reports this job (restarted or cleared)."
+        else:
+            note = "The machine reported a failure."
+        action, mark = "fail", TaskMark(failure_reason="other", failure_note=note[:500])
+    else:
+        return None
+    with conn.transaction():
+        row = conn.execute(
+            "SELECT status FROM tasks WHERE id = %s FOR UPDATE", (task_id,)
+        ).fetchone()
+        if row is None or row[0] != "running":
+            return None  # a stop got there first
+        kind, before, after = apply_action(
+            conn, None, task_id, action, now, mark, time_source=source, machine_seconds=seconds
+        )
+        audit.record(
+            conn,
+            actor_user_id=None,
+            action=f"dispatch.machine_{action}",
+            entity_type="task",
+            entity_id=str(task_id),
+            before=before,
+            after={**after, "kind": kind, "time_source": source, "machine_seconds": seconds},
+            idempotency_key=None,
+        )
+    return "done" if action == "done" else "failed"
+
+
+def _adopt_late_starts(conn: psycopg.Connection, shop: Shop, now: datetime) -> None:
+    """An approved start whose machine answer timed out but which the machine now reports running
+    (naming this job) is recorded as started, so nothing runs untracked."""
+    rows = conn.execute(
+        "SELECT p.id, p.run_id, p.task_id, p.machine_code, o.order_number, j.line_no"
+        " FROM dispatch_proposals p JOIN dispatch_approvals a ON a.proposal_id = p.id"
+        " JOIN dispatch_runs r ON r.id = p.run_id"
+        " JOIN schedules s ON s.id = r.schedule_id AND s.status = 'approved'"
+        " JOIN tasks t ON t.id = p.task_id AND t.status = 'planned'"
+        " JOIN jobs j ON j.id = t.job_id JOIN orders o ON o.id = j.order_id"
+        " WHERE p.action = 'start_task' AND NOT EXISTS"
+        " (SELECT 1 FROM dispatch_executions e WHERE e.proposal_id = p.id)"
+        " AND EXISTS (SELECT 1 FROM dispatch_calls c WHERE c.proposal_id = p.id"
+        "             AND c.verdict = 'machine_refused')"
+    ).fetchall()
+    for pid, run_id, task_id, machine, number, line_no in rows:
         adapter = shop.adapters.get(machine)
-        if adapter is None:
+        job = job_key(number, line_no)
+        if adapter is None or not adapter.reports_job:
             continue
         try:
             s = adapter.get_status()
         except AdapterError:
-            continue  # no answer: look again next time
-        ours = s.job in (None, job_key(number, line_no))
-        finished = s.state == "done" or (s.state == "idle" and s.job is None)
-        if s.state == "running" or not ours:
             continue
-        if s.seconds is not None:
-            source, seconds = "machine", s.seconds
-        else:  # the protocol reports no time: code's watch, on the simulated clock
-            source, seconds = "polled", int((now - started).total_seconds() * shop.speed)
-        action: TaskAction
-        if finished:
-            action, mark = "done", TaskMark()
-        elif s.state in ("failed", "offline"):
-            note = (
-                f"Machine reported: {s.message}"[:500]
-                if s.message
-                else "The machine reported a failure."
-            )
-            action, mark = "fail", TaskMark(failure_reason="other", failure_note=note)
-        else:
+        if s.state != "running" or s.job != job:
             continue
-        with conn.transaction():
-            kind, before, after = apply_action(
-                conn,
-                None,
-                int(task_id),
-                action,
-                now,
-                mark,
-                time_source=source,
-                machine_seconds=seconds,
-            )
-            audit.record(
-                conn,
-                actor_user_id=None,
-                action=f"dispatch.machine_{action}",
-                entity_type="task",
-                entity_id=str(task_id),
-                before=before,
-                after={**after, "kind": kind, "time_source": source, "machine_seconds": seconds},
-                idempotency_key=None,
-            )
-        done.append((int(task_id), "done" if action == "done" else "failed"))
-    return done
+        try:
+            with conn.transaction():
+                conn.execute("SELECT 1 FROM tasks WHERE id = %s FOR UPDATE", (task_id,))
+                kind, before, after = apply_action(
+                    conn, None, int(task_id), "start", now, TaskMark(), time_source="machine"
+                )
+                c = agent.ToolCallOut(tool="start_task", machine=machine, task_id=int(task_id))
+                call_id = _log(
+                    conn,
+                    int(run_id),
+                    c,
+                    "code",
+                    "adopted: the machine reported it running",
+                    int(pid),
+                    "allowed",
+                    "started late, after a timed-out answer",
+                    {"state": s.state, "job": s.job},
+                    now,
+                )
+                conn.execute(
+                    "INSERT INTO dispatch_executions (proposal_id, call_id, created_at)"
+                    " VALUES (%s, %s, %s)",
+                    (pid, call_id, now),
+                )
+                audit.record(
+                    conn,
+                    actor_user_id=None,
+                    action="dispatch.adopt_start",
+                    entity_type="task",
+                    entity_id=str(task_id),
+                    before=before,
+                    after={**after, "kind": kind, "machine": machine},
+                    idempotency_key=f"dispatch-{pid}",
+                )
+        except Exception:
+            log.exception("adopting the start of task %s failed", task_id)

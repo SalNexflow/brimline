@@ -30,6 +30,7 @@ def _json(r: httpx.Response) -> Any:  # noqa: ANN401 - JSON
 class OctoPrint:
     protocol = "octoprint"
     can_stop = True
+    reports_job = True
 
     def __init__(self, cfg: MachineConfig, host: str, port: int, timeout: float) -> None:
         self.code = cfg.code
@@ -102,6 +103,7 @@ PRUSA_STATE = {
 class PrusaLink:
     protocol = "prusalink"
     can_stop = True
+    reports_job = True
 
     def __init__(self, cfg: MachineConfig, host: str, port: int, timeout: float) -> None:
         self.code = cfg.code
@@ -164,6 +166,7 @@ class Formlabs:
 
     protocol = "formlabs"
     can_stop = False
+    reports_job = False  # no job names or "done": idle again means finished
 
     def __init__(self, cfg: MachineConfig, host: str, port: int, timeout: float) -> None:
         self.code = cfg.code
