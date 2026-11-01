@@ -18,6 +18,7 @@ from brimline_engine.api import (
     auth,
     disruptions,
     files,
+    materials,
     orders,
     planning,
     price_rules,
@@ -65,6 +66,7 @@ app.include_router(disruptions.router)
 app.include_router(files.router)
 app.include_router(search.router)
 app.include_router(reports.router)
+app.include_router(materials.router)
 
 CallNext = Callable[[Request], Awaitable[Response]]
 WRITES = {"POST", "PUT", "PATCH", "DELETE"}

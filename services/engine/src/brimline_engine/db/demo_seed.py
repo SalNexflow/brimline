@@ -6,7 +6,7 @@ nothing else in the seed changes. The plan is made and approved by the same code
 uses (and checked by the independent checker on the way, as always)."""
 
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 import psycopg
@@ -27,12 +27,15 @@ def shifted(cfg: ShopConfig, today: date) -> ShopConfig:
     tz = ZoneInfo(cfg.shop.time_zone)
     seeded = cfg.seed_time.astimezone(tz).date()
     delta = _monday(today) - _monday(seeded)
+    tomorrow = datetime.combine(today + timedelta(days=1), time(10, 0), tz)
     return cfg.model_copy(
         update={
             "seed_time": cfg.seed_time + delta,
             "orders": [o.model_copy(update={"due_date": o.due_date + delta}) for o in cfg.orders],
+            # A seeded delivery is still to come on any day of the week (M9): otherwise from
+            # Saturday on it would be overdue, not counted, and its jobs unplannable all weekend.
             "purchase_orders": [
-                p.model_copy(update={"expected_at": p.expected_at + delta})
+                p.model_copy(update={"expected_at": max(p.expected_at + delta, tomorrow)})
                 for p in cfg.purchase_orders
             ],
             # Never later than the moved seed date: the seed's prices start a few days after its

@@ -117,6 +117,15 @@ TABLE: list[tuple[Actor, Action, OrderTarget | None, bool]] = [
     (PLANNER, "report.read", None, True),
     (OPERATOR, "report.read", None, False),
     (CUSTOMER_1, "report.read", None, False),
+    # M9: stock and shortages for staff and planners; recording a purchase order, staff only.
+    (STAFF, "stock.read", None, True),
+    (PLANNER, "stock.read", None, True),
+    (OPERATOR, "stock.read", None, False),
+    (CUSTOMER_1, "stock.read", None, False),
+    (STAFF, "purchase.record", None, True),
+    (PLANNER, "purchase.record", None, False),
+    (OPERATOR, "purchase.record", None, False),
+    (CUSTOMER_1, "purchase.record", None, False),
     # M7: model files. Customers upload and read files for their own quotes only; operators read
     # (to see a part before printing); staff and planners upload, and accept a warning with a
     # reason. Nobody can override a failed check (enforced in files/service.py, not here).
@@ -191,6 +200,7 @@ def test_capabilities_per_role() -> None:
         "order.read",
         "price_rules.read",
         "price_rules.write",
+        "purchase.record",
         "quote.approve",
         "quote.edit",
         "quote.list",
@@ -198,6 +208,7 @@ def test_capabilities_per_role() -> None:
         "quote.submit",
         "report.read",
         "schedule.read",
+        "stock.read",
     ]
     assert capabilities(PLANNER) == [
         "disruption.report",
@@ -217,6 +228,7 @@ def test_capabilities_per_role() -> None:
         "schedule.approve",
         "schedule.plan",
         "schedule.read",
+        "stock.read",
     ]
     assert capabilities(OPERATOR) == [
         "file.read",

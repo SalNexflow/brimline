@@ -33,6 +33,8 @@ Action = Literal[
     "file.override",
     "file.attach_job",
     "report.read",
+    "stock.read",
+    "purchase.record",
 ]
 
 
@@ -74,6 +76,8 @@ _ANY_TARGET: dict[str, frozenset[str]] = {
             "file.override",
             "file.attach_job",
             "report.read",
+            "stock.read",
+            "purchase.record",
         }
     ),
     "planner": frozenset(
@@ -95,6 +99,7 @@ _ANY_TARGET: dict[str, frozenset[str]] = {
             "file.override",
             "file.attach_job",
             "report.read",
+            "stock.read",
         }
     ),
     "operator": frozenset(
