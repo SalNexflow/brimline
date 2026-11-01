@@ -23,7 +23,7 @@ from brimline_engine.permissions import Actor
 from brimline_engine.planning import queues, runs, schedules
 from brimline_engine.planning.inputs import build_inputs
 from brimline_engine.scheduling.config import scheduler_config
-from tests.conftest import FIXED_NOW, login
+from tests.conftest import FIXED_NOW, login, reset_materials
 
 TZ = "Europe/Berlin"
 PLAN_START = FIXED_NOW  # 10:00 Berlin; minute 120 of the plan
@@ -44,7 +44,7 @@ def fresh_planning_state(client: TestClient, owner_url: str) -> Iterator[None]:
             conn.execute("ALTER TABLE job_outcomes DISABLE TRIGGER job_outcomes_append_only")
             conn.execute("DELETE FROM job_outcomes WHERE NOT synthetic")
             conn.execute("ALTER TABLE job_outcomes ENABLE TRIGGER job_outcomes_append_only")
-            conn.execute("TRUNCATE tasks, schedules, planning_runs CASCADE")
+            reset_materials(conn, "tasks, schedules, planning_runs")
             conn.execute("UPDATE jobs SET status = 'pending'")
             conn.execute("UPDATE orders SET status = 'open'")
 

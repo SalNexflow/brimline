@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from brimline_engine import audit, idempotency
 from brimline_engine.costing.store import record_outcome
+from brimline_engine.materials.stock import take_for_print
 from brimline_engine.permissions import Actor, can
 from brimline_engine.planning.inputs import job_key
 from brimline_engine.text import SafeText
@@ -282,6 +283,13 @@ def act(
                 "actual_end": end.isoformat(),
                 **mark.model_dump(exclude_none=True),
             }
+            if kind == "machine":  # the print used its material: take it from stock (M9)
+                taken = take_for_print(conn, task_id, actor.user_id, now)
+                if taken is not None:
+                    after["stock_taken_g"] = taken.grams
+                    after["stock_grams_assumed"] = taken.assumed
+                    if taken.missing:
+                        after["stock_missing_g"] = taken.missing
             if new == "failed":
                 conn.execute("UPDATE jobs SET status = 'failed' WHERE id = %s", (job_id,))
             else:

@@ -94,3 +94,24 @@ def app_conn(test_database: str, app_url: str) -> Iterator[psycopg.Connection]:
     with psycopg.connect(app_url) as conn:
         yield conn
         conn.rollback()
+
+
+def reset_materials(conn: psycopg.Connection, also: str) -> None:
+    """Truncate the tables in `also` (which reach the stock ledger through tasks) and put stock
+    and purchase orders back to the seed (M9). Tests finish and fail the same seeded prints
+    again, so the stock they took goes back; the owner lifts the ledger's append-only trigger
+    for this only."""
+    from brimline_engine.shop_config import load_shop_config
+
+    shop = load_shop_config()
+    conn.execute("ALTER TABLE stock_movements DISABLE TRIGGER stock_movements_no_truncate")
+    conn.execute(f"TRUNCATE stock_movements, {also} CASCADE")
+    conn.execute("ALTER TABLE stock_movements ENABLE TRIGGER stock_movements_no_truncate")
+    conn.execute("DELETE FROM purchase_orders WHERE created_at <> %s", (shop.seed_time,))
+    conn.execute("UPDATE purchase_orders SET status = 'open', received_at = NULL")
+    for code, grams in shop.stock.items():
+        conn.execute(
+            "UPDATE stock SET on_hand_g = %s FROM materials m"
+            " WHERE m.id = stock.material_id AND m.code = %s",
+            (grams, code),
+        )

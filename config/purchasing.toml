@@ -1,0 +1,59 @@
+# Purchasing settings (M9): who supplies each material, how long it takes, how it is packed.
+# Invented for the fictional shop (no real supplier). Change them here, never in code.
+# Brimline only suggests what to order; a person orders, then records the order in the app.
+
+checked = 2026-11-01
+
+# A delivery ordered on day D arrives on day D + lead_time_days (calendar days) at this shop time.
+delivery_time = "10:00"
+
+# Per material. pack_grams: the supplier sells whole packs of this size (a spool, a bottle, a bar).
+# safety_stock_g: a suggestion tops stock up to at least this much after the jobs it covers
+# (a suggestion only; planning itself never keeps a reserve).
+[materials.PLA-BLACK]
+supplier = "Northfield Filament Supply"
+lead_time_days = 3
+pack_grams = 1000
+safety_stock_g = 500
+
+[materials.PLA-WHITE]
+supplier = "Northfield Filament Supply"
+lead_time_days = 3
+pack_grams = 1000
+safety_stock_g = 500
+
+[materials.PETG-BLACK]
+supplier = "Northfield Filament Supply"
+lead_time_days = 3
+pack_grams = 1000
+safety_stock_g = 500
+
+[materials.PETG-ORANGE]
+supplier = "Northfield Filament Supply"
+lead_time_days = 5
+pack_grams = 1000
+safety_stock_g = 0
+
+[materials.TPU-BLACK]
+supplier = "Quickspool Express"
+lead_time_days = 2
+pack_grams = 500
+safety_stock_g = 0
+
+[materials.RESIN-GREY]
+supplier = "Lumen Resin Works"
+lead_time_days = 4
+pack_grams = 1000
+safety_stock_g = 250
+
+[materials.RESIN-CLEAR]
+supplier = "Lumen Resin Works"
+lead_time_days = 4
+pack_grams = 1000
+safety_stock_g = 0
+
+[materials.AL-6061]
+supplier = "Ridgeway Metals"
+lead_time_days = 7
+pack_grams = 5000
+safety_stock_g = 2000

@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 from brimline_engine import audit, idempotency
 from brimline_engine.checker import CheckResult, check_document
+from brimline_engine.materials.stock import take_for_print
 from brimline_engine.permissions import Actor, can
 from brimline_engine.planning.clock import at_minute, minute_at_or_after
 from brimline_engine.planning.disruptions import DisruptionOut, list_open
@@ -542,12 +543,17 @@ def _stop_work(
     lost = [x["task_id"] for x in effects.get("lost", [])]
     cancelled = _job_ids(conn, [c["job"] for c in effects.get("cancelled", [])])
     # A failed task always says why (M10); these two reasons are set by code only.
-    conn.execute(
+    stopped = conn.execute(
         "UPDATE tasks SET status = 'failed', actual_end = greatest(%s, actual_start),"
         " failure_reason = CASE WHEN id = ANY(%s) THEN 'machine_down' ELSE 'order_cancelled' END"
-        " WHERE schedule_id = %s AND status = 'running' AND (id = ANY(%s) OR job_id = ANY(%s))",
+        " WHERE schedule_id = %s AND status = 'running' AND (id = ANY(%s) OR job_id = ANY(%s))"
+        " RETURNING id, kind",
         (now, lost, old_id, lost, cancelled),
-    )
+    ).fetchall()
+    # A stopped print still used some of its material (M9): its share of the time, as assumed.
+    for task_id, kind in stopped:
+        if kind == "machine":
+            take_for_print(conn, int(task_id), None, now)
 
 
 def _apply_facts(

@@ -14,6 +14,11 @@
   planned again from the start (config: running_print_lost_when_machine_down). What would
   change is listed in `effects`, for the review and for approval to apply.
 - The approved plan, if any, becomes `previous`, so the solver avoids moving work without need.
+- Material (M9): the stock on hand, less what running prints are using, and every open purchase
+  order as a delivery at its expected time (a delivery already overdue is not counted until a
+  person updates it). A material delay moves that material's open deliveries; with none open
+  it holds the material back as before. Each job's grams per part come from the job, its file
+  or its quote, in that order (materials/grams.py); a job with none cannot be planned.
 """
 
 import hashlib
@@ -24,6 +29,7 @@ from typing import Any
 
 import psycopg
 
+from brimline_engine.materials.grams import Grams, job_grams
 from brimline_engine.planning.clock import (
     anchor_for,
     at_minute,
@@ -34,7 +40,15 @@ from brimline_engine.planning.clock import (
 from brimline_engine.scheduling.calendar import horizon_minutes, shift_windows
 from brimline_engine.scheduling.config import SchedulerConfig
 from brimline_engine.scheduling.export import job_doc, machine_doc
-from brimline_engine.scheduling.model import Downtime, Fixed, Instance, Job, Machine, Previous
+from brimline_engine.scheduling.model import (
+    Delivery,
+    Downtime,
+    Fixed,
+    Instance,
+    Job,
+    Machine,
+    Previous,
+)
 
 DEFAULT_DAY_END = time(17, 0)  # due time on a day without a shift (for example a Sunday)
 
@@ -52,6 +66,7 @@ class JobRef:
     material_code: str
     due_date: date
     rush: bool
+    grams: Grams  # grams per part and where the number came from (M9)
 
 
 @dataclass
@@ -175,6 +190,22 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
         " ORDER BY o.created_at, o.id, j.line_no"
     ).fetchall()
     post_minutes = cfg.durations.post_process_minutes_per_part
+    grams = job_grams(conn, [r[0] for r in rows])
+    started = {  # jobs whose machine task already runs or ran: they need no grams any more
+        int(r[0])
+        for r in conn.execute(
+            "SELECT DISTINCT t.job_id FROM tasks t"
+            " JOIN schedules s ON s.id = t.schedule_id AND s.status = 'approved'"
+            " WHERE t.kind = 'machine' AND t.status IN ('running', 'done')"
+        ).fetchall()
+    }
+    with_delivery = {  # materials with an open purchase order: a delay moves the order instead
+        str(r[0])
+        for r in conn.execute(
+            "SELECT DISTINCT m.code FROM purchase_orders p JOIN materials m"
+            " ON m.id = p.material_id WHERE p.status = 'open'"
+        ).fetchall()
+    }
     jobs: list[Job] = []
     refs: dict[str, JobRef] = {}
     unplannable: list[dict[str, Any]] = []
@@ -195,7 +226,9 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
             rush = True
             if not any(r["order"] == number for r in effects.rush):
                 effects.rush.append({"order": number, "disruption": dis.rush[number]})
-        refs[key] = JobRef(key, job_id, number, line_no, part, qty, material, due, rush)
+        refs[key] = JobRef(
+            key, job_id, number, line_no, part, qty, material, due, rush, grams[job_id]
+        )
         missing = []
         if mpp is None:
             missing.append("machine minutes per part")
@@ -204,10 +237,12 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
         unknown_steps = [p for p in post if p not in post_minutes]
         if unknown_steps:
             missing.append(f"minutes for {', '.join(unknown_steps)} in config/scheduler.toml")
+        if grams[job_id].per_part is None and job_id not in started:
+            missing.append("grams per part (enter them, or upload the part's file)")
         if missing:
             unplannable.append({"job": key, "part": part, "missing": missing})
             continue
-        delay = dis.delays.get(material)
+        delay = None if material in with_delivery else dis.delays.get(material)
         jobs.append(
             Job(
                 id=key,
@@ -222,6 +257,7 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
                 rush=rush,
                 release=max(0, minute(delay[0])) if delay else 0,
                 post_processing=tuple(post),
+                grams_per_part=grams[job_id].per_part,
             )
         )
 
@@ -250,6 +286,13 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
         downs,
         effects,
     )
+    # A print lost to a breakdown is planned again and needs its grams after all (M9).
+    for j in [j for j in jobs if j.grams_per_part is None and j.id not in fixed]:
+        jobs.remove(j)
+        planned_keys.discard(j.id)
+        unplannable.append(
+            {"job": j.id, "part": refs[j.id].part_name, "missing": ["grams per part"]}
+        )
     # New downtimes to record at approval, after _fixed may have moved one to start when a
     # running print ends. "Until further notice" is stored open (null), not as the horizon.
     for machine, start, _end, start_dt, end_dt, did in downs:
@@ -265,6 +308,8 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
             }
         )
     downtimes = tuple(Downtime(m, s, e) for m, s, e, *_ in downs if e > s)
+    stock = _stock(conn, jobs, statuses, effects)
+    deliveries = _deliveries(conn, now, dis, effects, minute)
     previous, previous_id = _previous(conn, anchor, tz, planned_keys - set(fixed))
     instance = Instance(
         name=f"plan-{now.isoformat(timespec='minutes')}",
@@ -277,9 +322,64 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
         plan_start=plan_start,
         downtimes=downtimes,
         previous=previous,
+        stock=stock,
+        deliveries=deliveries,
     )
     fp = fingerprint(instance, unplannable, statuses, anchor, tz, dis.record)
     return Inputs(instance, anchor, refs, unplannable, fp, effects, tuple(dis.ids), previous_id)
+
+
+def _stock(
+    conn: psycopg.Connection, jobs: list[Job], statuses: dict[str, str], effects: Effects
+) -> tuple[tuple[str, int], ...]:
+    """Grams free for this plan: on hand, less what prints still running are using (they take
+    it from the record when they end). A print about to be treated as lost counts too: the
+    material in it is gone either way."""
+    on_hand = {
+        code: int(grams)
+        for code, grams in conn.execute(
+            "SELECT m.code, s.on_hand_g FROM stock s JOIN materials m ON m.id = s.material_id"
+        ).fetchall()
+    }
+    in_use: dict[str, int] = {}
+    for j in jobs:
+        if statuses.get(j.id) in ("running", "lost"):
+            in_use[j.material] = in_use.get(j.material, 0) + j.grams
+    out = []
+    for code in sorted(on_hand.keys() | in_use.keys()):
+        free = on_hand.get(code, 0) - in_use.get(code, 0)
+        if free < 0:
+            effects.notes.append(
+                f"The stock record of {code} ({on_hand.get(code, 0)} g) is less than the running"
+                f" prints use ({in_use[code]} g): planned as 0 g free. A stock count is due."
+            )
+        out.append((code, max(0, free)))
+    return tuple(out)
+
+
+def _deliveries(
+    conn: psycopg.Connection,
+    now: datetime,
+    dis: "_Disruptions",
+    effects: Effects,
+    minute: Any,  # noqa: ANN401 - the local datetime -> plan minute function
+) -> tuple[Delivery, ...]:
+    """Open purchase orders as deliveries. A material delay moves them (never earlier)."""
+    out = []
+    for number, code, grams, expected in conn.execute(
+        "SELECT p.po_number, m.code, p.grams, p.expected_at FROM purchase_orders p"
+        " JOIN materials m ON m.id = p.material_id WHERE p.status = 'open' ORDER BY p.id"
+    ).fetchall():
+        delay = dis.delays.get(code)
+        arrives = max(expected, delay[0]) if delay else expected
+        if arrives < now:
+            effects.notes.append(
+                f"{number} ({grams} g {code}) was due {expected:%a %d %b %H:%M} and has not been"
+                " received: not counted until someone marks it received or reports a delay."
+            )
+            continue
+        out.append(Delivery(code, minute(arrives), int(grams)))
+    return tuple(out)
 
 
 def _fixed(
@@ -446,6 +546,8 @@ def fingerprint(
         "unplannable": unplannable,
         "shifts": [[absolute(lo), absolute(hi)] for lo, hi in instance.shifts],
         "staff": instance.staff,
+        "stock": instance.stock,
+        "deliveries": [[d.material, absolute(d.at), d.grams] for d in instance.deliveries],
     }
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(canonical.encode()).hexdigest()

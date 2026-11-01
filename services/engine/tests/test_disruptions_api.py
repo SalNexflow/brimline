@@ -20,7 +20,7 @@ from brimline_engine.planning import runs
 from brimline_engine.planning.inputs import build_inputs
 from brimline_engine.planning.replan import Summary, grounding_problems, summarize
 from brimline_engine.scheduling.config import scheduler_config
-from tests.conftest import FIXED_NOW, login
+from tests.conftest import FIXED_NOW, login, reset_materials
 
 TZ = "Europe/Berlin"
 MONDAY_17 = datetime(2026, 10, 26, 16, 0, tzinfo=UTC)  # 17:00 in Berlin
@@ -34,9 +34,9 @@ def key() -> dict[str, str]:
 def fresh_state(client: TestClient, owner_url: str) -> Iterator[None]:
     def reset() -> None:
         with psycopg.connect(owner_url) as conn:
-            conn.execute(
-                "TRUNCATE tasks, schedules, planning_runs, machine_downtimes, material_delays,"
-                " disruptions CASCADE"
+            reset_materials(
+                conn,
+                "tasks, schedules, planning_runs, machine_downtimes, material_delays, disruptions",
             )
             conn.execute("UPDATE jobs SET status = 'pending'")
             conn.execute(

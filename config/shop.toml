@@ -157,7 +157,9 @@ build_mm = [400, 300, 150]
 materials = ["AL-6061"]
 aliases = ["the mill", "the CNC"]      # how people name it in messages
 
-# Grams on hand at seed time.
+# Grams on hand at seed time. TPU-BLACK is short on purpose (M9): its order needs 660 g and the
+# recorded delivery below comes the day after that order is due, so the Materials page shows a
+# shortage and a purchase suggestion.
 [stock]
 PLA-BLACK = 4000
 PLA-WHITE = 2500
@@ -191,15 +193,16 @@ post_process_cents_per_part = { sanding = 200, painting = 350, assembly = 500 }
 
 # A few existing orders so the lists are not empty and customer separation can be tested.
 # Seeded orders. Each line carries what the scheduler needs (M5): machine minutes per part, the
-# part's size in mm (x, y, z) and any post-processing steps. A line without them is shown on the
+# part's size in mm (x, y, z), any post-processing steps, and grams per part (M9, as if a person
+# weighed or estimated them). A line without them is shown on the
 # board as "cannot plan", never guessed (the last order has one on purpose).
 [[orders]]
 customer = "C-HARBOR"
 created_by = "U-STAFF"
 due_date = 2026-10-30
 lines = [
-    { part = "Robot chassis plate", quantity = 4, material = "PETG-BLACK", minutes_per_part = 95, part_mm = [180, 120, 6] },
-    { part = "Wheel hub", quantity = 8, material = "PLA-BLACK", minutes_per_part = 35, part_mm = [60, 60, 25] },
+    { part = "Robot chassis plate", quantity = 4, material = "PETG-BLACK", grams_per_part = 60, minutes_per_part = 95, part_mm = [180, 120, 6] },
+    { part = "Wheel hub", quantity = 8, material = "PLA-BLACK", grams_per_part = 25, minutes_per_part = 35, part_mm = [60, 60, 25] },
 ]
 
 [[orders]]
@@ -208,21 +211,21 @@ created_by = "U-STAFF"
 due_date = 2026-10-27
 rush = true
 notes = "Competition on Saturday."
-lines = [{ part = "Sensor bracket", quantity = 10, material = "PLA-WHITE", minutes_per_part = 18, part_mm = [40, 30, 15], post = ["sanding"] }]
+lines = [{ part = "Sensor bracket", quantity = 10, material = "PLA-WHITE", grams_per_part = 8, minutes_per_part = 18, part_mm = [40, 30, 15], post = ["sanding"] }]
 
 [[orders]]
 customer = "C-WILLOW"
 created_by = "U-STAFF"
 due_date = 2026-11-03
-lines = [{ part = "Model tray", quantity = 6, material = "RESIN-GREY", minutes_per_part = 40, part_mm = [120, 80, 20] }]
+lines = [{ part = "Model tray", quantity = 6, material = "RESIN-GREY", grams_per_part = 45, minutes_per_part = 40, part_mm = [120, 80, 20] }]
 
 [[orders]]
 customer = "C-COPPER"
 created_by = "U-STAFF"
 due_date = 2026-11-02
 lines = [
-    { part = "Helmet visor frame", quantity = 2, material = "PETG-ORANGE", minutes_per_part = 240, part_mm = [240, 200, 90], post = ["sanding", "painting"] },
-    { part = "Gauntlet plate", quantity = 6, material = "PLA-WHITE", minutes_per_part = 55, part_mm = [120, 90, 30], post = ["painting"] },
+    { part = "Helmet visor frame", quantity = 2, material = "PETG-ORANGE", grams_per_part = 180, minutes_per_part = 240, part_mm = [240, 200, 90], post = ["sanding", "painting"] },
+    { part = "Gauntlet plate", quantity = 6, material = "PLA-WHITE", grams_per_part = 40, minutes_per_part = 55, part_mm = [120, 90, 30], post = ["painting"] },
 ]
 
 [[orders]]
@@ -230,8 +233,8 @@ customer = "C-TALLOW"
 created_by = "U-STAFF"
 due_date = 2026-10-29
 lines = [
-    { part = "Chain guide", quantity = 4, material = "AL-6061", minutes_per_part = 45, part_mm = [90, 40, 12] },
-    { part = "Bottle cage clip", quantity = 12, material = "TPU-BLACK", minutes_per_part = 12, part_mm = [50, 30, 10] },
+    { part = "Chain guide", quantity = 4, material = "AL-6061", grams_per_part = 150, minutes_per_part = 45, part_mm = [90, 40, 12] },
+    { part = "Bottle cage clip", quantity = 12, material = "TPU-BLACK", grams_per_part = 55, minutes_per_part = 12, part_mm = [50, 30, 10] },
 ]
 
 [[orders]]
@@ -239,15 +242,15 @@ customer = "C-WILLOW"
 created_by = "U-STAFF"
 due_date = 2026-10-28
 rush = true
-lines = [{ part = "Night guard", quantity = 8, material = "RESIN-CLEAR", minutes_per_part = 30, part_mm = [70, 60, 20], post = ["sanding"] }]
+lines = [{ part = "Night guard", quantity = 8, material = "RESIN-CLEAR", grams_per_part = 20, minutes_per_part = 30, part_mm = [70, 60, 20], post = ["sanding"] }]
 
 [[orders]]
 customer = "C-HARBOR"
 created_by = "U-STAFF"
 due_date = 2026-11-05
 lines = [
-    { part = "Arena wall panel", quantity = 2, material = "PLA-BLACK", minutes_per_part = 300, part_mm = [320, 300, 8] },
-    { part = "Cable clip", quantity = 20, material = "PLA-BLACK", minutes_per_part = 6, part_mm = [30, 15, 10] },
+    { part = "Arena wall panel", quantity = 2, material = "PLA-BLACK", grams_per_part = 350, minutes_per_part = 300, part_mm = [320, 300, 8] },
+    { part = "Cable clip", quantity = 20, material = "PLA-BLACK", grams_per_part = 3, minutes_per_part = 6, part_mm = [30, 15, 10] },
 ]
 
 [[orders]]
@@ -256,6 +259,15 @@ created_by = "U-STAFF"
 due_date = 2026-11-04
 notes = "Hilt size to be confirmed by the customer."
 lines = [
-    { part = "Display stand", quantity = 1, material = "PETG-BLACK", minutes_per_part = 420, part_mm = [300, 300, 60], post = ["assembly"] },
-    { part = "Prop sword hilt", quantity = 1, material = "PLA-BLACK", minutes_per_part = 150 },
+    { part = "Display stand", quantity = 1, material = "PETG-BLACK", grams_per_part = 600, minutes_per_part = 420, part_mm = [300, 300, 60], post = ["assembly"] },
+    { part = "Prop sword hilt", quantity = 1, material = "PLA-BLACK", grams_per_part = 120, minutes_per_part = 150 },
 ]
+
+# Purchase orders a person has already placed (M9), so planning counts the delivery. Invented
+# supplier. Brimline never orders anything itself.
+[[purchase_orders]]
+material = "TPU-BLACK"
+grams = 1000
+supplier = "Northfield Filament Supply"
+expected_at = 2026-10-30T09:00:00Z     # Friday 10:00 in the shop
+recorded_by = "U-STAFF"

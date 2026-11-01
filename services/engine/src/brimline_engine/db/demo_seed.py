@@ -31,6 +31,10 @@ def shifted(cfg: ShopConfig, today: date) -> ShopConfig:
         update={
             "seed_time": cfg.seed_time + delta,
             "orders": [o.model_copy(update={"due_date": o.due_date + delta}) for o in cfg.orders],
+            "purchase_orders": [
+                p.model_copy(update={"expected_at": p.expected_at + delta})
+                for p in cfg.purchase_orders
+            ],
             # Never later than the moved seed date: the seed's prices start a few days after its
             # Monday, which moved forward would put them in the future (no price on day one).
             "price_rules": cfg.price_rules.model_copy(

@@ -79,6 +79,15 @@ class OrderLine(_Strict):
     minutes_per_part: int | None = Field(default=None, gt=0)
     part_mm: tuple[int, int, int] | None = None
     post: list[PostProcess] = []
+    grams_per_part: int | None = Field(default=None, gt=0)  # M9; planning falls back without it
+
+
+class PurchaseOrder(_Strict):
+    material: str
+    grams: int = Field(gt=0)
+    supplier: str
+    expected_at: dt.datetime
+    recorded_by: str
 
 
 class Order(_Strict):
@@ -102,6 +111,7 @@ class ShopConfig(_Strict):
     shifts: list[Shift]
     price_rules: PriceRules
     orders: list[Order] = []
+    purchase_orders: list[PurchaseOrder] = []
 
     @model_validator(mode="after")
     def references_exist(self) -> "ShopConfig":
@@ -128,6 +138,9 @@ class ShopConfig(_Strict):
         unpriced = set(materials) - set(self.price_rules.material_cents_per_gram)
         if unpriced:
             problems.append(f"materials without a price: {sorted(unpriced)}")
+        for po in self.purchase_orders:
+            if po.material not in materials or po.recorded_by not in users:
+                problems.append(f"purchase order: unknown material or user ({po.material})")
         for i, o in enumerate(self.orders, start=1):
             if o.customer not in customers:
                 problems.append(f"order {i}: unknown customer {o.customer}")

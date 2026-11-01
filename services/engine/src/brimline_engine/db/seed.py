@@ -106,8 +106,9 @@ def seed(owner_url: str, config: ShopConfig | None = None) -> None:
                 size = line.part_mm or (None, None, None)
                 conn.execute(
                     "INSERT INTO jobs (order_id, line_no, part_name, quantity, material_id,"
-                    " minutes_per_part, part_x_mm, part_y_mm, part_z_mm, post_processing, created_at)"
-                    " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    " minutes_per_part, part_x_mm, part_y_mm, part_z_mm, post_processing,"
+                    " grams_per_part, created_at)"
+                    " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (
                         row[0],
                         line_no,
@@ -117,9 +118,23 @@ def seed(owner_url: str, config: ShopConfig | None = None) -> None:
                         line.minutes_per_part,
                         *size,
                         list(line.post),
+                        line.grams_per_part,
                         at,
                     ),
                 )
+        for po in cfg.purchase_orders:
+            conn.execute(
+                "INSERT INTO purchase_orders (material_id, grams, supplier, expected_at,"
+                " recorded_by, created_at) VALUES (%s, %s, %s, %s, %s, %s)",
+                (
+                    material_ids[po.material],
+                    po.grams,
+                    po.supplier,
+                    po.expected_at,
+                    user_ids[po.recorded_by],
+                    at,
+                ),
+            )
 
         # Finished jobs from before the seed, for the quoted-versus-actual report (M10). Synthetic,
         # and labelled so on the Reports page; one material is truly under-quoted.
