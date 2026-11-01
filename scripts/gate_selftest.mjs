@@ -192,6 +192,38 @@ const MUTATIONS = [
     expect: "engine: tests",
   },
   {
+    // M9: the independent checker would let a print start 1 g short of its material.
+    name: "checker misses a plan one gram short of material",
+    file: "services/engine/src/brimline_engine/checker/check.py",
+    find: "        if level < 0:",
+    replace: "        if level < -1:",
+    expect: "engine: tests",
+  },
+  {
+    // M9: the scheduler would plan as if stock never ran out.
+    name: "CP-SAT ignores stock and deliveries",
+    file: "services/engine/src/brimline_engine/scheduling/cpsat.py",
+    find: "    if instance.stock is not None:",
+    replace: "    if instance.stock is None:",
+    expect: "engine: tests",
+  },
+  {
+    // M9: a delivery arriving after a job needs it would count as if it came in time.
+    name: "shortage report counts a late delivery as on time",
+    file: "services/engine/src/brimline_engine/materials/shortage.py",
+    find: "            (at, 0, \"\", grams) for m, at, grams in deliveries if m == material",
+    replace: "            (0, 0, \"\", grams) for m, at, grams in deliveries if m == material",
+    expect: "engine: tests",
+  },
+  {
+    // M9: the stated fallback order for grams (entered first) would be broken.
+    name: "a file estimate wins over grams a person entered",
+    file: "services/engine/src/brimline_engine/materials/grams.py",
+    find: '        (entered, "entered"),\n        (from_file, "file estimate"),',
+    replace: '        (from_file, "file estimate"),\n        (entered, "entered"),',
+    expect: "engine: tests",
+  },
+  {
     name: "a failed file check can be accepted like a warning",
     file: "services/engine/src/brimline_engine/files/service.py",
     find: '        if check.status != "warn":',
