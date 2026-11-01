@@ -83,3 +83,23 @@ def receive_purchase_order(
     if replayed:
         response.headers["Idempotent-Replayed"] = "true"
     return stored.body
+
+
+@router.post("/purchase-orders/{number}/cancel")
+def cancel_purchase_order(
+    number: PoNumber,
+    response: Response,
+    conn: Conn,
+    user: CurrentUser,
+    now: Now,
+    key: IdempotencyKey,
+) -> dict[str, Any]:
+    """The supplier will not deliver: planning stops counting the order."""
+    try:
+        stored, replayed = service.cancel_purchase_order(conn, user.actor, number, key, now)
+    except tuple(ERRORS) as exc:
+        raise _error(exc) from None
+    response.status_code = stored.status
+    if replayed:
+        response.headers["Idempotent-Replayed"] = "true"
+    return stored.body

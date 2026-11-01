@@ -108,7 +108,9 @@ def reset_materials(conn: psycopg.Connection, also: str) -> None:
     conn.execute(f"TRUNCATE stock_movements, {also} CASCADE")
     conn.execute("ALTER TABLE stock_movements ENABLE TRIGGER stock_movements_no_truncate")
     conn.execute("DELETE FROM purchase_orders WHERE created_at <> %s", (shop.seed_time,))
-    conn.execute("UPDATE purchase_orders SET status = 'open', received_at = NULL")
+    conn.execute(
+        "UPDATE purchase_orders SET status = 'open', received_at = NULL, cancelled_at = NULL"
+    )
     for code, grams in shop.stock.items():
         conn.execute(
             "UPDATE stock SET on_hand_g = %s FROM materials m"

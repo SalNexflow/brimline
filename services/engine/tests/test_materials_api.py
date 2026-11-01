@@ -27,7 +27,7 @@ from brimline_engine.scheduling.config import scheduler_config
 from brimline_engine.settings import Settings
 from brimline_engine.shop_config import load_shop_config
 from tests.conftest import FIXED_NOW, login
-from tests.test_costing_api import replan, run
+from tests.test_costing_api import clock, replan, run
 from tests.test_planning_api import (  # noqa: F401 (fixtures used by name)
     draft,
     fresh_planning_state,
@@ -295,3 +295,134 @@ def replace_solver(solver: Any, seconds: float) -> Any:
 
 
 _ = replace  # dataclasses.replace kept for readers comparing with test_sched_stock
+
+
+# --- Found by the fresh-context review of M9 (DEFECT_LOG) ---------------------------------------
+
+
+def free_stock(app_url: str, at: datetime, material: str) -> tuple[int, list[str]]:
+    from brimline_engine.planning.inputs import build_inputs
+
+    with psycopg.connect(app_url) as conn:
+        inputs = build_inputs(conn, at, scheduler_config(), "Europe/Berlin")
+    return dict(inputs.instance.stock or ()).get(material, 0), inputs.effects.notes
+
+
+def start_wheel_hub_print(client: TestClient) -> None:
+    """Wheel hub (BL-0001-2): 8 x 25 g = 200 g PLA-BLACK, 8 x 35 = 280 min quoted; its print
+    starts at FIXED_NOW."""
+    q = replan(client, FIXED_NOW)
+    prep, machine, *_ = tasks_of(q, "BL-0001-2")
+    for t, action in ((prep, "start"), (prep, "done"), (machine, "start")):
+        assert run(client, FIXED_NOW, t["id"], action).status_code == 200
+
+
+def pending(owner_url: str, events: str) -> None:
+    with psycopg.connect(owner_url) as conn:
+        conn.execute(
+            "INSERT INTO disruptions (message, received_at, events, status, created_by)"
+            " SELECT '', %s, %s::jsonb, 'pending', id FROM users WHERE code = 'U-PLANNER'",
+            (FIXED_NOW, events),
+        )
+
+
+def test_a_running_print_of_a_cancelled_job_still_uses_its_stock(
+    client: TestClient, owner_url: str, app_url: str
+) -> None:
+    start_wheel_hub_print(client)
+    pending(owner_url, '[{"type": "cancellation", "order": "BL-0001", "line": 2}]')
+    # The job leaves the plan, but its print runs until approval: 4000 - 200 = 3800 g free.
+    free, _ = free_stock(app_url, FIXED_NOW.replace(hour=10, minute=10), "PLA-BLACK")
+    assert free == 3800
+
+
+def test_a_print_lost_to_a_breakdown_counts_only_the_share_it_used(
+    client: TestClient, owner_url: str, app_url: str
+) -> None:
+    start_wheel_hub_print(client)
+    q = client.get("/queues", headers=login(client, "U-OPERATOR")).json()
+    task_id = tasks_of(q, "BL-0001-2")[1]["id"]
+    with psycopg.connect(owner_url) as conn:
+        row = conn.execute(
+            "SELECT m.code FROM tasks t JOIN machines m ON m.id = t.machine_id WHERE t.id = %s",
+            (task_id,),
+        ).fetchone()
+    assert row is not None
+    machine = row[0]
+    pending(owner_url, f'[{{"type": "machine_down", "machine": "{machine}"}}]')
+    # 70 minutes into a 280-minute print: 200 x 70 / 280 = 50 g gone; the reprint is planned
+    # with its full 200 g. Free: 4000 - 50 = 3950 g (before the review: 3800, counted twice).
+    free, _ = free_stock(app_url, FIXED_NOW.replace(hour=10, minute=10), "PLA-BLACK")
+    assert free == 3950
+
+
+def test_a_print_without_grams_must_be_weighed_when_it_ends(
+    client: TestClient, owner_url: str
+) -> None:
+    start_wheel_hub_print(client)
+    with psycopg.connect(owner_url) as conn:  # as for a job that was printing before M9
+        conn.execute(
+            "UPDATE jobs SET grams_per_part = NULL FROM orders o"
+            " WHERE o.id = jobs.order_id AND o.order_number = 'BL-0001' AND jobs.line_no = 2"
+        )
+    q = client.get("/queues", headers=login(client, "U-OPERATOR")).json()
+    machine = tasks_of(q, "BL-0001-2")[1]
+    r = run(client, FIXED_NOW, machine["id"], "done")
+    assert r.status_code == 422 and "record the grams used" in r.text
+    assert run(client, FIXED_NOW, machine["id"], "done", material_used_g=180).status_code == 200
+    assert stock_of(owner_url, "PLA-BLACK") == 4000 - 180
+
+
+def test_a_delay_ends_when_its_delivery_is_received(client: TestClient, owner_url: str) -> None:
+    pending(
+        owner_url,
+        '[{"type": "material_delayed", "material": "TPU-BLACK",'
+        ' "ends_at": "2026-11-02T09:00:00+00:00"}]',
+    )
+    staff = login(client, "U-STAFF")
+    assert client.post("/purchase-orders/PO-0001/receive", headers=staff | key()).status_code == 200
+    planner = login(client, "U-PLANNER")
+    plan_day(client, planner)
+    # 1500 g on hand now: the clip no longer waits for Monday 2 November.
+    assert machine_start(draft(client, planner), CLIP) < datetime(2026, 10, 30, 9, 0, tzinfo=UTC)
+
+
+def test_cancelling_an_order_and_overdue_orders_are_not_on_order(client: TestClient) -> None:
+    staff = login(client, "U-STAFF")
+    assert (
+        client.post(
+            "/purchase-orders/PO-0001/cancel", headers=login(client, "U-PLANNER") | key()
+        ).status_code
+        == 403
+    )
+    k = key()
+    assert client.post("/purchase-orders/PO-0001/cancel", headers=staff | k).status_code == 200
+    assert (
+        client.post("/purchase-orders/PO-0001/cancel", headers=staff | k).headers[
+            "Idempotent-Replayed"
+        ]
+        == "true"
+    )
+    assert client.post("/purchase-orders/PO-0001/receive", headers=staff | key()).status_code == 409
+    row = next(r for r in materials(client)["stock"] if r["material"] == "TPU-BLACK")
+    assert row["on_order_g"] == 0
+
+
+def test_an_overdue_order_is_not_counted_as_on_order(client: TestClient) -> None:
+    # PO-0001 was due Fri 30 Oct 10:00; on Saturday it is overdue.
+    with clock(datetime(2026, 10, 31, 9, 0, tzinfo=UTC)):
+        m = materials(client)
+    row = next(r for r in m["stock"] if r["material"] == "TPU-BLACK")
+    po = next(p for p in m["purchase_orders"] if p["number"] == "PO-0001")
+    assert row["on_order_g"] == 0 and po["overdue"] is True
+
+
+def test_a_plan_says_when_orders_changed_after_it_was_made(client: TestClient) -> None:
+    plan_day(client, login(client, "U-PLANNER"))
+    assert materials(client)["plans"][0]["orders_changed"] is False
+    body = {"material_code": "TPU-BLACK", "grams": 500, "supplier": "Quickspool Express",
+            "expected_at": "2026-10-29T09:00:00Z"}  # fmt: skip
+    with clock(FIXED_NOW.replace(minute=30)):
+        r = client.post("/purchase-orders", json=body, headers=login(client, "U-STAFF") | key())
+    assert r.status_code == 201
+    assert materials(client)["plans"][0]["orders_changed"] is True

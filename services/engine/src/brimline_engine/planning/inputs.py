@@ -29,6 +29,7 @@ from typing import Any
 
 import psycopg
 
+from brimline_engine.costing.outcome import Attempt, Estimate, assumed_grams
 from brimline_engine.materials.grams import Grams, job_grams
 from brimline_engine.planning.clock import (
     anchor_for,
@@ -128,6 +129,7 @@ class _Disruptions:
     # (machine, start, end or None for "until further notice", disruption id or None if applied)
     downtimes: list[tuple[str, datetime, datetime | None, int | None]] = field(default_factory=list)
     delays: dict[str, tuple[datetime, int | None]] = field(default_factory=dict)  # material
+    delay_made: dict[str, datetime] = field(default_factory=dict)  # when that delay was reported
     overruns: dict[str, datetime] = field(default_factory=dict)  # machine -> expected end
 
 
@@ -141,13 +143,14 @@ def _disruptions(conn: psycopg.Connection, now: datetime) -> _Disruptions:
         (now,),
     ).fetchall():
         out.downtimes.append((machine, start, end, None))
-    for material, available in conn.execute(
-        "SELECT mat.code, max(d.available_at) FROM material_delays d"
+    for material, available, made in conn.execute(
+        "SELECT mat.code, max(d.available_at), max(d.created_at) FROM material_delays d"
         " JOIN materials mat ON mat.id = d.material_id WHERE d.available_at > %s"
         " GROUP BY mat.code ORDER BY mat.code",
         (now,),
     ).fetchall():
         out.delays[material] = (available, None)
+        out.delay_made[material] = made
     for did, events, received in conn.execute(
         "SELECT id, events, received_at FROM disruptions WHERE status = 'pending' ORDER BY id"
     ).fetchall():
@@ -162,6 +165,7 @@ def _disruptions(conn: psycopg.Connection, now: datetime) -> _Disruptions:
                 current = out.delays.get(e["material"])
                 if current is None or ends > current[0]:
                     out.delays[e["material"]] = (ends, did)
+                    out.delay_made[e["material"]] = received
             elif e["type"] == "rush_job":
                 out.rush[e["order"]] = did
             elif e["type"] == "cancellation":
@@ -199,13 +203,17 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
             " WHERE t.kind = 'machine' AND t.status IN ('running', 'done')"
         ).fetchall()
     }
-    with_delivery = {  # materials with an open purchase order: a delay moves the order instead
-        str(r[0])
-        for r in conn.execute(
-            "SELECT DISTINCT m.code FROM purchase_orders p JOIN materials m"
-            " ON m.id = p.material_id WHERE p.status = 'open'"
-        ).fetchall()
-    }
+    # A delay is about a delivery when the material has an open purchase order (the delay moves
+    # it), or one received since the delay was reported (it came: the delay is over). Only
+    # otherwise does it hold back the stock on hand, as in M6 (review of M9).
+    with_delivery: set[str] = set()
+    for code, is_open, received in conn.execute(
+        "SELECT m.code, bool_or(p.status = 'open'), max(p.received_at) FROM purchase_orders p"
+        " JOIN materials m ON m.id = p.material_id GROUP BY m.code"
+    ).fetchall():
+        made = dis.delay_made.get(code)
+        if is_open or (received is not None and made is not None and received >= made):
+            with_delivery.add(str(code))
     jobs: list[Job] = []
     refs: dict[str, JobRef] = {}
     unplannable: list[dict[str, Any]] = []
@@ -308,7 +316,7 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
             }
         )
     downtimes = tuple(Downtime(m, s, e) for m, s, e, *_ in downs if e > s)
-    stock = _stock(conn, jobs, statuses, effects)
+    stock = _stock(conn, now, effects)
     deliveries = _deliveries(conn, now, dis, effects, minute)
     previous, previous_id = _previous(conn, anchor, tz, planned_keys - set(fixed))
     instance = Instance(
@@ -330,21 +338,43 @@ def build_inputs(conn: psycopg.Connection, now: datetime, cfg: SchedulerConfig, 
 
 
 def _stock(
-    conn: psycopg.Connection, jobs: list[Job], statuses: dict[str, str], effects: Effects
+    conn: psycopg.Connection, now: datetime, effects: Effects
 ) -> tuple[tuple[str, int], ...]:
     """Grams free for this plan: on hand, less what prints still running are using (they take
-    it from the record when they end). A print about to be treated as lost counts too: the
-    material in it is gone either way."""
+    it from the record when they end). Every running print counts, whether or not its job is
+    in this plan (a cancelled job's print runs until the plan is approved). A print about to be
+    treated as lost counts only the share of its grams it has used so far, as the ledger will
+    take on approval; its reprint is planned with the full grams (review of M9)."""
     on_hand = {
         code: int(grams)
         for code, grams in conn.execute(
             "SELECT m.code, s.on_hand_g FROM stock s JOIN materials m ON m.id = s.material_id"
         ).fetchall()
     }
+    running = conn.execute(
+        "SELECT t.id, j.id, o.order_number || '-' || j.line_no, j.quantity, j.minutes_per_part,"
+        "       mat.code, t.actual_start"
+        " FROM tasks t JOIN schedules s ON s.id = t.schedule_id AND s.status = 'approved'"
+        " JOIN jobs j ON j.id = t.job_id JOIN orders o ON o.id = j.order_id"
+        " JOIN materials mat ON mat.id = j.material_id"
+        " WHERE t.kind = 'machine' AND t.status = 'running' ORDER BY t.id"
+    ).fetchall()
+    grams = job_grams(conn, [int(r[1]) for r in running])
+    lost = {x["task_id"] for x in effects.lost}
     in_use: dict[str, int] = {}
-    for j in jobs:
-        if statuses.get(j.id) in ("running", "lost"):
-            in_use[j.material] = in_use.get(j.material, 0) + j.grams
+    for task_id, job_id, key, qty, minutes, code, started in running:
+        per_part = grams[int(job_id)].per_part
+        if per_part is None:
+            effects.notes.append(
+                f"The running print of {key} has no grams per part, so what it uses is not"
+                " counted: record the grams used when it ends."
+            )
+            continue
+        use = qty * per_part
+        if task_id in lost and minutes is not None:
+            seconds = max(0, int((now - started).total_seconds()))
+            use = assumed_grams(Estimate(qty, per_part, minutes), Attempt(seconds, None, True))
+        in_use[code] = in_use.get(code, 0) + use
     out = []
     for code in sorted(on_hand.keys() | in_use.keys()):
         free = on_hand.get(code, 0) - in_use.get(code, 0)

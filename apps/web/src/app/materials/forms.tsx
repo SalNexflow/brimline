@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 
-import { receivePurchaseOrder, recordPurchaseOrder, type PoFormState } from "./actions";
+import { cancelPurchaseOrder, receivePurchaseOrder, recordPurchaseOrder, type PoFormState } from "./actions";
 
 const INITIAL: PoFormState = { errors: [] };
 
@@ -66,6 +66,20 @@ export function PurchaseOrderForm({
       </label>
       <button type="submit" disabled={pending}>
         {pending ? "Recording…" : "Record purchase order"}
+      </button>
+    </form>
+  );
+}
+
+export function CancelButton({ number, idempotencyKey }: { number: string; idempotencyKey: string }) {
+  const [state, action, pending] = useActionState(cancelPurchaseOrder, INITIAL);
+  return (
+    <form action={action}>
+      <input type="hidden" name="number" value={number} />
+      <input type="hidden" name="idempotency_key" value={idempotencyKey} />
+      <Errors errors={state.errors} />
+      <button type="submit" className="button-secondary" disabled={pending} aria-label={`Cancel ${number}`}>
+        {pending ? "Saving…" : "Cancel"}
       </button>
     </form>
   );

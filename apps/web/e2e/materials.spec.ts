@@ -47,6 +47,10 @@ test("the TPU-BLACK shortage shows with a suggestion, and staff record the order
   await form.getByRole("button", { name: "Record purchase order" }).click();
   await expect(page.getByRole("status").filter({ hasText: "recorded." })).toBeVisible();
   await expect(page.getByTestId("stock-TPU-BLACK")).toContainText("500 g");
+  // The plan was made before this order: the page says its suggestion may be out of date and
+  // no longer fills the form with it (review of M9).
+  await expect(page.getByTestId("orders-changed-draft")).toContainText("Plan again");
+  await expect(form.getByLabel("Material")).toHaveValue("");
 });
 
 test("operators and customers do not see materials", async ({ page }) => {

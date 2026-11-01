@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { can, signedInEngine, type StockOverview } from "@/lib/engine";
 import { formatShopTime } from "@/lib/timeline";
 
-import { PurchaseOrderForm, ReceiveButton } from "./forms";
+import { CancelButton, PurchaseOrderForm, ReceiveButton } from "./forms";
 
 export const metadata: Metadata = { title: "Materials · Brimline" };
 
@@ -32,11 +32,21 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
     return <p role="status">Your role does not see the shop&apos;s stock.</p>;
   }
   const params = await searchParams;
-  const done = typeof params.recorded === "string" ? `${params.recorded} recorded.` : typeof params.received === "string" ? `${params.received} received; its grams are in stock.` : null;
+  const done =
+    typeof params.recorded === "string"
+      ? `${params.recorded} recorded.`
+      : typeof params.received === "string"
+        ? `${params.received} received; its grams are in stock.`
+        : typeof params.cancelled === "string"
+          ? `${params.cancelled} cancelled; planning no longer counts it.`
+          : null;
   const tz = data.time_zone;
   const mayRecord = can(me, "purchase.record");
-  const firstSuggestion = data.plans.flatMap((p) => p.shortages).find((s) => s.suggestion)?.suggestion;
-  const firstShort = data.plans.flatMap((p) => p.shortages).find((s) => s.suggestion);
+  // Pre-fill only from a plan made after the last purchase-order change: otherwise the order may
+  // already be recorded (review of M9).
+  const current = data.plans.filter((p) => !p.orders_changed);
+  const firstShort = current.flatMap((p) => p.shortages).find((s) => s.suggestion);
+  const firstSuggestion = firstShort?.suggestion;
   return (
     <>
       {done ? (
@@ -50,6 +60,12 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
         visit. Brimline never orders anything: a person orders from the supplier, then records it here.
       </p>
       {data.plans.length === 0 ? <p role="status">No plan yet: shortages appear once a plan is made.</p> : null}
+      {data.plans.length > 1 ? (
+        <p className="muted">
+          The approved plan and the draft each have their own shortages. A suggestion that appears in both is the same
+          need: order once.
+        </p>
+      ) : null}
       {data.plans.map((p) => (
         <PlanSection key={p.schedule_id} plan={p} timeZone={tz} />
       ))}
@@ -112,7 +128,10 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
                   <td>
                     {po.status === "received" && po.received_at ? `received ${formatShopTime(po.received_at, tz)}` : po.status}
                     {po.status === "open" && mayRecord ? (
-                      <ReceiveButton number={po.number} idempotencyKey={crypto.randomUUID()} />
+                      <div className="task-actions">
+                        <ReceiveButton number={po.number} idempotencyKey={crypto.randomUUID()} />
+                        <CancelButton number={po.number} idempotencyKey={crypto.randomUUID()} />
+                      </div>
                     ) : null}
                   </td>
                 </tr>
@@ -169,6 +188,12 @@ function PlanSection({ plan, timeZone }: { plan: PlanShortages; timeZone: string
       <h2 id={`plan-${plan.schedule_id}`}>
         {label} <span className="muted">(made {formatShopTime(plan.made_at, timeZone)})</span>
       </h2>
+      {plan.orders_changed ? (
+        <p role="note" className="notice" data-testid={`orders-changed-${plan.status}`}>
+          A purchase order was recorded, received or cancelled after this plan was made, so its shortages and
+          suggestions may be out of date. Plan again on the board before ordering more.
+        </p>
+      ) : null}
       {!plan.material_known ? (
         <p role="status">This plan was made before stock was part of planning; plan again to see shortages.</p>
       ) : plan.shortages.length === 0 ? (

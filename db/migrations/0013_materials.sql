@@ -18,9 +18,11 @@ CREATE TABLE purchase_orders (
     expected_at  timestamptz NOT NULL,
     status       text NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'received', 'cancelled')),
     received_at  timestamptz,
+    cancelled_at timestamptz,
     recorded_by  bigint NOT NULL REFERENCES users (id),
     created_at   timestamptz NOT NULL DEFAULT now(),
-    CHECK ((status = 'received') = (received_at IS NOT NULL))
+    CHECK ((status = 'received') = (received_at IS NOT NULL)),
+    CHECK ((status = 'cancelled') = (cancelled_at IS NOT NULL))
 );
 CREATE INDEX purchase_orders_open_idx ON purchase_orders (material_id) WHERE status = 'open';
 
@@ -50,7 +52,7 @@ CREATE TRIGGER stock_movements_no_truncate BEFORE TRUNCATE ON stock_movements
     FOR EACH STATEMENT EXECUTE FUNCTION reject_change_append_only();
 
 GRANT SELECT, INSERT ON purchase_orders, stock_movements TO brimline_app;
-GRANT UPDATE (status, received_at) ON purchase_orders TO brimline_app;
+GRANT UPDATE (status, received_at, cancelled_at) ON purchase_orders TO brimline_app;
 GRANT USAGE ON SEQUENCE purchase_order_number_seq TO brimline_app;
 GRANT UPDATE (on_hand_g, updated_at) ON stock TO brimline_app;
 GRANT UPDATE (grams_per_part) ON jobs TO brimline_app;

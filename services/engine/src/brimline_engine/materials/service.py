@@ -40,7 +40,7 @@ class StockRow(BaseModel):
     material: str
     name: str
     on_hand_g: int
-    on_order_g: int  # open purchase orders, not yet received
+    on_order_g: int  # open purchase orders still to come (an overdue one is not counted)
     supplier: str | None
     lead_time_days: int | None
 
@@ -71,6 +71,9 @@ class PlanShortages(BaseModel):
     status: str
     made_at: datetime
     material_known: bool  # False for a plan made before stock was part of planning
+    # A purchase order was recorded, received or cancelled after this plan was made: its
+    # shortages and suggestions may be out of date until someone plans again (review of M9).
+    orders_changed: bool
     shortages: list[MaterialShortage]
 
 
@@ -104,8 +107,10 @@ def overview(
     rows = conn.execute(
         "SELECT m.code, m.name, coalesce(s.on_hand_g, 0),"
         "       coalesce((SELECT sum(p.grams) FROM purchase_orders p"
-        "                 WHERE p.material_id = m.id AND p.status = 'open'), 0)"
-        " FROM materials m LEFT JOIN stock s ON s.material_id = m.id ORDER BY m.code"
+        "                 WHERE p.material_id = m.id AND p.status = 'open'"
+        "                 AND p.expected_at >= %s), 0)"
+        " FROM materials m LEFT JOIN stock s ON s.material_id = m.id ORDER BY m.code",
+        (now,),
     ).fetchall()
     stock_rows = []
     for code, name, on_hand, on_order in rows:
@@ -138,6 +143,10 @@ def overview(
             " ORDER BY (p.status = 'open') DESC, p.expected_at DESC, p.id DESC LIMIT 30"
         ).fetchall()
     ]
+    changed = conn.execute(
+        "SELECT max(greatest(created_at, received_at, cancelled_at)) FROM purchase_orders"
+    ).fetchone()
+    last_change = None if changed is None else changed[0]
     plans = []
     for sid, status, anchor, doc, made in conn.execute(
         "(SELECT id, status, anchor, document, created_at FROM schedules"
@@ -151,6 +160,7 @@ def overview(
                 status=status,
                 made_at=made,
                 material_known="stock" in doc["instance"],
+                orders_changed=last_change is not None and last_change > made,
                 shortages=for_document(doc, anchor, tz, durations, purchasing, now),
             )
         )
@@ -255,6 +265,48 @@ def receive_purchase_order(
             raise ConflictError(f"{number} is {row[1]}")
         stock.receive(conn, int(row[0]), actor.user_id, now, key)
         response = idempotency.StoredResponse(200, {"number": number, "status": "received"})
+        idempotency.store(
+            conn, user_id=actor.user_id, endpoint=endpoint, key=key, response=response
+        )
+        return response, False
+
+
+def cancel_purchase_order(
+    conn: psycopg.Connection, actor: Actor, number: str, key: str, now: datetime
+) -> tuple[idempotency.StoredResponse, bool]:
+    """The supplier will not deliver (or it was recorded by mistake): planning stops counting it."""
+    if not can(actor, "purchase.record"):
+        raise ForbiddenError("purchase.record")
+    endpoint = f"POST /purchase-orders/{number}/cancel"
+    with conn.transaction():
+        stored = idempotency.claim(
+            conn, user_id=actor.user_id, endpoint=endpoint, key=key, req_hash="cancel"
+        )
+        if stored is not None:
+            return stored, True
+        row = conn.execute(
+            "SELECT status FROM purchase_orders WHERE po_number = %s FOR UPDATE", (number,)
+        ).fetchone()
+        if row is None:
+            raise NotFoundError(number)
+        if row[0] != "open":
+            raise ConflictError(f"{number} is {row[0]}")
+        conn.execute(
+            "UPDATE purchase_orders SET status = 'cancelled', cancelled_at = %s"
+            " WHERE po_number = %s",
+            (now, number),
+        )
+        audit.record(
+            conn,
+            actor_user_id=actor.user_id,
+            action="purchase_order.cancel",
+            entity_type="purchase_order",
+            entity_id=number,
+            before={"status": "open"},
+            after={"status": "cancelled"},
+            idempotency_key=key,
+        )
+        response = idempotency.StoredResponse(200, {"number": number, "status": "cancelled"})
         idempotency.store(
             conn, user_id=actor.user_id, endpoint=endpoint, key=key, response=response
         )

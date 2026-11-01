@@ -23,6 +23,19 @@ export async function recordPurchaseOrder(_previous: PoFormState, formData: Form
   redirect(`/materials?recorded=${encodeURIComponent(String(data.number))}`);
 }
 
+/** The supplier will not deliver: planning stops counting the order. */
+export async function cancelPurchaseOrder(_previous: PoFormState, formData: FormData): Promise<PoFormState> {
+  const token = await readSessionToken();
+  if (!token) redirect("/login");
+  const number = String(formData.get("number") ?? "");
+  const { data, error, response } = await engineClient(token).POST("/purchase-orders/{number}/cancel", {
+    params: { path: { number }, header: { "idempotency-key": String(formData.get("idempotency_key") ?? "") } },
+  });
+  if (response.status === 401) redirect("/login");
+  if (!data) return { errors: [errorMessage(response.status, error, "The order could not be cancelled.")] };
+  redirect(`/materials?cancelled=${encodeURIComponent(number)}`);
+}
+
 /** The delivery arrived: its grams go into stock. */
 export async function receivePurchaseOrder(_previous: PoFormState, formData: FormData): Promise<PoFormState> {
   const token = await readSessionToken();

@@ -285,11 +285,16 @@ def act(
             }
             if kind == "machine":  # the print used its material: take it from stock (M9)
                 taken = take_for_print(conn, task_id, actor.user_id, now)
-                if taken is not None:
-                    after["stock_taken_g"] = taken.grams
-                    after["stock_grams_assumed"] = taken.assumed
-                    if taken.missing:
-                        after["stock_missing_g"] = taken.missing
+                if taken is None:
+                    # Nothing gives this job's grams, so stock would never go down (review of
+                    # M9): the operator weighs it. The whole action is undone.
+                    raise InvalidError(
+                        "this job has no grams per part: record the grams used with this print"
+                    )
+                after["stock_taken_g"] = taken.grams
+                after["stock_grams_assumed"] = taken.assumed
+                if taken.missing:
+                    after["stock_missing_g"] = taken.missing
             if new == "failed":
                 conn.execute("UPDATE jobs SET status = 'failed' WHERE id = %s", (job_id,))
             else:
