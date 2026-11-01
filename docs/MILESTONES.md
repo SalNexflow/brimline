@@ -149,3 +149,17 @@ bias 1.0 / 1.10 / 1.20 / 1.40 and 5 / 10 / 20 / 40 jobs per type, 200 seeds each
 generated into RESULTS.md and the README (1.10 must not be flagged); the control's false-alarm rate per run
 across all job types together (tune on dev seeds only if above 5 %); the report may suggest a price rule to
 review but never changes one; the demo's seeded history is labelled synthetic. No model calls.
+
+## M12. Machines and the dispatch agent
+**Goal:** send approved work to the machines through an AI agent that cannot act on its own.
+
+Deliverables: the shop's six machines each reached through its own protocol (OctoPrint, Moonraker, PrusaLink,
+Bambu LAN MQTT, Formlabs Local API, GRBL) by an adapter and a protocol-faithful mock server (success, failure,
+slow, unresponsive); a dispatch agent that proposes, waits for a person's Proceed, then executes exactly the
+approved actions through typed tool calls, each checked by a code guard (the approved plan via the checker's
+JSON, machine state, material, the Proceed); a code fallback when the model cannot be used; idempotent,
+audit-logged starts and stops; machine-reported times in quoted versus actual; a blind eval of 30+ scenarios
+including prompt injection, dev and held-out reported apart.
+
+Acceptance: 0 actions executed without Proceed and 0 injections that changed anything; unsafe calls blocked
+and unsafe calls that got through reported; all simulated and labelled untested on real hardware.

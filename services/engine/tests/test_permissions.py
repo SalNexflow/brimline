@@ -126,6 +126,15 @@ TABLE: list[tuple[Actor, Action, OrderTarget | None, bool]] = [
     (PLANNER, "purchase.record", None, False),
     (OPERATOR, "purchase.record", None, False),
     (CUSTOMER_1, "purchase.record", None, False),
+    # M12: planners ask the dispatcher; planners and operators may press Proceed.
+    (PLANNER, "dispatch.ask", None, True),
+    (OPERATOR, "dispatch.ask", None, False),
+    (STAFF, "dispatch.ask", None, False),
+    (PLANNER, "dispatch.proceed", None, True),
+    (OPERATOR, "dispatch.proceed", None, True),
+    (STAFF, "dispatch.proceed", None, False),
+    (CUSTOMER_1, "dispatch.proceed", None, False),
+    (CUSTOMER_1, "dispatch.read", None, False),
     # M7: model files. Customers upload and read files for their own quotes only; operators read
     # (to see a part before printing); staff and planners upload, and accept a warning with a
     # reason. Nobody can override a failed check (enforced in files/service.py, not here).
@@ -211,6 +220,9 @@ def test_capabilities_per_role() -> None:
         "stock.read",
     ]
     assert capabilities(PLANNER) == [
+        "dispatch.ask",
+        "dispatch.proceed",
+        "dispatch.read",
         "disruption.report",
         "file.attach_job",
         "file.override",
@@ -231,6 +243,8 @@ def test_capabilities_per_role() -> None:
         "stock.read",
     ]
     assert capabilities(OPERATOR) == [
+        "dispatch.proceed",
+        "dispatch.read",
         "file.read",
         "material.list",
         "order.list",
