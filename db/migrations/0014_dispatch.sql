@@ -46,7 +46,7 @@ CREATE TABLE dispatch_approvals (
 CREATE TABLE dispatch_calls (
     id           bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     run_id       bigint NOT NULL REFERENCES dispatch_runs (id),
-    made_by      text NOT NULL CHECK (made_by IN ('agent', 'code')),
+    made_by      text NOT NULL CHECK (made_by IN ('agent', 'code', 'scripted')),  -- scripted: the eval's misbehaving stand-in
     why_code     text NOT NULL DEFAULT '',          -- "AI budget reached", "agent unavailable", ...
     tool         text NOT NULL CHECK (tool IN ('get_status', 'explain_error', 'start_task', 'stop_task')),
     args         jsonb NOT NULL,

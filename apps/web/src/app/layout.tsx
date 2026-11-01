@@ -28,6 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/queues">Queues</Link>
             <Link href="/search">Search</Link>
             <Link href="/materials">Materials</Link>
+            <Link href="/dispatch">Dispatch</Link>
             <Link href="/reports">Reports</Link>
           </nav>
           {/* Reads the session cookie, so it streams in behind its own boundary. */}

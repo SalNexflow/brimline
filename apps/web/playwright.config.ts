@@ -44,6 +44,8 @@ export default defineConfig({
         DATABASE_URL: withDatabase(process.env.DATABASE_URL, E2E_DATABASE),
         DEMO_LOGIN: "true",
         AI_MODE: "fake", // prepared replies: browser tests never call a real model
+        SIM_MACHINES: "true", // the six simulated machines (M12), on ports the system picks
+        SIM_FREE_PORTS: "true",
       },
       reuseExistingServer: false,
       timeout: 120_000,

@@ -49,7 +49,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     with pool.connection() as conn:
         recover_interrupted(conn)
     # The simulated machines and the dispatch watcher (M12), when switched on (demo, dev).
-    app.state.floor = open_floor(pool) if get_settings().sim_machines else None
+    settings = get_settings()
+    app.state.floor = (
+        open_floor(pool, free_ports=settings.sim_free_ports) if settings.sim_machines else None
+    )
     try:
         yield
     finally:

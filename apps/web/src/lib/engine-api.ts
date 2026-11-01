@@ -116,6 +116,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dispatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Dispatch
+         * @description The machines as they report themselves now, and the latest dispatches with every proposal,
+         *     approval, tool call and guard verdict.
+         */
+        get: operations["get_dispatch_dispatch_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dispatch/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask Dispatcher
+         * @description Ask the dispatcher for proposals. Nothing reaches a machine until a person presses Proceed.
+         */
+        post: operations["ask_dispatcher_dispatch_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dispatch/runs/{run_id}/proceed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Proceed
+         * @description Approve specific proposals, then carry them out: the agent issues the tool calls and the guard
+         *     checks each one; when the agent cannot be used, code carries out exactly the approved actions.
+         */
+        post: operations["proceed_dispatch_runs__run_id__proceed_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/disruptions": {
         parameters: {
             query?: never;
@@ -333,6 +395,27 @@ export interface paths {
         get: operations["health_health_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/machines/{code}/simulation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set Simulation
+         * @description Simulation only: make a machine fail, slow down, stop answering, look busy, or report a message.
+         *     For trying the guard; planners only, audited.
+         */
+        post: operations["set_simulation_machines__code__simulation_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -897,6 +980,32 @@ export interface components {
             /** Task Id */
             task_id: number | null;
         };
+        /** CallView */
+        CallView: {
+            /** Args */
+            args: {
+                [key: string]: unknown;
+            };
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Detail */
+            detail: string;
+            /** Made By */
+            made_by: string;
+            /** Result */
+            result: {
+                [key: string]: unknown;
+            } | null;
+            /** Tool */
+            tool: string;
+            /** Verdict */
+            verdict: string;
+            /** Why Code */
+            why_code: string;
+        };
         /** CatalogItem */
         CatalogItem: {
             /** Code */
@@ -1050,6 +1159,17 @@ export interface components {
              * @enum {string}
              */
             role: "staff" | "planner" | "operator" | "customer";
+        };
+        /** DispatchOut */
+        DispatchOut: {
+            /** Connected */
+            connected: boolean;
+            /** Machines */
+            machines: components["schemas"]["MachineInfo"][];
+            /** Runs */
+            runs: components["schemas"]["RunView"][];
+            /** Simulated Notice */
+            simulated_notice: string;
         };
         /** DisruptionOut */
         DisruptionOut: {
@@ -1285,6 +1405,27 @@ export interface components {
             setup_cents: number;
             /** Total Cents */
             total_cents: number;
+        };
+        /** MachineInfo */
+        MachineInfo: {
+            /** Code */
+            code: string;
+            /** Docs */
+            docs: string;
+            /** Docs Read */
+            docs_read: string;
+            /** Job */
+            job: string | null;
+            /** Message */
+            message: string;
+            /** Progress */
+            progress: number | null;
+            /** Protocol */
+            protocol: string;
+            /** Source */
+            source: string;
+            /** State */
+            state: string | null;
         };
         /** MaterialOut */
         MaterialOut: {
@@ -1672,6 +1813,34 @@ export interface components {
             /** Setup Cents */
             setup_cents: number;
         };
+        /** ProceedIn */
+        ProceedIn: {
+            /** Proposal Ids */
+            proposal_ids: number[];
+        };
+        /** ProposalView */
+        ProposalView: {
+            /** Action */
+            action: string;
+            /** Approved */
+            approved: boolean;
+            /** Executed */
+            executed: boolean;
+            /** Id */
+            id: number;
+            /** Job */
+            job: string;
+            /** Machine */
+            machine: string;
+            /** Precheck */
+            precheck: string;
+            /** Precheck Detail */
+            precheck_detail: string;
+            /** Reason */
+            reason: string;
+            /** Task Id */
+            task_id: number;
+        };
         /** PurchaseOrderIn */
         PurchaseOrderIn: {
             /**
@@ -1985,6 +2154,26 @@ export interface components {
             /** Rush */
             rush: boolean;
         };
+        /** RunView */
+        RunView: {
+            /** Calls */
+            calls: components["schemas"]["CallView"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Note */
+            note: string;
+            /** Proposals */
+            proposals: components["schemas"]["ProposalView"][];
+            /** Proposed By */
+            proposed_by: string;
+            /** Schedule Id */
+            schedule_id: number;
+        };
         /** ScheduleOut */
         ScheduleOut: {
             /**
@@ -2082,6 +2271,24 @@ export interface components {
             rows: components["schemas"]["Row"][];
             /** Total */
             total: number;
+        };
+        /** SimModeIn */
+        SimModeIn: {
+            /**
+             * Busy
+             * @default false
+             */
+            busy: boolean;
+            /**
+             * Message
+             * @default
+             */
+            message: string;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "success" | "failure" | "slow" | "unresponsive";
         };
         /** StockRow */
         StockRow: {
@@ -2395,6 +2602,111 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DemoStatus"];
+                };
+            };
+        };
+    };
+    get_dispatch_dispatch_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DispatchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_dispatcher_dispatch_runs_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proceed_dispatch_runs__run_id__proceed_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProceedIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2838,6 +3150,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    set_simulation_machines__code__simulation_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimModeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

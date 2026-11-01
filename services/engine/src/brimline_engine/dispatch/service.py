@@ -327,7 +327,7 @@ def execute(
     made_by, why = "agent", ""
     calls: list[agent.ToolCallOut] = []
     if calls_override is not None:
-        calls = calls_override
+        made_by, calls = "scripted", calls_override
     elif client is None or budget_reason:
         made_by, why = "code", ("AI budget reached" if budget_reason else "agent unavailable")
     else:

@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     # Start the six simulated machines (their protocol mock servers) and the dispatch watcher (M12).
     # There is no real hardware behind any of them.
     sim_machines: bool = False
+    # Let the system pick the mock servers' ports (the browser tests run next to a dev engine).
+    sim_free_ports: bool = False
     # When set, every request except /health must carry it (X-Engine-Key): only the web can
     # call the engine, and only then is the visitor id it passes on (X-Visitor) believed.
     engine_web_key: SecretStr | None = None

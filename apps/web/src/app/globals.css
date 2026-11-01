@@ -572,6 +572,29 @@ blockquote.message {
   padding: 0;
 }
 
+/* Dispatch (M12): one card per machine, as many per row as fit. */
+.machine-grid {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+}
+
+.machine-grid .card {
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+
+.machine-grid h3 {
+  margin-top: 0;
+}
+
+.proposal p {
+  margin: 0 0 0.5rem 1.75rem;
+}
+
 /* On a phone, each queue task becomes a card, so the action buttons are always in view. */
 @media (max-width: 40rem) {
   .queue-stacked thead {
