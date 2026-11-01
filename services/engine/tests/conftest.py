@@ -96,6 +96,9 @@ def app_conn(test_database: str, app_url: str) -> Iterator[psycopg.Connection]:
         conn.rollback()
 
 
+DISPATCH_TABLES = ("runs", "proposals", "approvals", "calls", "executions")
+
+
 def reset_materials(conn: psycopg.Connection, also: str) -> None:
     """Truncate the tables in `also` (which reach the stock ledger through tasks) and put stock
     and purchase orders back to the seed (M9). Tests finish and fail the same seeded prints
@@ -104,9 +107,13 @@ def reset_materials(conn: psycopg.Connection, also: str) -> None:
     from brimline_engine.shop_config import load_shop_config
 
     shop = load_shop_config()
-    conn.execute("ALTER TABLE stock_movements DISABLE TRIGGER stock_movements_no_truncate")
-    conn.execute(f"TRUNCATE stock_movements, {also} CASCADE")
-    conn.execute("ALTER TABLE stock_movements ENABLE TRIGGER stock_movements_no_truncate")
+    # Append-only tables that hang off tasks: the stock ledger (M9) and the dispatch log (M12).
+    ledgers = ["stock_movements", *(f"dispatch_{t}" for t in DISPATCH_TABLES)]
+    for t in ledgers:
+        conn.execute(f"ALTER TABLE {t} DISABLE TRIGGER {t}_no_truncate")
+    conn.execute(f"TRUNCATE {', '.join(ledgers)}, {also} CASCADE")
+    for t in ledgers:
+        conn.execute(f"ALTER TABLE {t} ENABLE TRIGGER {t}_no_truncate")
     conn.execute("DELETE FROM purchase_orders WHERE created_at <> %s", (shop.seed_time,))
     conn.execute(
         "UPDATE purchase_orders SET status = 'open', received_at = NULL, cancelled_at = NULL"

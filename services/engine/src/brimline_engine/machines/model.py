@@ -37,6 +37,7 @@ class Status:
 class Adapter(Protocol):
     code: str
     protocol: str
+    can_stop: bool  # the protocol has a call that stops a running job
 
     def get_status(self) -> Status: ...
 

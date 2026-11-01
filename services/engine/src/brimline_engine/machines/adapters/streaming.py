@@ -27,6 +27,7 @@ KLIPPER_STATE = {
 
 class Moonraker:
     protocol = "moonraker"
+    can_stop = True
 
     def __init__(self, cfg: MachineConfig, host: str, port: int, timeout: float) -> None:
         self.code = cfg.code
@@ -89,6 +90,7 @@ class Bambu:
     """LAN mode MQTT. COMMUNITY-documented format (OpenBambuAPI), not supported by Bambu Lab (D164)."""
 
     protocol = "bambu"
+    can_stop = True
 
     def __init__(self, cfg: MachineConfig, host: str, port: int, timeout: float) -> None:
         self.code = cfg.code
@@ -195,6 +197,7 @@ class Grbl:
     """Serial G-code streaming, send-response (D166), over pyserial's socket:// URL to the mock."""
 
     protocol = "grbl"
+    can_stop = True
 
     def __init__(self, cfg: MachineConfig, host: str, port: int, timeout: float) -> None:
         self.code = cfg.code

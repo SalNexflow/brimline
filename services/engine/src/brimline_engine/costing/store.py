@@ -31,10 +31,12 @@ class _Run:
 
 
 def _attempts(conn: psycopg.Connection, job_id: int) -> tuple[list[Attempt], list[str]]:
+    # A machine's own count of its print time wins over the presses of Start and Done (M12).
     runs = [
-        _Run(s, int((e - s).total_seconds()), g, st == "failed")
-        for s, e, g, st in conn.execute(
-            "SELECT DISTINCT ON (actual_start) actual_start, actual_end, material_used_g, status"
+        _Run(s, int(ms) if ms is not None else int((e - s).total_seconds()), g, st == "failed")
+        for s, e, g, st, ms in conn.execute(
+            "SELECT DISTINCT ON (actual_start) actual_start, actual_end, material_used_g, status,"
+            "       machine_seconds"
             " FROM tasks WHERE job_id = %s AND kind = 'machine' AND status IN ('done', 'failed')"
             " ORDER BY actual_start, (material_used_g IS NULL), schedule_id DESC",
             (job_id,),
@@ -98,8 +100,10 @@ def record_outcome(conn: psycopg.Connection, job_id: int, finished_at: datetime)
         "INSERT INTO job_outcomes (job_id, label, material_id, process, quantity,"
         " price_rule_set_id, estimated_cents, actual_cents, estimated_grams, actual_grams,"
         " estimated_minutes, actual_seconds, grams_assumed, attempts, failed_attempts,"
-        " failure_reasons, finished_at)"
-        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        " failure_reasons, finished_at, machine_reported)"
+        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,"
+        "  EXISTS (SELECT 1 FROM tasks WHERE job_id = %s AND kind = 'machine'"
+        "          AND time_source = 'machine' AND status IN ('done', 'failed')))",
         (
             job_id,
             label,
@@ -114,6 +118,7 @@ def record_outcome(conn: psycopg.Connection, job_id: int, finished_at: datetime)
             o.failed_attempts,
             reasons,
             finished_at,
+            job_id,
         ),
     )
 

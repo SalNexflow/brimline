@@ -171,6 +171,142 @@ def get_queues(conn: psycopg.Connection, actor: Actor, tz: str) -> QueuesOut:
     )
 
 
+def apply_action(
+    conn: psycopg.Connection,
+    actor_user_id: int | None,
+    task_id: int,
+    action: TaskAction,
+    now: datetime,
+    mark: TaskMark,
+    *,
+    time_source: str = "operator",
+    machine_seconds: int | None = None,
+) -> tuple[str, dict[str, Any], dict[str, Any]]:
+    """Start, finish or fail one task, with every rule an operator's press obeys. Shared by the
+    operator's buttons (act) and by machine dispatch (M12), which records where the times came from.
+    Returns (task kind, before, after) for the caller's audit row. Call inside a transaction."""
+    # Lock the task's schedule for sharing first: an approval of a new plan (which locks the
+    # current one for update) then waits for this action, or this action waits for it and
+    # sees the plan superseded. Either way no start can slip between them.
+    found = conn.execute("SELECT schedule_id FROM tasks WHERE id = %s", (task_id,)).fetchone()
+    if found is None:
+        raise NotFoundError(str(task_id))
+    locked = conn.execute(
+        "SELECT status FROM schedules WHERE id = %s FOR SHARE", (found[0],)
+    ).fetchone()
+    assert locked is not None
+    row = conn.execute(
+        "SELECT t.status, t.job_id, t.seq, t.kind, t.machine_id, t.schedule_id,"
+        "       t.actual_start, j.order_id, j.status, o.status"
+        " FROM tasks t JOIN jobs j ON j.id = t.job_id JOIN orders o ON o.id = j.order_id"
+        " WHERE t.id = %s FOR UPDATE OF t",
+        (task_id,),
+    ).fetchone()
+    assert row is not None
+    status, job_id, seq, kind, machine_id, schedule_id, a_start, order_id, j_st, o_st = row
+    if locked[0] != "approved":
+        raise ConflictError("this task belongs to a plan that is no longer the approved one")
+    if "cancelled" in (j_st, o_st):
+        raise ConflictError("this job or its order was cancelled")
+    _check_mark(action, kind, mark)
+    before = {"status": status}
+    if action == "start":
+        if status != "planned":
+            raise ConflictError(f"only a planned task can start; this one is {status}")
+        open_earlier = conn.execute(
+            "SELECT count(*) FROM tasks WHERE schedule_id = %s AND job_id = %s AND seq < %s"
+            " AND status <> 'done'",
+            (schedule_id, job_id, seq),
+        ).fetchone()
+        assert open_earlier is not None
+        if open_earlier[0]:
+            raise ConflictError("the job's previous task is not done yet")
+        if machine_id is not None:
+            busy = conn.execute(
+                "SELECT count(*) FROM tasks WHERE schedule_id = %s AND machine_id = %s"
+                " AND status = 'running'",
+                (schedule_id, machine_id),
+            ).fetchone()
+            assert busy is not None
+            if busy[0]:
+                raise ConflictError("the machine is already running another task")
+        try:
+            conn.execute(
+                "UPDATE tasks SET status = 'running', actual_start = %s WHERE id = %s",
+                (now, task_id),
+            )
+        except psycopg.errors.UniqueViolation:
+            # The database's guard: someone started another task on this machine at the
+            # same moment, and won (tasks_one_running_per_machine).
+            raise ConflictError("the machine is already running another task") from None
+        conn.execute(
+            "UPDATE jobs SET status = 'in_progress' WHERE id = %s AND status <> 'in_progress'",
+            (job_id,),
+        )
+        conn.execute(
+            "UPDATE orders SET status = 'in_production', updated_at = %s"
+            " WHERE id = %s AND status = 'open'",
+            (now, order_id),
+        )
+        after: dict[str, Any] = {"status": "running", "actual_start": now.isoformat()}
+    else:
+        if status != "running":
+            raise ConflictError(f"only a running task can be marked {action}; this one is {status}")
+        new = "done" if action == "done" else "failed"
+        end = max(now, a_start)  # the server clock never runs backwards for one task
+        conn.execute(
+            "UPDATE tasks SET status = %s, actual_end = %s, failure_reason = %s,"
+            " failure_note = %s, material_used_g = %s, time_source = %s,"
+            " machine_seconds = %s WHERE id = %s",
+            (
+                new,
+                end,
+                mark.failure_reason,
+                mark.failure_note,
+                mark.material_used_g,
+                time_source,
+                machine_seconds,
+                task_id,
+            ),
+        )
+        after = {
+            "status": new,
+            "actual_end": end.isoformat(),
+            **mark.model_dump(exclude_none=True),
+        }
+        if kind == "machine":  # the print used its material: take it from stock (M9)
+            taken = take_for_print(conn, task_id, actor_user_id, now)
+            if taken is None:
+                # Nothing gives this job's grams, so stock would never go down (review of
+                # M9): the operator weighs it. The whole action is undone.
+                raise InvalidError(
+                    "this job has no grams per part: record the grams used with this print"
+                )
+            after["stock_taken_g"] = taken.grams
+            after["stock_grams_assumed"] = taken.assumed
+            if taken.missing:
+                after["stock_missing_g"] = taken.missing
+        if new == "failed":
+            conn.execute("UPDATE jobs SET status = 'failed' WHERE id = %s", (job_id,))
+        else:
+            left = conn.execute(
+                "SELECT count(*) FROM tasks WHERE schedule_id = %s AND job_id = %s"
+                " AND status <> 'done'",
+                (schedule_id, job_id),
+            ).fetchone()
+            assert left is not None
+            if left[0] == 0:
+                conn.execute("UPDATE jobs SET status = 'done' WHERE id = %s", (job_id,))
+                record_outcome(conn, job_id, end)  # quoted versus actual (M10)
+                conn.execute(
+                    "UPDATE orders SET status = 'done', updated_at = %s WHERE id = %s"
+                    " AND NOT EXISTS (SELECT 1 FROM jobs WHERE order_id = %s"
+                    "                 AND status NOT IN ('done', 'cancelled'))",
+                    (now, order_id, order_id),
+                )
+    return kind, before, after
+
+
 def act(
     conn: psycopg.Connection,
     actor: Actor,
@@ -195,124 +331,7 @@ def act(
         )
         if stored is not None:
             return stored, True
-        # Lock the task's schedule for sharing first: an approval of a new plan (which locks the
-        # current one for update) then waits for this action, or this action waits for it and
-        # sees the plan superseded. Either way no start can slip between them.
-        found = conn.execute("SELECT schedule_id FROM tasks WHERE id = %s", (task_id,)).fetchone()
-        if found is None:
-            raise NotFoundError(str(task_id))
-        locked = conn.execute(
-            "SELECT status FROM schedules WHERE id = %s FOR SHARE", (found[0],)
-        ).fetchone()
-        assert locked is not None
-        row = conn.execute(
-            "SELECT t.status, t.job_id, t.seq, t.kind, t.machine_id, t.schedule_id,"
-            "       t.actual_start, j.order_id, j.status, o.status"
-            " FROM tasks t JOIN jobs j ON j.id = t.job_id JOIN orders o ON o.id = j.order_id"
-            " WHERE t.id = %s FOR UPDATE OF t",
-            (task_id,),
-        ).fetchone()
-        assert row is not None
-        status, job_id, seq, kind, machine_id, schedule_id, a_start, order_id, j_st, o_st = row
-        if locked[0] != "approved":
-            raise ConflictError("this task belongs to a plan that is no longer the approved one")
-        if "cancelled" in (j_st, o_st):
-            raise ConflictError("this job or its order was cancelled")
-        _check_mark(action, kind, mark)
-        before = {"status": status}
-        if action == "start":
-            if status != "planned":
-                raise ConflictError(f"only a planned task can start; this one is {status}")
-            open_earlier = conn.execute(
-                "SELECT count(*) FROM tasks WHERE schedule_id = %s AND job_id = %s AND seq < %s"
-                " AND status <> 'done'",
-                (schedule_id, job_id, seq),
-            ).fetchone()
-            assert open_earlier is not None
-            if open_earlier[0]:
-                raise ConflictError("the job's previous task is not done yet")
-            if machine_id is not None:
-                busy = conn.execute(
-                    "SELECT count(*) FROM tasks WHERE schedule_id = %s AND machine_id = %s"
-                    " AND status = 'running'",
-                    (schedule_id, machine_id),
-                ).fetchone()
-                assert busy is not None
-                if busy[0]:
-                    raise ConflictError("the machine is already running another task")
-            try:
-                conn.execute(
-                    "UPDATE tasks SET status = 'running', actual_start = %s WHERE id = %s",
-                    (now, task_id),
-                )
-            except psycopg.errors.UniqueViolation:
-                # The database's guard: someone started another task on this machine at the
-                # same moment, and won (tasks_one_running_per_machine).
-                raise ConflictError("the machine is already running another task") from None
-            conn.execute(
-                "UPDATE jobs SET status = 'in_progress' WHERE id = %s AND status <> 'in_progress'",
-                (job_id,),
-            )
-            conn.execute(
-                "UPDATE orders SET status = 'in_production', updated_at = %s"
-                " WHERE id = %s AND status = 'open'",
-                (now, order_id),
-            )
-            after: dict[str, Any] = {"status": "running", "actual_start": now.isoformat()}
-        else:
-            if status != "running":
-                raise ConflictError(
-                    f"only a running task can be marked {action}; this one is {status}"
-                )
-            new = "done" if action == "done" else "failed"
-            end = max(now, a_start)  # the server clock never runs backwards for one task
-            conn.execute(
-                "UPDATE tasks SET status = %s, actual_end = %s, failure_reason = %s,"
-                " failure_note = %s, material_used_g = %s WHERE id = %s",
-                (
-                    new,
-                    end,
-                    mark.failure_reason,
-                    mark.failure_note,
-                    mark.material_used_g,
-                    task_id,
-                ),
-            )
-            after = {
-                "status": new,
-                "actual_end": end.isoformat(),
-                **mark.model_dump(exclude_none=True),
-            }
-            if kind == "machine":  # the print used its material: take it from stock (M9)
-                taken = take_for_print(conn, task_id, actor.user_id, now)
-                if taken is None:
-                    # Nothing gives this job's grams, so stock would never go down (review of
-                    # M9): the operator weighs it. The whole action is undone.
-                    raise InvalidError(
-                        "this job has no grams per part: record the grams used with this print"
-                    )
-                after["stock_taken_g"] = taken.grams
-                after["stock_grams_assumed"] = taken.assumed
-                if taken.missing:
-                    after["stock_missing_g"] = taken.missing
-            if new == "failed":
-                conn.execute("UPDATE jobs SET status = 'failed' WHERE id = %s", (job_id,))
-            else:
-                left = conn.execute(
-                    "SELECT count(*) FROM tasks WHERE schedule_id = %s AND job_id = %s"
-                    " AND status <> 'done'",
-                    (schedule_id, job_id),
-                ).fetchone()
-                assert left is not None
-                if left[0] == 0:
-                    conn.execute("UPDATE jobs SET status = 'done' WHERE id = %s", (job_id,))
-                    record_outcome(conn, job_id, end)  # quoted versus actual (M10)
-                    conn.execute(
-                        "UPDATE orders SET status = 'done', updated_at = %s WHERE id = %s"
-                        " AND NOT EXISTS (SELECT 1 FROM jobs WHERE order_id = %s"
-                        "                 AND status NOT IN ('done', 'cancelled'))",
-                        (now, order_id, order_id),
-                    )
+        kind, before, after = apply_action(conn, actor.user_id, task_id, action, now, mark)
         audit.record(
             conn,
             actor_user_id=actor.user_id,
