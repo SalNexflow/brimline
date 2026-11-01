@@ -35,6 +35,9 @@ Action = Literal[
     "report.read",
     "stock.read",
     "purchase.record",
+    "dispatch.read",
+    "dispatch.ask",
+    "dispatch.proceed",
 ]
 
 
@@ -100,6 +103,9 @@ _ANY_TARGET: dict[str, frozenset[str]] = {
             "file.attach_job",
             "report.read",
             "stock.read",
+            "dispatch.read",
+            "dispatch.ask",
+            "dispatch.proceed",
         }
     ),
     "operator": frozenset(
@@ -111,6 +117,8 @@ _ANY_TARGET: dict[str, frozenset[str]] = {
             "queue.read",
             "task.update",
             "file.read",
+            "dispatch.read",
+            "dispatch.proceed",
         }
     ),
 }

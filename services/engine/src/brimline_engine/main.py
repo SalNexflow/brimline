@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from brimline_engine.ai.guard import REPLAYED, VISITOR, visitor_hash
 from brimline_engine.api import (
     auth,
+    dispatch,
     disruptions,
     files,
     materials,
@@ -29,6 +30,7 @@ from brimline_engine.api import (
 )
 from brimline_engine.api.deps import Conn
 from brimline_engine.demo import DemoStatus, StorageFullError, check_storage, status
+from brimline_engine.dispatch.runtime import open_floor
 from brimline_engine.planning.runs import SHUTDOWN, recover_interrupted
 from brimline_engine.settings import get_settings
 
@@ -46,9 +48,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     SHUTDOWN.requested.clear()  # a fresh start (tests start the app more than once)
     with pool.connection() as conn:
         recover_interrupted(conn)
+    # The simulated machines and the dispatch watcher (M12), when switched on (demo, dev).
+    app.state.floor = open_floor(pool) if get_settings().sim_machines else None
     try:
         yield
     finally:
+        if app.state.floor is not None:
+            app.state.floor.close()
         # Stop a search in progress, let the run record that, then close the database pool.
         SHUTDOWN.request()
         app.state.planning_executor.shutdown(wait=True, cancel_futures=True)
@@ -67,6 +73,7 @@ app.include_router(files.router)
 app.include_router(search.router)
 app.include_router(reports.router)
 app.include_router(materials.router)
+app.include_router(dispatch.router)
 
 CallNext = Callable[[Request], Awaitable[Response]]
 WRITES = {"POST", "PUT", "PATCH", "DELETE"}

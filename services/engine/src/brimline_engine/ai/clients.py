@@ -20,6 +20,7 @@ from brimline_engine.ai.gateway import (
     Turn,
 )
 from brimline_engine.ai.guard import GuardedClient, RecordingClient, ReplayClient, demo_config
+from brimline_engine.dispatch.agent import fake_execute, fake_propose
 from brimline_engine.settings import REPO_ROOT, get_settings
 
 
@@ -171,6 +172,10 @@ def fake_reply(turns: list[Turn]) -> ModelReply:
     if "<planner_message>" in message:
         text = _fake_disruption(message)
         return ModelReply(text=text, stop_reason="end_turn", usage=TokenUsage())
+    if content.startswith("<dispatch_propose>"):
+        return ModelReply(text=fake_propose(content), stop_reason="end_turn", usage=TokenUsage())
+    if content.startswith("<dispatch_execute>"):
+        return ModelReply(text=fake_execute(content), stop_reason="end_turn", usage=TokenUsage())
     if content.startswith("<question>"):
         return ModelReply(text=_fake_search(message), stop_reason="end_turn", usage=TokenUsage())
     if content.startswith("<file_checks>"):

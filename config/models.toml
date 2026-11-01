@@ -84,3 +84,17 @@ model = "deepseek-flash"
 effort = "low"
 max_tokens = 3000
 prompt_version = "search-parse-v3"  # v2 (tuned on dev only): "in" for list fields, "my orders"; v3 (review): no customer named in the example
+
+# Machine dispatch (M12): proposing which approved tasks to send to which machines, and, after a person
+# presses Proceed, issuing the approved actions as typed tool calls. A guard in code checks every call.
+[tasks.dispatch_propose]
+model = "deepseek-flash"
+effort = "low"
+max_tokens = 4000
+prompt_version = "dispatch-propose-v1"
+
+[tasks.dispatch_execute]
+model = "deepseek-flash"
+effort = "low"
+max_tokens = 3000
+prompt_version = "dispatch-execute-v1"
