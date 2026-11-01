@@ -224,6 +224,46 @@ const MUTATIONS = [
     expect: "engine: tests",
   },
   {
+    // M12: the dispatch guard would let a call through that no Proceed covers.
+    name: "dispatch guard ignores the Proceed",
+    file: "services/engine/src/brimline_engine/dispatch/guard.py",
+    find: "        if key not in f.approved:",
+    replace: "        if key not in f.approved | {key}:",
+    expect: "engine: tests",
+  },
+  {
+    // M12: a second Proceed or a retry would start the same print twice.
+    name: "dispatch guard lets an approved action run twice",
+    file: "services/engine/src/brimline_engine/dispatch/guard.py",
+    find: "        if key in f.executed:",
+    replace: "        if key in f.executed - {key}:",
+    expect: "engine: tests",
+  },
+  {
+    // M12: a start that collides with the approved plan would be let through.
+    name: "dispatch guard ignores the checker's verdict on the plan",
+    file: "services/engine/src/brimline_engine/dispatch/guard.py",
+    find: "        if f.plan_check_added:",
+    replace: "        if f.plan_check_added and f.grams_needed < 0:",
+    expect: "engine: tests",
+  },
+  {
+    // M12: the code fallback would not say the AI budget was the reason.
+    name: "code fallback loses its label",
+    file: "services/engine/src/brimline_engine/dispatch/service.py",
+    find: '        made_by, why = "code", ("AI budget reached" if budget_reason else "agent unavailable")',
+    replace: '        made_by, why = "code", "agent unavailable"',
+    expect: "engine: tests",
+  },
+  {
+    // M12: the OctoPrint adapter would send its key under the wrong header.
+    name: "OctoPrint adapter sends the wrong key header",
+    file: "services/engine/src/brimline_engine/machines/adapters/http_based.py",
+    find: '            headers={"X-Api-Key": cfg.api_key or ""},',
+    replace: '            headers={"X-API-Token": cfg.api_key or ""},',
+    expect: "engine: tests",
+  },
+  {
     name: "a failed file check can be accepted like a warning",
     file: "services/engine/src/brimline_engine/files/service.py",
     find: '        if check.status != "warn":',

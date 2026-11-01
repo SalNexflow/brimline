@@ -39,4 +39,7 @@ Bigger "nice to have" ideas, one-line pitch each. Not commitments.
 - **Material per part as it prints:** take grams over the print instead of all at the start, for long multi-part prints on one spool.
 - **Expedite or move a delivery:** let staff change a purchase order's expected time (audited) instead of reporting it as a disruption.
 - **Need times with capacity:** work back from due dates through the plan's own machine queues, so shortages are found earlier when machines are busy.
+- **One real machine:** run an adapter against a real OctoPrint or Moonraker instance (or the vendors' own simulators) and record where the mock differed.
+- **TLS for the Bambu mock,** with a self-signed certificate, so the adapter's TLS path is exercised as on a real printer.
+- **Dispatch to another eligible machine** when the planned one is down, as a proposal the guard checks with a one-job re-plan through the checker.
 - **Edit JavaScript only with exact edits:** twice a Python-written edit put a real line break inside a JavaScript string (#86, and once in M9, caught before commit by the parse step); a small script that rewrites JS through a JS parser would remove the trap.
