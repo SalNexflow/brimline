@@ -231,6 +231,15 @@ const TASKS = {
         ["uv run --locked python -m brimline_engine.scheduling.replan_bench", ...process.argv.slice(3)].join(" "),
       ),
     ]),
+  // Delivery slips and purchase suggestions (M9): lateness before and after (eval/results/SHORTAGE.md)
+  "shortage-bench": () =>
+    runSteps("shortage-bench", [
+      step(
+        "delivery-slip scenarios",
+        ENGINE,
+        ["uv run --locked python -m brimline_engine.scheduling.shortage_bench", ...process.argv.slice(3)].join(" "),
+      ),
+    ]),
   // The whole app in containers with fake data and prepared replies (M11): http://localhost:3000
   demo: () => {
     const code = runSteps("demo", [step("build and start the app (db, engine, web)", ROOT, "docker compose --profile app up --build -d --wait")]);

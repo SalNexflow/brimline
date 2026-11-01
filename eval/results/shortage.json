@@ -1,0 +1,1044 @@
+{
+  "generated_at": "2026-11-01T08:07:25+00:00",
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "jobs": 40,
+  "cover": 0.6,
+  "solver_limit_seconds": 5.0,
+  "rows": [
+    {
+      "seed": 1,
+      "slip_days": 0,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 1865
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 8,
+        "unscheduled": 0,
+        "lateness_minutes": 9537
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3539
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3539
+      },
+      "suggested_orders": [
+        {
+          "material": "PLA-BLACK",
+          "grams": 3000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "slip_days": 1,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 1865
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 8,
+        "unscheduled": 0,
+        "lateness_minutes": 9908
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 4850
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3539
+      },
+      "suggested_orders": [
+        {
+          "material": "PLA-BLACK",
+          "grams": 3000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 1
+        },
+        {
+          "material": "TPU-BLACK",
+          "grams": 500,
+          "arrives_minute": 3000,
+          "in_time": true,
+          "affected_jobs": 2
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "slip_days": 2,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 1865
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 6,
+        "unscheduled": 0,
+        "lateness_minutes": 13591
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 4,
+        "unscheduled": 0,
+        "lateness_minutes": 11739
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 6144
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-ORANGE",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 1
+        },
+        {
+          "material": "PLA-BLACK",
+          "grams": 3000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 1
+        },
+        {
+          "material": "TPU-BLACK",
+          "grams": 500,
+          "arrives_minute": 3000,
+          "in_time": true,
+          "affected_jobs": 2
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "slip_days": 4,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 1865
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 11,
+        "unscheduled": 0,
+        "lateness_minutes": 33978
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 9,
+        "unscheduled": 0,
+        "lateness_minutes": 30714
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 6144
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 2000,
+          "arrives_minute": 5880,
+          "in_time": true,
+          "affected_jobs": 1
+        },
+        {
+          "material": "PETG-ORANGE",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 1
+        },
+        {
+          "material": "PLA-BLACK",
+          "grams": 3000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 1
+        },
+        {
+          "material": "PLA-WHITE",
+          "grams": 2000,
+          "arrives_minute": 7320,
+          "in_time": true,
+          "affected_jobs": 1
+        },
+        {
+          "material": "RESIN-CLEAR",
+          "grams": 1000,
+          "arrives_minute": 5880,
+          "in_time": true,
+          "affected_jobs": 2
+        },
+        {
+          "material": "RESIN-GREY",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": true,
+          "affected_jobs": 1
+        },
+        {
+          "material": "TPU-BLACK",
+          "grams": 2000,
+          "arrives_minute": 3000,
+          "in_time": true,
+          "affected_jobs": 3
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "slip_days": 0,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 1852
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "suggested_orders": []
+    },
+    {
+      "seed": 2,
+      "slip_days": 1,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 4,
+        "unscheduled": 0,
+        "lateness_minutes": 5643
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 2291
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 1304
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-ORANGE",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 1
+        },
+        {
+          "material": "PLA-WHITE",
+          "grams": 2000,
+          "arrives_minute": 4440,
+          "in_time": true,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "slip_days": 2,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 4,
+        "unscheduled": 0,
+        "lateness_minutes": 11089
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 9237
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 5430
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-ORANGE",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 1
+        },
+        {
+          "material": "PLA-WHITE",
+          "grams": 2000,
+          "arrives_minute": 4440,
+          "in_time": true,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "slip_days": 4,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 11,
+        "unscheduled": 0,
+        "lateness_minutes": 30675
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 8,
+        "unscheduled": 0,
+        "lateness_minutes": 29204
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 5605
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 2000,
+          "arrives_minute": 5880,
+          "in_time": true,
+          "affected_jobs": 4
+        },
+        {
+          "material": "PETG-ORANGE",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 1
+        },
+        {
+          "material": "PLA-BLACK",
+          "grams": 2000,
+          "arrives_minute": 10200,
+          "in_time": true,
+          "affected_jobs": 2
+        },
+        {
+          "material": "PLA-WHITE",
+          "grams": 2000,
+          "arrives_minute": 4440,
+          "in_time": true,
+          "affected_jobs": 1
+        },
+        {
+          "material": "RESIN-CLEAR",
+          "grams": 1000,
+          "arrives_minute": 5880,
+          "in_time": true,
+          "affected_jobs": 1
+        },
+        {
+          "material": "TPU-BLACK",
+          "grams": 1500,
+          "arrives_minute": 7320,
+          "in_time": true,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "slip_days": 0,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3631
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 4547
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 4547
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 4547
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-ORANGE",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "slip_days": 1,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3631
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 5987
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 5987
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 5987
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-ORANGE",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 2
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "slip_days": 2,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3631
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 7487
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 7487
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 7487
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-ORANGE",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 2
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "slip_days": 4,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3631
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 6,
+        "unscheduled": 0,
+        "lateness_minutes": 14994
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 6,
+        "unscheduled": 0,
+        "lateness_minutes": 14533
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 10307
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 2000,
+          "arrives_minute": 7320,
+          "in_time": true,
+          "affected_jobs": 1
+        },
+        {
+          "material": "PETG-ORANGE",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 2
+        },
+        {
+          "material": "PLA-BLACK",
+          "grams": 2000,
+          "arrives_minute": 10200,
+          "in_time": true,
+          "affected_jobs": 1
+        },
+        {
+          "material": "RESIN-CLEAR",
+          "grams": 1000,
+          "arrives_minute": 8760,
+          "in_time": true,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "slip_days": 0,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3415
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3415
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 985
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 2000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 3
+        },
+        {
+          "material": "TPU-BLACK",
+          "grams": 500,
+          "arrives_minute": 3000,
+          "in_time": true,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "slip_days": 1,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 10508
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 10508
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3773
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 2000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 3
+        },
+        {
+          "material": "PETG-ORANGE",
+          "grams": 2000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 2
+        },
+        {
+          "material": "TPU-BLACK",
+          "grams": 500,
+          "arrives_minute": 3000,
+          "in_time": true,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "slip_days": 2,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 5,
+        "unscheduled": 0,
+        "lateness_minutes": 19745
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 5,
+        "unscheduled": 0,
+        "lateness_minutes": 19724
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3773
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 3000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 4
+        },
+        {
+          "material": "PETG-ORANGE",
+          "grams": 2000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 3
+        },
+        {
+          "material": "TPU-BLACK",
+          "grams": 500,
+          "arrives_minute": 3000,
+          "in_time": true,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "slip_days": 4,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 8,
+        "unscheduled": 0,
+        "lateness_minutes": 30213
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 6,
+        "unscheduled": 0,
+        "lateness_minutes": 30722
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3773
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 3000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 4
+        },
+        {
+          "material": "PETG-ORANGE",
+          "grams": 2000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 3
+        },
+        {
+          "material": "RESIN-CLEAR",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": true,
+          "affected_jobs": 1
+        },
+        {
+          "material": "TPU-BLACK",
+          "grams": 1000,
+          "arrives_minute": 3000,
+          "in_time": true,
+          "affected_jobs": 2
+        }
+      ]
+    },
+    {
+      "seed": 5,
+      "slip_days": 0,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 949
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 949
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 949
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 1000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 5,
+      "slip_days": 1,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 2449
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 2449
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 949
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 1000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 5,
+      "slip_days": 2,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 5269
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 5269
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 1,
+        "unscheduled": 0,
+        "lateness_minutes": 949
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 1000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 1
+        }
+      ]
+    },
+    {
+      "seed": 5,
+      "slip_days": 4,
+      "unlimited": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 0,
+        "unscheduled": 0,
+        "lateness_minutes": 0
+      },
+      "edd": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 10237
+      },
+      "cpsat": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 3,
+        "unscheduled": 0,
+        "lateness_minutes": 10237
+      },
+      "cpsat_with_suggestions": {
+        "valid": true,
+        "violations": [],
+        "late_or_unscheduled": 2,
+        "unscheduled": 0,
+        "lateness_minutes": 3550
+      },
+      "suggested_orders": [
+        {
+          "material": "PETG-BLACK",
+          "grams": 1000,
+          "arrives_minute": 4440,
+          "in_time": false,
+          "affected_jobs": 1
+        },
+        {
+          "material": "PETG-ORANGE",
+          "grams": 1000,
+          "arrives_minute": 7320,
+          "in_time": false,
+          "affected_jobs": 1
+        },
+        {
+          "material": "PLA-BLACK",
+          "grams": 2000,
+          "arrives_minute": 8760,
+          "in_time": true,
+          "affected_jobs": 1
+        }
+      ]
+    }
+  ],
+  "stock_mutations": {
+    "stock_reduced": [
+      20,
+      20
+    ],
+    "delivery_removed": [
+      20,
+      20
+    ],
+    "delivery_one_minute_late": [
+      20,
+      20
+    ]
+  }
+}

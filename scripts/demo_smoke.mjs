@@ -68,6 +68,10 @@ const WRITES = [
   ["ai_calls", "staff", (t) => call("POST", "/search", { token: t, body: { question: "jobs due this week not printed yet" } })],
   ["disruptions", "planner", (t) => call("POST", "/disruptions", { token: t, body: { message: "Printer 1 jammed for 4 hours" } })],
   ["planning_runs", "planner", (t) => call("POST", "/planning-runs", { token: t })],
+  ["purchase_orders", "staff", (t) =>
+    call("POST", "/purchase-orders", { token: t, body: {
+      material_code: "PLA-BLACK", grams: 1000, supplier: "Smoke test", expected_at: `${inDays(5)}T09:00:00Z`,
+    } })],
 ];
 
 async function main() {
@@ -86,6 +90,18 @@ async function main() {
     check(login.status === 200 && me?.json?.role === u.role, `sign in as ${u.code} (${u.role}): ${login.status}${login.status === 200 ? "" : ` ${login.text}`}`);
     if (login.json?.token) tokens[u.role] ??= login.json.token;
   }
+
+  // M9: the nightly reset's approved plan holds every seeded job (only the hilt, sized on purpose,
+  // cannot be planned), and the Materials data shows the seeded TPU-BLACK shortage.
+  const board = await call("GET", "/board", { token: tokens.planner });
+  const approved = board.json?.approved;
+  const seeded = (j) => /^BL-000[1-8]$/.test(j.order_number);
+  const left = (approved?.jobs ?? []).filter((j) => seeded(j) && j.unscheduled).map((j) => j.key);
+  const unplannable = (approved?.unplannable ?? []).map((u) => u.missing.join("+"));
+  check(approved && left.length === 0 && JSON.stringify(unplannable) === JSON.stringify(["part size"]), `the demo's approved plan holds every seeded job (unscheduled: ${left.join(", ") || "none"}; cannot plan: ${unplannable.join(", ")})`);
+  const stock = await call("GET", "/stock", { token: tokens.staff });
+  const short = (stock.json?.plans ?? []).find((p) => p.status === "approved")?.shortages.map((x) => x.material) ?? [];
+  check(stock.status === 200 && short.includes("TPU-BLACK"), `the TPU-BLACK shortage shows: ${stock.status}, short ${short.join(", ") || "nothing"}`);
 
   const ctx = {};
   for (const [table, role, write] of WRITES) {

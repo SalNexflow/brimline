@@ -21,6 +21,7 @@ hosting: after a quiet spell the first visit shows "The demo is waking up" for a
 | Quote request | Reads the message into a draft (parts, quantities, material, the due-date wording) | Works out the date, lists what is missing, computes every price; a person approves |
 | Model file | Optional advice on a preview, labelled as advice (off by default) | Measures the file: closed surface, size and units, fit per printer, walls, overhangs, loose parts |
 | Planning | Nothing | CP-SAT plans; an independent checker that shares no code with the scheduler re-checks every plan |
+| Materials | Nothing | Stock and deliveries limit the plan; shortages and what to order by when are computed; a person orders |
 | Disruption | Reads "Printer 1 jammed for 4 hours" into typed events or "unclear", copying times as written | Resolves the times in shop time, re-plans with stability costs, shows the diff; a planner approves |
 | Re-plan summary | Writes a summary from the diff only | Rejects any summary mentioning something the diff does not contain |
 | Search | Turns a question into a typed filter (never SQL) | Checks the filter, resolves dates, adds permissions, builds a parameterised query |
@@ -70,6 +71,8 @@ the gate fails if this table and the results disagree. Full tables, every miss a
 | Quoted vs actual (code) | Under-quoted type flagged: true bias 1.40, 40 jobs/type | 100 % of 200 runs | `make eval` |
 | Quoted vs actual (code) | Flagged at 1.10 (under the 15 % threshold), any sample size | 0 runs of 800 | `make eval` |
 | Quoted vs actual (code) | Control false alarms per run, all job types together, worst sample size | 0 % | `make eval` |
+| Shortage planning (code) | Late or unscheduled jobs after a 4-day delivery slip: CP-SAT / with the suggested orders | 6.4 / 2.2 | `make shortage-bench` |
+| Shortage planning (code) | Plans checker-valid, stock rule included / corrupted stock records caught | 60/60 / 60/60 | `make shortage-bench` |
 <!-- generated:results:end -->
 
 ### Quoted versus actual: does the under-quote flag find a real bias, and only that?
@@ -91,6 +94,26 @@ Runs that flag the under-quoted material (TPU-BLACK), 200 held-out synthetic his
 Control false alarms per run, across all 8 materials together: 0 % at 5, 0 % at 10, 0 % at 20, 0 % at 40. Seeded demo history: flags TPU-BLACK; the same history without the bias: flags nothing.
 <!-- generated:costing:end -->
 
+### Material shortages: what a late delivery costs, and what the suggested orders change
+
+Stock and expected deliveries are part of every plan: no job starts before its material is there, and the
+independent checker re-checks that (rule R20). For a plan, the Materials page lists each material that runs
+short, when, the jobs affected, and what to order by when (lead times and pack sizes in
+`config/purchasing.toml`). It only suggests: a person orders and records the order.
+
+<!-- generated:shortage:start (scripts/readme.mjs; do not edit by hand) -->
+5 seeded 40-job instances, 60 % of each material on hand and one delivery with the rest; that delivery slips by the days shown (`make shortage-bench`, means over seeds):
+
+| Delivery slip | Late or unscheduled: no material limit | EDD | CP-SAT | CP-SAT with the suggested orders | Hours late: CP-SAT / with orders |
+|---|---|---|---|---|---|
+| 0 d | 0.8 | 3.2 | 1.6 | 1.4 | 41.5 / 33.4 |
+| 1 d | 0.8 | 3.8 | 2.4 | 1.8 | 87.0 / 51.8 |
+| 2 d | 0.8 | 3.8 | 3.0 | 2.0 | 178.2 / 79.3 |
+| 4 d | 0.8 | 7.8 | 6.4 | 2.2 | 384.7 / 97.9 |
+
+Every plan passes the independent checker, its stock rule included (60/60), and it catches 60/60 deliberately corrupted stock records (stock reduced, a delivery removed, a delivery one minute late). Suggested orders are placed at the moment of planning; 23 of 48 could arrive before the first short need.
+<!-- generated:shortage:end -->
+
 ## Resume claims, each with its measured number
 
 <!-- generated:claims:start (scripts/readme.mjs; do not edit by hand) -->
@@ -99,6 +122,7 @@ Control false alarms per run, across all 8 materials together: 0 % at 5, 0 % at 
 - Made re-planning stable: after a machine breakdown the re-plan moves **3.7** of 32.7 jobs instead of **14.3** without stability costs, with all **60/60** re-plans checker-valid (`make replan-bench`).
 - Kept the LLM out of decisions: natural-language search turns a question into a typed filter (never SQL) with **18/20** exactly right on a blind held-out set and **2/2** access-widening attacks blocked (`make eval`).
 - Evaluated every AI step blind, with dev and held-out sets written by a fresh agent: the disruption reader is exactly right on **92 %** of held-out messages with **0** unsafe cancellations (`make eval`).
+- Made material a hard constraint: stock and deliveries go into CP-SAT as a reservoir and an independent checker rule; after a 4-day delivery slip, following the code's purchase suggestions cut late or unscheduled jobs from **6.4** to **2.2** on average, with **60/60** plans passing the checker, stock rule included (`make shortage-bench`).
 - Closed the quote-versus-actual loop with a code-only under-quote flag (a sign test against a 15 % threshold): on held-out synthetic histories it flags a material quoted 40 % low in **93 %** of runs at 10 jobs per material and **100 %** at 40, flags a 10 % under-quote in **0** of 800 runs and raises **0 %** false alarms per run; its weak spot is a 20 % under-quote, caught in only **36 %** of runs even at 40 jobs (`make eval`).
 <!-- generated:claims:end -->
 
@@ -160,7 +184,11 @@ The hosted demo at https://brimline-alpha.vercel.app (Vercel + Render + Neon, al
 - Print-time and weight estimates from a model file are rough formulas (`config/files.toml`), not a slicer.
   File checks judge overhangs in the orientation the file was saved in, wall thickness with one ray per face,
   and units with a size rule that a small part modelled in centimetres can pass.
-- Material deliveries are modelled as delays (M6); stock levels and purchasing (M9) are not built.
+- Stock (M9) is taken when a print ends (the recorded grams, or the job's), and a whole job's material is
+  needed when its print starts. A shortage's need times work back from due dates ignoring other jobs, so
+  material may really be needed a little earlier. A delivery past its expected time is not counted until a
+  person updates it. There is no stock count yet: when the record shows less than a print used, it stops
+  at zero and the page says a count is due.
 - Quoted versus actual (M10) times come from operators pressing Start and Done, so a late press counts as
   machine time; the flag uses counts over a threshold, which a few late presses cannot swing. Grams not
   recorded are assumed to be the quote's, and the report says how many. A failed job is reprinted whole,

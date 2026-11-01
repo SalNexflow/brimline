@@ -27,6 +27,7 @@ const files = read("files.json").scores["held out (blind)"];
 const bench = read("bench.json");
 const replan = read("replan.json");
 const costing = read("costing.json");
+const shortage = read("shortage.json");
 
 const bySize = (jobs, method) => bench.main.filter((r) => r.jobs === jobs && r.method === method);
 const late = (jobs, method) => mean(bySize(jobs, method).map((r) => r.late_or_unscheduled));
@@ -43,6 +44,14 @@ const flagCell = (bias, n) => costing.held_out.find((r) => r.bias === bias && r.
 const flagRate = (bias, n, field = "detected") => pct(flagCell(bias, n)[field] / flagCell(bias, n).runs);
 const sizes = [...new Set(costing.held_out.map((r) => r.jobs_per_type))].sort((a, b) => a - b);
 const biases = [...new Set(costing.held_out.map((r) => r.bias))].sort((a, b) => a - b);
+const slips = [...new Set(shortage.rows.map((r) => r.slip_days))].sort((a, b) => a - b);
+const atSlip = (days, key, field = "late_or_unscheduled") =>
+  mean(shortage.rows.filter((r) => r.slip_days === days).map((r) => r[key][field]));
+const worstSlip = slips.at(-1);
+const stockPlans = shortage.rows.flatMap((r) => [r.edd, r.cpsat, r.cpsat_with_suggestions]);
+const stockMutations = Object.values(shortage.stock_mutations);
+const stockApplied = stockMutations.reduce((s, [a]) => s + a, 0);
+const stockCaught = stockMutations.reduce((s, [, c]) => s + c, 0);
 
 const results = `| Area | Measure (held-out set where there is one) | Result | Command |
 |---|---|---|---|
@@ -63,7 +72,9 @@ const results = `| Area | Measure (held-out set where there is one) | Result | C
 | Re-planning | Re-plans that pass the independent checker | ${frac(replanValid, replan.rows.length)} | \`make replan-bench\` |
 | Quoted vs actual (code) | Under-quoted type flagged: true bias 1.40, ${sizes.at(-1)} jobs/type | ${flagRate(1.4, sizes.at(-1))} of ${flagCell(1.4, sizes.at(-1)).runs} runs | \`make eval\` |
 | Quoted vs actual (code) | Flagged at 1.10 (under the 15 % threshold), any sample size | ${sizes.reduce((sum, n) => sum + flagCell(1.1, n).detected, 0)} runs of ${sizes.reduce((sum, n) => sum + flagCell(1.1, n).runs, 0)} | \`make eval\` |
-| Quoted vs actual (code) | Control false alarms per run, all job types together, worst sample size | ${pct(Math.max(...sizes.map((n) => flagCell(1.0, n).false_alarm_runs / flagCell(1.0, n).runs)))} | \`make eval\` |`;
+| Quoted vs actual (code) | Control false alarms per run, all job types together, worst sample size | ${pct(Math.max(...sizes.map((n) => flagCell(1.0, n).false_alarm_runs / flagCell(1.0, n).runs)))} | \`make eval\` |
+| Shortage planning (code) | Late or unscheduled jobs after a ${worstSlip}-day delivery slip: CP-SAT / with the suggested orders | ${one(atSlip(worstSlip, "cpsat"))} / ${one(atSlip(worstSlip, "cpsat_with_suggestions"))} | \`make shortage-bench\` |
+| Shortage planning (code) | Plans checker-valid, stock rule included / corrupted stock records caught | ${frac(stockPlans.filter((p) => p.valid).length, stockPlans.length)} / ${frac(stockCaught, stockApplied)} | \`make shortage-bench\` |`;
 
 const flagTable = `Runs that flag the under-quoted material (TPU-BLACK), ${flagCell(1.0, sizes[0]).runs} held-out synthetic histories per cell, ${costing.types} materials each (\`make eval\`, rule in \`config/costing.toml\`):
 
@@ -78,7 +89,16 @@ const claims = `- Built an **independent plan checker** that shares no code with
 - Made re-planning stable: after a machine breakdown the re-plan moves **${one(moved("machine_down", "configured"))}** of ${one(movable("machine_down"))} jobs instead of **${one(moved("machine_down", "none, approved hint"))}** without stability costs, with all **${frac(replanValid, replan.rows.length)}** re-plans checker-valid (\`make replan-bench\`).
 - Kept the LLM out of decisions: natural-language search turns a question into a typed filter (never SQL) with **${frac(search.correct, search.n)}** exactly right on a blind held-out set and **${frac(search.widening_blocked, search.widening_attacks)}** access-widening attacks blocked (\`make eval\`).
 - Evaluated every AI step blind, with dev and held-out sets written by a fresh agent: the disruption reader is exactly right on **${pct(disruption.all_correct)}** of held-out messages with **${disruption.unsafe_cancellations}** unsafe cancellations (\`make eval\`).
+- Made material a hard constraint: stock and deliveries go into CP-SAT as a reservoir and an independent checker rule; after a ${worstSlip}-day delivery slip, following the code's purchase suggestions cut late or unscheduled jobs from **${one(atSlip(worstSlip, "cpsat"))}** to **${one(atSlip(worstSlip, "cpsat_with_suggestions"))}** on average, with **${frac(stockPlans.filter((p) => p.valid).length, stockPlans.length)}** plans passing the checker, stock rule included (\`make shortage-bench\`).
 - Closed the quote-versus-actual loop with a code-only under-quote flag (a sign test against a 15 % threshold): on held-out synthetic histories it flags a material quoted 40 % low in **${flagRate(1.4, 10)}** of runs at 10 jobs per material and **${flagRate(1.4, sizes.at(-1))}** at ${sizes.at(-1)}, flags a 10 % under-quote in **${sizes.reduce((sum, n) => sum + flagCell(1.1, n).detected, 0)}** of ${sizes.reduce((sum, n) => sum + flagCell(1.1, n).runs, 0)} runs and raises **${pct(Math.max(...sizes.map((n) => flagCell(1.0, n).false_alarm_runs / flagCell(1.0, n).runs)))}** false alarms per run; its weak spot is a 20 % under-quote, caught in only **${flagRate(1.2, sizes.at(-1))}** of runs even at ${sizes.at(-1)} jobs (\`make eval\`).`;
+
+const shortageTable = `${shortage.seeds.length} seeded ${shortage.jobs}-job instances, ${Math.round(shortage.cover * 100)} % of each material on hand and one delivery with the rest; that delivery slips by the days shown (\`make shortage-bench\`, means over seeds):
+
+| Delivery slip | Late or unscheduled: no material limit | EDD | CP-SAT | CP-SAT with the suggested orders | Hours late: CP-SAT / with orders |
+|---|---|---|---|---|---|
+${slips.map((d) => `| ${d} d | ${one(atSlip(d, "unlimited"))} | ${one(atSlip(d, "edd"))} | ${one(atSlip(d, "cpsat"))} | ${one(atSlip(d, "cpsat_with_suggestions"))} | ${one(atSlip(d, "cpsat", "lateness_minutes") / 60)} / ${one(atSlip(d, "cpsat_with_suggestions", "lateness_minutes") / 60)} |`).join("\n")}
+
+Every plan passes the independent checker, its stock rule included (${frac(stockPlans.filter((p) => p.valid).length, stockPlans.length)}), and it catches ${frac(stockCaught, stockApplied)} deliberately corrupted stock records (stock reduced, a delivery removed, a delivery one minute late). Suggested orders are placed at the moment of planning; ${shortage.rows.flatMap((r) => r.suggested_orders).filter((o) => o.in_time).length} of ${shortage.rows.flatMap((r) => r.suggested_orders).length} could arrive before the first short need.`;
 
 // --- Write or check -----------------------------------------------------------------------------
 
@@ -92,7 +112,7 @@ function fill(text, name, body) {
 }
 
 const current = readFileSync(README, "utf8");
-const next = fill(fill(fill(current, "results", results), "claims", claims), "costing", flagTable);
+const next = fill(fill(fill(fill(current, "results", results), "claims", claims), "costing", flagTable), "shortage", shortageTable);
 if (process.argv.includes("--check")) {
   if (next !== current) {
     console.error("✗ README.md does not match eval/results (run `make readme` and commit it)");

@@ -16,6 +16,7 @@
     "eval": "node scripts/tasks.mjs eval",
     "bench": "node scripts/tasks.mjs bench",
     "replan-bench": "node scripts/tasks.mjs replan-bench",
+    "shortage-bench": "node scripts/tasks.mjs shortage-bench",
     "gate-selftest": "node scripts/tasks.mjs gate-selftest",
     "demo": "node scripts/tasks.mjs demo",
     "demo-smoke": "node scripts/tasks.mjs demo-smoke",
