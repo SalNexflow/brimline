@@ -13,7 +13,7 @@ from tests.test_checker_cases import RULES, doc, job, std
 
 
 def stocked(
-    d: dict[str, Any], stock: dict[str, int], deliveries: list[tuple[str, int, int]] = ()
+    d: dict[str, Any], stock: dict[str, int], deliveries: tuple[tuple[str, int, int], ...] = ()
 ) -> dict[str, Any]:
     d["instance"]["stock"] = stock
     d["instance"]["deliveries"] = [{"material": m, "at": at, "grams": g} for m, at, g in deliveries]
@@ -64,8 +64,8 @@ def test_quantity_multiplies_grams() -> None:
 
 def test_a_delivery_at_the_start_minute_counts_one_minute_later_does_not() -> None:
     # Stock 0; A starts its machine task at 10.
-    on_time = stocked(doc([g("A", 300)], [std("A", "M1", 0)]), {"PLA": 0}, [("PLA", 10, 300)])
-    late = stocked(doc([g("A", 300)], [std("A", "M1", 0)]), {"PLA": 0}, [("PLA", 11, 300)])
+    on_time = stocked(doc([g("A", 300)], [std("A", "M1", 0)]), {"PLA": 0}, (("PLA", 10, 300),))
+    late = stocked(doc([g("A", 300)], [std("A", "M1", 0)]), {"PLA": 0}, (("PLA", 11, 300),))
     assert short(on_time) == set()
     assert short(late) == {"A"}
 
@@ -96,7 +96,7 @@ def test_a_delivery_between_two_jobs_covers_the_second() -> None:
     d = stocked(
         doc([g("A", 200), g("B", 200)], [std("A", "M1", 0), std("B", "M1", 120)]),
         {"PLA": 200},
-        [("PLA", 100, 200)],
+        (("PLA", 100, 200),),
     )
     assert short(d) == set()
 
@@ -106,7 +106,7 @@ def test_order_of_use_matters_not_only_the_total() -> None:
     d = stocked(
         doc([g("A", 300), g("B", 100)], [std("A", "M1", 0), std("B", "M1", 120)]),
         {"PLA": 100},
-        [("PLA", 100, 300)],
+        (("PLA", 100, 300),),
     )
     assert short(d) == {"A"}
 
@@ -178,7 +178,7 @@ def test_unscheduled_job_is_suspicious_only_after_its_material_arrives() -> None
     # U needs 300 g; stock 0, delivery 300 at 6000 (Friday 4am-ish, before the 7-day horizon).
     # It could still fit after 6000, so it is suspicious; without the delivery it is not.
     with_delivery = stocked(
-        doc([g("U", 300)], [], unscheduled=("U",)), {"PLA": 0}, [("PLA", 6000, 300)]
+        doc([g("U", 300)], [], unscheduled=("U",)), {"PLA": 0}, (("PLA", 6000, 300),)
     )
     r = check_document(with_delivery, RULES)
     assert [w.job for w in r.warnings] == ["U"]
