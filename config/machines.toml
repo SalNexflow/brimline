@@ -1,0 +1,69 @@
+# How Brimline talks to each machine (M12). Every machine is SIMULATED: the adapter speaks the machine's
+# protocol to a mock server that copies that protocol, never to real hardware. Protocol calls, their sources
+# and the date they were read are in docs/DECISIONS.md (D161 to D166).
+#
+# The credentials below are made-up values that only the mock servers accept. A real shop would put real
+# ones in the environment, never in git (hard rule 9).
+
+checked = 2026-11-02
+
+[sim]
+host = "127.0.0.1"
+speed = 600                 # simulated machine seconds per real second: a 3-hour print takes 18 s
+slow_delay_seconds = 1.0    # "slow" mode: every answer comes this late (still inside the timeout)
+timeout_seconds = 3.0       # an adapter gives up on a machine that has not answered by then
+poll_seconds = 2.0          # how often code checks running dispatched work
+
+[[machines]]
+code = "FDM-1"
+protocol = "octoprint"
+source = "official"
+docs = "https://docs.octoprint.org/en/master/api/"
+read = 2026-11-02
+port = 18101
+api_key = "sim-octoprint-key"
+
+[[machines]]
+code = "FDM-2"
+protocol = "moonraker"
+source = "official"
+docs = "https://moonraker.readthedocs.io/en/latest/external_api/introduction/"
+read = 2026-11-02
+port = 18102
+
+[[machines]]
+code = "FDM-3"
+protocol = "prusalink"
+source = "official"
+docs = "https://github.com/prusa3d/Prusa-Link-Web/blob/master/spec/openapi.yaml"
+read = 2026-11-02
+port = 18103
+username = "maker"
+password = "sim-prusalink-password"
+
+[[machines]]
+code = "FDM-4"
+protocol = "bambu"
+source = "community"
+docs = "https://github.com/Doridian/OpenBambuAPI/blob/main/mqtt.md"
+read = 2026-11-02
+port = 18104
+serial = "SIM0000FDM4"
+access_code = "sim12345"
+
+[[machines]]
+code = "RESIN-1"
+protocol = "formlabs"
+source = "official"
+docs = "https://formlabs-dashboard-api-resources.s3.amazonaws.com/formlabs-local-api-latest.html"
+read = 2026-11-02
+port = 18105
+printer = "Form-Sim-1"
+
+[[machines]]
+code = "CNC-1"
+protocol = "grbl"
+source = "official"
+docs = "https://github.com/gnea/grbl/wiki/Grbl-v1.1-Interface"
+read = 2026-11-02
+port = 18106
