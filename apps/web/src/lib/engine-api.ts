@@ -808,6 +808,8 @@ export interface components {
             due: string;
             /** Grams Per Part */
             grams_per_part: number | null;
+            /** Grams Source */
+            grams_source: string | null;
             /** Key */
             key: string;
             /** Late Minutes */
@@ -1436,6 +1438,8 @@ export interface components {
         };
         /** OrderLineIn */
         OrderLineIn: {
+            /** Grams Per Part */
+            grams_per_part?: number | null;
             /** Material Code */
             material_code: string;
             /** Part Name */

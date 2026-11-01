@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from brimline_engine import audit, idempotency
 from brimline_engine.checker import CheckResult, check_document
 from brimline_engine.materials.config import purchasing_config
+from brimline_engine.materials.grams import job_grams
 from brimline_engine.materials.shortage import for_document
 from brimline_engine.materials.stock import take_for_print
 from brimline_engine.permissions import Actor, can
@@ -81,6 +82,7 @@ class BoardJob(BaseModel):
     late_minutes: int  # from the checker's deadline report
     unscheduled: bool
     grams_per_part: int | None  # what the plan used (M9); None in a plan made before M9
+    grams_source: str | None  # where today's number comes from: entered, file estimate, quote
     material_short: bool  # its material runs short for it in this plan (materials/shortage.py)
 
 
@@ -197,13 +199,14 @@ def _schedule_out(
     refs = {
         job_key(r[0], r[1]): r
         for r in conn.execute(
-            "SELECT o.order_number, j.line_no, j.part_name, j.quantity, mat.code, o.rush"
+            "SELECT o.order_number, j.line_no, j.part_name, j.quantity, mat.code, o.rush, j.id"
             " FROM jobs j JOIN orders o ON o.id = j.order_id JOIN materials mat ON mat.id = j.material_id"
             " WHERE (o.order_number || '-' || j.line_no) = ANY(%s)",
             ([j["id"] for j in inst["jobs"]],),
         ).fetchall()
     }
     deadlines = {d.job: d for d in result.deadlines}
+    sources = job_grams(conn, [int(r[6]) for r in refs.values()])
     short = {
         a.job
         for s in for_document(doc, anchor, tz, cfg.durations, purchasing_config(), now)
@@ -226,6 +229,7 @@ def _schedule_out(
                 late_minutes=0 if d is None else d.tardiness,
                 unscheduled=j["id"] in plan["unscheduled"],
                 grams_per_part=j.get("grams_per_part"),
+                grams_source=sources[int(r[6])].source if r else None,
                 material_short=j["id"] in short,
             )
         )

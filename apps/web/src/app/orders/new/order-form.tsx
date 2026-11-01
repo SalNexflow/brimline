@@ -112,6 +112,16 @@ export function OrderForm({ idempotencyKey, materials, customers, ownCustomer }:
                 ))}
               </select>
             </label>
+            <label>
+              Grams per part <span className="muted">(optional)</span>
+              <input
+                name="line_grams_per_part"
+                type="number"
+                min={1}
+                max={100000}
+                aria-label={`Line ${index + 1} grams per part (optional)`}
+              />
+            </label>
             {lineIds.length > 1 ? (
               <button
                 type="button"

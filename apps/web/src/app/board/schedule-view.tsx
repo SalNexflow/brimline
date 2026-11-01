@@ -218,6 +218,12 @@ export function PlanTable({ schedule, timeZone }: Omit<Props, "now">) {
                   <>
                     {job.order_number} {job.part_name}, {job.quantity} × {job.material_code}
                     {job.rush ? <span className="badge badge-rush">rush</span> : null}
+                    {t.kind === "machine" && job.grams_per_part ? (
+                      <span className="muted">
+                        {" "}
+                        · {job.grams_per_part} g per part{job.grams_source ? ` (${job.grams_source})` : ""}
+                      </span>
+                    ) : null}
                     {job.material_short && t.kind === "machine" ? (
                       <Link href="/materials" className="badge badge-rush" data-testid={`waits-${job.key}`}>
                         waits for {job.material_code}

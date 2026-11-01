@@ -10,6 +10,13 @@ const lineSchema = z.object({
     .min(1, "Quantity must be at least 1")
     .max(10_000, "Quantity can be at most 10,000"),
   material_code: z.string().min(1, "Every line needs a material"),
+  // Optional (M9): without it, planning uses the part's file estimate, then its quote.
+  grams_per_part: z.coerce
+    .number({ error: "Grams per part must be a number" })
+    .int("Grams per part must be a whole number")
+    .min(1, "Grams per part must be at least 1")
+    .max(100_000, "Grams per part can be at most 100,000")
+    .optional(),
 });
 
 export const orderFormSchema = z.object({
@@ -30,12 +37,14 @@ export function parseOrderForm(form: FormData): ParseResult {
   const parts = form.getAll("line_part_name").map(String);
   const quantities = form.getAll("line_quantity").map(String);
   const materials = form.getAll("line_material_code").map(String);
+  const grams = form.getAll("line_grams_per_part").map(String);
 
   const lines = parts
     .map((part_name, i) => ({
       part_name,
       quantity: quantities[i] ?? "",
       material_code: materials[i] ?? "",
+      grams_per_part: (grams[i] ?? "").trim() === "" ? undefined : (grams[i] ?? "").trim(),
     }))
     .filter((line) => line.part_name.trim() !== "" || line.quantity.trim() !== "");
 

@@ -77,4 +77,13 @@ describe("parseOrderForm", () => {
     const result = parseOrderForm(form({ ...valid, line_quantity: [quantity, ""] }));
     expect(result).toEqual({ ok: false, errors: [message] });
   });
+
+  test("grams per part are optional and read as a whole number (M9)", () => {
+    const blank = parseOrderForm(form({ ...valid, line_grams_per_part: ["", ""] }));
+    expect(blank.ok && blank.value.lines[0]?.grams_per_part).toBe(undefined);
+    const given = parseOrderForm(form({ ...valid, line_grams_per_part: ["55", ""] }));
+    expect(given.ok && given.value.lines[0]?.grams_per_part).toBe(55);
+    const bad = parseOrderForm(form({ ...valid, line_grams_per_part: ["0.5", ""] }));
+    expect(bad).toEqual({ ok: false, errors: ["Grams per part must be a whole number"] });
+  });
 });

@@ -25,6 +25,7 @@ class NewJob(NamedTuple):
     minutes_per_part: int | None = None
     post_processing: tuple[str, ...] = ()
     part_mm: tuple[int, int, int] | None = None
+    grams_per_part: int | None = None  # entered by a person (M9); else planning falls back
 
 
 class NotFoundError(Exception):
@@ -47,6 +48,9 @@ class OrderLineIn(BaseModel):
     part_name: SafeText = Field(min_length=1, max_length=200)
     quantity: int = Field(gt=0, le=10_000)
     material_code: SafeText = Field(min_length=1, max_length=50)
+    # Optional (M9). Without it, planning uses the part's file estimate, then its quote; with
+    # none of these the job cannot be planned and the board says so.
+    grams_per_part: int | None = Field(default=None, ge=1, le=100_000)
 
 
 class OrderCreate(BaseModel):
@@ -215,8 +219,8 @@ def insert_order(
     for line_no, line in enumerate(jobs, start=1):
         conn.execute(
             "INSERT INTO jobs (order_id, line_no, part_name, quantity, material_id,"
-            " minutes_per_part, post_processing, part_x_mm, part_y_mm, part_z_mm)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            " minutes_per_part, post_processing, part_x_mm, part_y_mm, part_z_mm, grams_per_part)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (
                 order_id,
                 line_no,
@@ -226,6 +230,7 @@ def insert_order(
                 line.minutes_per_part,
                 list(line.post_processing),
                 *(line.part_mm or (None, None, None)),
+                line.grams_per_part,
             ),
         )
     return order_id, order_number
@@ -281,7 +286,12 @@ def create_order(
             notes=body.notes,
             created_by=actor.user_id,
             jobs=[
-                NewJob(line.part_name, line.quantity, materials[line.material_code])
+                NewJob(
+                    line.part_name,
+                    line.quantity,
+                    materials[line.material_code],
+                    grams_per_part=line.grams_per_part,
+                )
                 for line in body.lines
             ],
         )
