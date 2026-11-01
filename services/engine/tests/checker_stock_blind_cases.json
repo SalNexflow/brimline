@@ -1,0 +1,1881 @@
+[
+  {
+    "name": "no_stock_section_rule_off",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. No stock section, so R20 is off even though J1 needs 100000 g. Valid.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "no_stock_section_rule_off",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100000
+          }
+        ],
+        "fixed": []
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": true,
+      "codes": [],
+      "short_jobs": []
+    }
+  },
+  {
+    "name": "stock_exactly_enough",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock PLA 100, J1 uses 1*100 at its machine start 15: level 0 at 15, never below 0. Valid.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "stock_exactly_enough",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 100
+        }
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": true,
+      "codes": [],
+      "short_jobs": []
+    }
+  },
+  {
+    "name": "stock_one_gram_short",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock PLA 99, J1 uses 100 at 15: level -1 at 15. J1 short.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "stock_one_gram_short",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 99
+        }
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": false,
+      "codes": [
+        "material_short"
+      ],
+      "short_jobs": [
+        "J1"
+      ]
+    }
+  },
+  {
+    "name": "delivery_at_start_minute",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock PLA 0, delivery 100 g at 200; J1 (100 g) machine starts at 200 (prep 185-200, finish 295-306). At 200 the delivery counts (at <= t): 0+100-100 = 0. Valid.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "delivery_at_start_minute",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 0
+        },
+        "deliveries": [
+          {
+            "material": "PLA",
+            "at": 200,
+            "grams": 100
+          }
+        ]
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 185,
+                "end": 200
+              },
+              {
+                "kind": "machine",
+                "start": 200,
+                "end": 295
+              },
+              {
+                "kind": "finish",
+                "start": 295,
+                "end": 306
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": true,
+      "codes": [],
+      "short_jobs": []
+    }
+  },
+  {
+    "name": "delivery_one_minute_late",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock PLA 0, delivery 100 g at 201; J1 (100 g) starts at 200. Level at 200 = 0-100 = -100 (back to 0 at 201, too late). J1 short.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "delivery_one_minute_late",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 0
+        },
+        "deliveries": [
+          {
+            "material": "PLA",
+            "at": 201,
+            "grams": 100
+          }
+        ]
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 185,
+                "end": 200
+              },
+              {
+                "kind": "machine",
+                "start": 200,
+                "end": 295
+              },
+              {
+                "kind": "finish",
+                "start": 295,
+                "end": 306
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": false,
+      "codes": [
+        "material_short"
+      ],
+      "short_jobs": [
+        "J1"
+      ]
+    }
+  },
+  {
+    "name": "two_jobs_same_minute_exceed",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock PLA 150. J1 on M1 and J2 on M2 both start machines at 15 (preps 0-15 together = 2 people, finishes 110-121 together = 2 people), 100 g each. Level at 15 = 150-200 = -50; both start at that minute, so both are reported.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "two_jobs_same_minute_exceed",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          },
+          {
+            "id": "J2",
+            "arrival": 2,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 150
+        }
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          },
+          {
+            "job_id": "J2",
+            "machine": "M2",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": false,
+      "codes": [
+        "material_short"
+      ],
+      "short_jobs": [
+        "J1",
+        "J2"
+      ]
+    }
+  },
+  {
+    "name": "later_job_goes_negative",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock PLA 150. J1 (100 g) on M1 machine 15-110, level 50 at 15. J2 (100 g, same material, no changeover) on M1 machine 110-205 (prep 95-110, finish 205-216); level at 110 = -50. Only J2 short.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "later_job_goes_negative",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          },
+          {
+            "id": "J2",
+            "arrival": 2,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 150
+        }
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          },
+          {
+            "job_id": "J2",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 95,
+                "end": 110
+              },
+              {
+                "kind": "machine",
+                "start": 110,
+                "end": 205
+              },
+              {
+                "kind": "finish",
+                "start": 205,
+                "end": 216
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": false,
+      "codes": [
+        "material_short"
+      ],
+      "short_jobs": [
+        "J2"
+      ]
+    }
+  },
+  {
+    "name": "short_then_recovered_by_delivery",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock PLA 50, delivery 100 g at 100. J1 (100 g) M1 at 15: level -50, short. J2 (50 g) M1 at 200 (prep 185-200, machine 200-295, after J1's 15-110): level 50+100-100-50 = 0, fine. Only J1 short.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "short_then_recovered_by_delivery",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          },
+          {
+            "id": "J2",
+            "arrival": 2,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 50
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 50
+        },
+        "deliveries": [
+          {
+            "material": "PLA",
+            "at": 100,
+            "grams": 100
+          }
+        ]
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          },
+          {
+            "job_id": "J2",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 185,
+                "end": 200
+              },
+              {
+                "kind": "machine",
+                "start": 200,
+                "end": 295
+              },
+              {
+                "kind": "finish",
+                "start": 295,
+                "end": 306
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": false,
+      "codes": [
+        "material_short"
+      ],
+      "short_jobs": [
+        "J1"
+      ]
+    }
+  },
+  {
+    "name": "material_missing_from_stock",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock lists only PETG 1000; PLA is not listed so it has 0 g. J1 (PLA, 1 g) at 15: level -1. J1 short.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "material_missing_from_stock",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 1
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PETG": 1000
+        }
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": false,
+      "codes": [
+        "material_short"
+      ],
+      "short_jobs": [
+        "J1"
+      ]
+    }
+  },
+  {
+    "name": "fixed_job_uses_nothing",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. J1 (PLA, grams 500) is fixed on M1 0-95 (end given, equals formula 95), so no prep; finish 95-106. J2 (PLA, 100 g) on M2 machine 15-110, prep 0-15, finish 110-121. Stock PLA 100. The fixed job uses nothing, so level at 15 = 0. Valid (would be -500 if the fixed job counted).",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "fixed_job_uses_nothing",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 500
+          },
+          {
+            "id": "J2",
+            "arrival": 2,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          }
+        ],
+        "fixed": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "start": 0,
+            "end": 95
+          }
+        ],
+        "stock": {
+          "PLA": 100
+        }
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "machine",
+                "start": 0,
+                "end": 95
+              },
+              {
+                "kind": "finish",
+                "start": 95,
+                "end": 106
+              }
+            ]
+          },
+          {
+            "job_id": "J2",
+            "machine": "M2",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": true,
+      "codes": [],
+      "short_jobs": []
+    }
+  },
+  {
+    "name": "fixed_job_without_grams_ok",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock PLA 100. J1 is fixed on M1 at 0 (no end, so formula 95) and has no grams_per_part; allowed, only jobs without a fixed task need it. J2 (100 g) on M2 at 15: level 0. Valid, not bad_instance.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "fixed_job_without_grams_ok",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0
+          },
+          {
+            "id": "J2",
+            "arrival": 2,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          }
+        ],
+        "fixed": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "start": 0
+          }
+        ],
+        "stock": {
+          "PLA": 100
+        }
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "machine",
+                "start": 0,
+                "end": 95
+              },
+              {
+                "kind": "finish",
+                "start": 95,
+                "end": 106
+              }
+            ]
+          },
+          {
+            "job_id": "J2",
+            "machine": "M2",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": true,
+      "codes": [],
+      "short_jobs": []
+    }
+  },
+  {
+    "name": "unscheduled_job_uses_nothing",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock PLA 100. J1 (100 g) on M1 at 15: level 0. J2 (PLA, 500 g) is unscheduled and uses nothing. Valid (a suspicious warning is not a violation; the level never reaches 500 so none is expected).",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "unscheduled_job_uses_nothing",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          },
+          {
+            "id": "J2",
+            "arrival": 2,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 500
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 100
+        }
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": [
+          "J2"
+        ]
+      }
+    },
+    "expected": {
+      "valid": true,
+      "codes": [],
+      "short_jobs": []
+    }
+  },
+  {
+    "name": "deliveries_without_stock",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. deliveries are given but there is no stock section: R17 bad_instance, nothing else judged.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "deliveries_without_stock",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          }
+        ],
+        "fixed": [],
+        "deliveries": [
+          {
+            "material": "PLA",
+            "at": 0,
+            "grams": 100
+          }
+        ]
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": false,
+      "codes": [
+        "bad_instance"
+      ],
+      "short_jobs": []
+    }
+  },
+  {
+    "name": "missing_grams_with_stock",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock is given and J2 (not fixed) has no grams_per_part: R17 bad_instance. The plan is otherwise valid (J1 M1 at 15, J2 M2 at 15).",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "missing_grams_with_stock",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 10
+          },
+          {
+            "id": "J2",
+            "arrival": 2,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 1000
+        }
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          },
+          {
+            "job_id": "J2",
+            "machine": "M2",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": false,
+      "codes": [
+        "bad_instance"
+      ],
+      "short_jobs": []
+    }
+  },
+  {
+    "name": "zero_gram_delivery",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. A delivery of 0 g (below 1): R17 bad_instance, even though stock 100 would cover J1.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "zero_gram_delivery",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 100
+        },
+        "deliveries": [
+          {
+            "material": "PLA",
+            "at": 50,
+            "grams": 0
+          }
+        ]
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": false,
+      "codes": [
+        "bad_instance"
+      ],
+      "short_jobs": []
+    }
+  },
+  {
+    "name": "two_materials_one_short",
+    "why": "Each job: fdm, quantity 1, minutes_per_part 60, post 0. prep = 15; machine = setup 15 + 1*60 + fdm cool-down 20 = 95; post = 0 (no task); finish = 10 + 1*1 = 11. A job whose machine starts at t has prep [t-15,t), machine [t,t+95), finish [t+95,t+106), all inside Monday's shift [0,540). At most 2 manual tasks at once, machines fdm with PLA and PETG, part 50 mm fits 250 mm, release 0, due at horizon. Stock PLA 100, PETG 50. J1 (PLA 100 g) on M1 at 15: PLA level 0. J2 (PETG 60 g) on M2 at 15: PETG level -10. Materials are separate, so only J2 short.",
+    "doc": {
+      "format": "brimline-plan/1",
+      "instance": {
+        "name": "two_materials_one_short",
+        "horizon": 20160,
+        "machines": [
+          {
+            "code": "M1",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          },
+          {
+            "code": "M2",
+            "process": "fdm",
+            "materials": [
+              "PLA",
+              "PETG"
+            ],
+            "build_mm": [
+              250,
+              250,
+              250
+            ]
+          }
+        ],
+        "jobs": [
+          {
+            "id": "J1",
+            "arrival": 1,
+            "material": "PLA",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 100
+          },
+          {
+            "id": "J2",
+            "arrival": 2,
+            "material": "PETG",
+            "process": "fdm",
+            "part_mm": [
+              50,
+              50,
+              50
+            ],
+            "quantity": 1,
+            "minutes_per_part": 60,
+            "post_minutes_per_part": 0,
+            "due": 20160,
+            "rush": false,
+            "release": 0,
+            "grams_per_part": 60
+          }
+        ],
+        "fixed": [],
+        "stock": {
+          "PLA": 100,
+          "PETG": 50
+        }
+      },
+      "plan": {
+        "method": "hand",
+        "jobs": [
+          {
+            "job_id": "J1",
+            "machine": "M1",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          },
+          {
+            "job_id": "J2",
+            "machine": "M2",
+            "tasks": [
+              {
+                "kind": "prep",
+                "start": 0,
+                "end": 15
+              },
+              {
+                "kind": "machine",
+                "start": 15,
+                "end": 110
+              },
+              {
+                "kind": "finish",
+                "start": 110,
+                "end": 121
+              }
+            ]
+          }
+        ],
+        "unscheduled": []
+      }
+    },
+    "expected": {
+      "valid": false,
+      "codes": [
+        "material_short"
+      ],
+      "short_jobs": [
+        "J2"
+      ]
+    }
+  }
+]

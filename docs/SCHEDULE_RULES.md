@@ -39,13 +39,15 @@ An instance may state how much of each material there is and when more arrives. 
 `stock` section there is no stock rule (older documents and the benchmark instances).
 
 - `stock`: grams of each material available to the work in this plan at `plan_start`, a map
-  from material code to a whole number `>= 0`. A material that is not listed has 0 grams.
+  from material code to a whole number `>= 0`. A material that is not listed has 0 grams, so
+  `stock: {}` turns the rule on with nothing on hand.
   Prints already running or done (fixed machine tasks) took their material before this number
   was stated, so they use nothing here.
 - `deliveries`: a list of `{material, at, grams}`: `grams` (`>= 1`) of `material` arrive at
   minute `at`. A delivery at minute `t` can be used by a machine task starting at `t`.
 - `grams_per_part` on each job (`>= 1`): a job uses `quantity * grams_per_part` grams of its
-  material, all of it at the **start of its machine task**.
+  material, all of it at the **start of its machine task**. A job with a fixed task needs
+  none (it uses nothing here).
 
 The **level** of a material at minute `t` is its `stock`, plus the grams of its deliveries with
 `at <= t`, minus the grams used by every planned job that has no fixed task and whose machine
