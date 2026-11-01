@@ -10,11 +10,14 @@ dependencies = [
     "httpx2>=2.16.0",  # DeepSeek API calls, and FastAPI's TestClient (Starlette dropped httpx)
     "numpy>=2.5.4",
     "ortools>=9.15.6755",
+    "paho-mqtt>=2.1.0",
     "psycopg-pool>=3.3.3",
     "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.16.1",
+    "pyserial>=3.5",
     "tzdata>=2026.5",
     "uvicorn>=0.54.0",
+    "websockets>=17.3",
 ]
 
 [dependency-groups]
@@ -22,6 +25,7 @@ dev = [
     "mypy>=2.4.0",
     "pytest>=9.1.1",
     "ruff>=0.17.2",
+    "types-pyserial>=3.5.0.20261030",
 ]
 
 [build-system]
