@@ -44,6 +44,13 @@ class Job:
     # their configured minutes added up, and the checker recomputes that sum. None when the
     # minutes are given directly (generated instances).
     post_processing: tuple[str, ...] | None = None
+    # Grams of material per part (M9). Needed when the instance has stock; the whole job's
+    # grams are taken from stock when its machine task starts.
+    grams_per_part: int | None = None
+
+    @property
+    def grams(self) -> int:
+        return self.quantity * (self.grams_per_part or 0)
 
     def __post_init__(self) -> None:
         # Every job has real machine work; a zero-length machine task would break every method.
@@ -74,6 +81,15 @@ class Downtime:
 
 
 @dataclass(frozen=True)
+class Delivery:
+    """`grams` of `material` arrive at minute `at`; a machine task starting then may use them."""
+
+    material: str
+    at: int
+    grams: int
+
+
+@dataclass(frozen=True)
 class Previous:
     """Where the approved plan had a job, so a re-plan can avoid moving it without need."""
 
@@ -95,6 +111,13 @@ class Instance:
     plan_start: int = 0  # the moment of planning: nothing that is not fixed may start earlier
     downtimes: tuple[Downtime, ...] = ()
     previous: tuple[Previous, ...] = ()  # the approved plan, when re-planning
+    # Grams of each material free for the work in this plan at plan_start (running and done
+    # prints already took theirs). None: material is not limited (benchmark instances).
+    stock: tuple[tuple[str, int], ...] | None = None
+    deliveries: tuple[Delivery, ...] = ()
+
+    def stock_of(self, material: str) -> int:
+        return dict(self.stock or ()).get(material, 0)
 
 
 @dataclass(frozen=True)

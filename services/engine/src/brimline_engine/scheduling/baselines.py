@@ -19,6 +19,7 @@ from brimline_engine.scheduling.calendar import earliest_machine_start, earliest
 from brimline_engine.scheduling.config import Durations
 from brimline_engine.scheduling.durations import eligible_machines, job_durations
 from brimline_engine.scheduling.model import Fixed, Instance, Job, JobPlan, Schedule, Slot, TaskKind
+from brimline_engine.scheduling.stock import Uses, free_from
 from brimline_engine.scheduling.validation import check_instance
 
 # (start, end, material) of what is on a machine already; material None for a downtime, which
@@ -30,6 +31,7 @@ Busy = list[tuple[int, int, str | None]]
 class _State:
     machines: dict[str, Busy]
     lanes: list[list[tuple[int, int]]]  # each person's busy [start, end) intervals
+    uses: Uses  # material taken from stock by the jobs placed so far
 
 
 def _earliest_gap(
@@ -102,6 +104,10 @@ def _plan_job(
     if fixed is not None:
         machine, start = fixed.machine, fixed.start  # a fact: no checks, prep already done
     else:
+        # Material: the earliest minute from which the job can take its grams for good.
+        material_at = free_from(instance, state.uses, job)
+        if material_at is None:
+            return None, state.lanes, None
         if "prep" in durations:
             end = manual("prep", instance.plan_start)
             if end is None:
@@ -110,7 +116,7 @@ def _plan_job(
         options = []
         for m in eligible_machines(job, instance.machines):
             at = _earliest_machine_gap(
-                max(t, job.release),
+                max(t, job.release, material_at),
                 durations["machine"],
                 job.material,
                 state.machines[m.code],
@@ -138,7 +144,9 @@ def _plan_job(
 def list_schedule(instance: Instance, order: list[Job], d: Durations, method: str) -> Schedule:
     check_instance(instance, d)
     state = _State(
-        machines={m.code: [] for m in instance.machines}, lanes=[[] for _ in range(instance.staff)]
+        machines={m.code: [] for m in instance.machines},
+        lanes=[[] for _ in range(instance.staff)],
+        uses=[],
     )
     for down in instance.downtimes:
         state.machines[down.machine].append((down.start, down.end, None))
@@ -156,6 +164,10 @@ def list_schedule(instance: Instance, order: list[Job], d: Durations, method: st
             continue
         state.lanes = lanes
         plans.append(plan)
+        if job.id not in fixed and instance.stock is not None:
+            machine_slot = plan.slot("machine")
+            assert machine_slot is not None
+            state.uses.append((machine_slot.start, job.material, job.grams))
     return Schedule(method, tuple(plans), tuple(unscheduled))
 
 

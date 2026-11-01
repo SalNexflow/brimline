@@ -3,7 +3,7 @@ unchanged. The tests walk the dataclass fields, so a field added later fails her
 exported or listed below as derived on purpose."""
 
 import json
-from dataclasses import fields
+from dataclasses import fields, replace
 from typing import Any
 
 from brimline_engine.checker import parse
@@ -12,6 +12,7 @@ from brimline_engine.scheduling.config import load_scheduler_config
 from brimline_engine.scheduling.export import FORMAT, document
 from brimline_engine.scheduling.generator import generate
 from brimline_engine.scheduling.model import (
+    Delivery,
     Downtime,
     Fixed,
     Instance,
@@ -59,17 +60,21 @@ def instance_with_everything() -> Instance:
         True,
         321,
         ("sanding",),
+        13,
     )
+    jobs = [odd, *(replace(j, grams_per_part=20 + i) for i, j in enumerate(inst.jobs[1:]))]
     return Instance(
         inst.name,
         inst.horizon,
         inst.machines,
-        (odd, *inst.jobs[1:]),
+        tuple(jobs),
         inst.shifts,
         inst.staff,
         (Fixed(inst.jobs[1].id, inst.machines[0].code, 12, 400),),
         plan_start=5,
         downtimes=(Downtime(inst.machines[1].code, 2000, 2100),),
+        stock=(("PLA-BLACK", 500), ("TPU-BLACK", 0)),
+        deliveries=(Delivery("TPU-BLACK", 900, 1000),),
     )
 
 
@@ -84,7 +89,7 @@ def test_every_raw_field_reaches_the_json_unchanged() -> None:
     for f in fields(Instance):
         if f.name in NOT_EXPORTED:
             assert f.name not in d
-        elif f.name not in {"machines", "jobs", "fixed", "downtimes"}:
+        elif f.name not in {"machines", "jobs", "fixed", "downtimes", "stock", "deliveries"}:
             assert d[f.name] == plain(getattr(inst, f.name)), f.name
     assert len(d["machines"]) == len(inst.machines)
     for m, md in zip(inst.machines, d["machines"], strict=True):
@@ -96,6 +101,9 @@ def test_every_raw_field_reaches_the_json_unchanged() -> None:
     assert_same(inst.fixed[0], d["fixed"][0])
     assert len(d["downtimes"]) == 1
     assert_same(inst.downtimes[0], d["downtimes"][0])
+    assert d["stock"] == {"PLA-BLACK": 500, "TPU-BLACK": 0}
+    assert len(d["deliveries"]) == 1
+    assert_same(inst.deliveries[0], d["deliveries"][0])
 
     p = doc["plan"]
     assert p["method"] == schedule.method
@@ -114,7 +122,8 @@ def test_the_test_knows_every_field() -> None:
     assert [f.name for f in fields(Fixed)] == ["job_id", "machine", "start", "end"]
     assert [f.name for f in fields(JobPlan)] == ["job_id", "machine", "slots"]
     assert [f.name for f in fields(Slot)] == ["kind", "start", "end"]
-    assert len(fields(Job)) == 12
+    assert len(fields(Job)) == 13
+    assert [f.name for f in fields(Delivery)] == ["material", "at", "grams"]
 
 
 def test_the_checker_reads_back_exactly_what_was_exported() -> None:
@@ -124,13 +133,16 @@ def test_the_checker_reads_back_exactly_what_was_exported() -> None:
     schedule = edd(inst, cfg.durations)
     parsed = parse(json.loads(json.dumps(document(inst, schedule))))
     for f in fields(Instance):
-        if f.name not in NOT_EXPORTED | {"machines", "jobs", "fixed", "downtimes"}:
+        skip = {"machines", "jobs", "fixed", "downtimes", "stock", "deliveries"}
+        if f.name not in NOT_EXPORTED | skip:
             assert getattr(parsed.instance, f.name) == getattr(inst, f.name), f.name
+    assert parsed.instance.stock == dict(inst.stock or ())
     for ours, theirs in [
         *zip(inst.machines, parsed.instance.machines, strict=True),
         *zip(inst.jobs, parsed.instance.jobs, strict=True),
         *zip(inst.fixed, parsed.instance.fixed, strict=True),
         *zip(inst.downtimes, parsed.instance.downtimes, strict=True),
+        *zip(inst.deliveries, parsed.instance.deliveries, strict=True),
     ]:
         for f in fields(ours):  # type: ignore[arg-type]
             assert getattr(theirs, f.name) == getattr(ours, f.name), f.name

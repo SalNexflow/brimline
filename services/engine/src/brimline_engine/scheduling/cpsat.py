@@ -230,6 +230,8 @@ def solve(
         model.add_no_overlap(code_intervals)
     if manual_intervals:
         model.add_cumulative(manual_intervals, [1] * len(manual_intervals), instance.staff)
+    if instance.stock is not None:
+        _stock_levels(model, instance, all_vars)
 
     # A fixed task may already run past the horizon; the finish time must be allowed to follow it.
     finish_ub = max(
@@ -320,6 +322,31 @@ def solve(
         )
         plans.append(JobPlan(jv.job.id, machine, slots))
     return Schedule(method, tuple(plans), tuple(unscheduled), info)
+
+
+def _stock_levels(model: cp_model.CpModel, instance: Instance, all_vars: list[_JobVars]) -> None:
+    """Material never runs out (M9): per material a reservoir, a level that must stay >= 0 at
+    every moment. Stock raises it at the start, each delivery when it arrives, and each scheduled
+    job lowers it by its grams when its machine task starts. Fixed jobs took theirs already."""
+    users: dict[str, list[_JobVars]] = {}
+    for jv in all_vars:
+        if not jv.fixed and "machine" in jv.starts:
+            users.setdefault(jv.job.material, []).append(jv)
+    for material in sorted(users):
+        times: list[cp_model.LinearExprT] = [min(0, instance.plan_start)]
+        changes = [instance.stock_of(material)]
+        actives: list[cp_model.LiteralT] = [True]
+        for d in instance.deliveries:
+            if d.material == material:
+                times.append(d.at)
+                changes.append(d.grams)
+                actives.append(True)
+        for jv in users[material]:
+            times.append(jv.starts["machine"])
+            changes.append(-jv.job.grams)
+            actives.append(jv.scheduled)
+        top = sum(c for c in changes if c > 0)
+        model.add_reservoir_constraint_with_active(times, changes, actives, 0, top)
 
 
 def _simple_changeovers(

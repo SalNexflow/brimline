@@ -37,7 +37,7 @@ def job_doc(j: Job) -> dict[str, Any]:
         "rush": j.rush,
         "release": j.release,
         "post_processing": None if j.post_processing is None else list(j.post_processing),
-    }
+    } | ({} if j.grams_per_part is None else {"grams_per_part": j.grams_per_part})
 
 
 def fixed_doc(f: Fixed) -> dict[str, Any]:
@@ -57,7 +57,16 @@ def instance_doc(instance: Instance) -> dict[str, Any]:
         "fixed": [fixed_doc(f) for f in instance.fixed],
         "shifts": [list(w) for w in instance.shifts],
         "staff": instance.staff,
-    }
+    } | (
+        {}
+        if instance.stock is None
+        else {
+            "stock": dict(instance.stock),
+            "deliveries": [
+                {"material": d.material, "at": d.at, "grams": d.grams} for d in instance.deliveries
+            ],
+        }
+    )
 
 
 def plan_doc(p: JobPlan) -> dict[str, Any]:

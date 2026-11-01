@@ -46,6 +46,17 @@ def check_instance(instance: Instance, d: Durations) -> None:
                     f"fixed task {job_id} runs on {down.machine} while it is down; "
                     "a lost print must not be fixed"
                 )
+    if instance.stock is None and instance.deliveries:
+        raise InstanceError("deliveries without stock")
+    if instance.stock is not None:
+        if any(grams < 0 for _, grams in instance.stock):
+            raise InstanceError("negative stock")
+        if any(d.grams < 1 for d in instance.deliveries):
+            raise InstanceError("a delivery of less than 1 gram")
+        fixed_ids = {f.job_id for f in instance.fixed}
+        for job in instance.jobs:
+            if job.id not in fixed_ids and (job.grams_per_part or 0) < 1:
+                raise InstanceError(f"job {job.id} has no grams per part, but stock is limited")
     for code, tasks in by_machine.items():
         tasks.sort()
         for (_, end, a), (start, _, b) in pairwise(tasks):
