@@ -38,6 +38,7 @@ class Job:
     rush: bool
     release: int
     post_processing: tuple[str, ...] | None  # when given, the checker recomputes post minutes
+    grams_per_part: int | None  # material used per part (R20); None when not given
 
 
 @dataclass(frozen=True)
@@ -56,6 +57,13 @@ class Downtime:
 
 
 @dataclass(frozen=True)
+class Delivery:
+    material: str
+    at: int  # the minute it arrives; a machine task starting then may use it
+    grams: int
+
+
+@dataclass(frozen=True)
 class Instance:
     name: str
     horizon: int
@@ -68,6 +76,9 @@ class Instance:
     # them with its own reading of config/scheduler.toml instead of trusting them.
     shifts: tuple[tuple[int, int], ...] | None
     staff: int | None
+    # Grams of each material free for this plan at plan_start (R20). None: no stock rule.
+    stock: dict[str, int] | None = None
+    deliveries: tuple[Delivery, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -157,6 +168,9 @@ def _job(d: object, where: str) -> Job:
         post_processing=_strs(d, "post_processing", where)
         if isinstance(d, dict) and d.get("post_processing") is not None
         else None,
+        grams_per_part=_get(d, "grams_per_part", int, where)
+        if isinstance(d, dict) and d.get("grams_per_part") is not None
+        else None,
     )
 
 
@@ -178,6 +192,27 @@ def _downtime(d: object, where: str) -> Downtime:
         machine=_get(d, "machine", str, where),
         start=_get(d, "start", int, where),
         end=_get(d, "end", int, where),
+    )
+
+
+def _stock(inst: dict[str, Any]) -> dict[str, int] | None:
+    if "stock" not in inst:
+        return None
+    stock = _get(inst, "stock", dict, "instance")
+    out: dict[str, int] = {}
+    for material in stock:
+        if not isinstance(material, str):
+            raise DocumentError(f"instance.stock: material {material!r} is not text")
+        out[material] = _get(stock, material, int, "instance.stock")
+    return out
+
+
+def _delivery(d: object, where: str) -> Delivery:
+    _only(d, {"material", "at", "grams"}, where)
+    return Delivery(
+        material=_get(d, "material", str, where),
+        at=_get(d, "at", int, where),
+        grams=_get(d, "grams", int, where),
     )
 
 
@@ -233,6 +268,8 @@ def parse(doc: object) -> Document:
             "staff",
             "plan_start",
             "downtimes",
+            "stock",
+            "deliveries",
         },
         "instance",
     )
@@ -257,6 +294,13 @@ def parse(doc: object) -> Document:
             else (),
             shifts=_shifts(inst),
             staff=_get(inst, "staff", int, "instance") if "staff" in inst else None,
+            stock=_stock(inst),
+            deliveries=tuple(
+                _delivery(d, f"deliveries[{i}]")
+                for i, d in enumerate(_get(inst, "deliveries", list, "instance"))
+            )
+            if "deliveries" in inst
+            else (),
         ),
         plan=Plan(
             method=_get(plan, "method", str, "plan"),

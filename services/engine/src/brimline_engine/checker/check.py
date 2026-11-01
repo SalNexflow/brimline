@@ -111,6 +111,9 @@ def instance_problems(inst: Instance, r: Rules) -> list[Violation]:
                         + (f"; unknown steps {unknown}" if unknown else ""),
                     )
                 )
+        if j.grams_per_part is not None and j.grams_per_part < 1:
+            out.append(Violation("bad_instance", j.id, f"grams_per_part {j.grams_per_part} < 1"))
+    out += _stock_problems(inst, jobs)
     if inst.horizon < 1:
         out.append(Violation("bad_instance", None, f"horizon {inst.horizon} is not positive"))
     # The plan was made for these shifts and this staff; they must be what the config says, or
@@ -168,6 +171,93 @@ def instance_problems(inst: Instance, r: Rules) -> list[Violation]:
                     Violation("bad_instance", b, f"fixed tasks {a} and {b} overlap on {machine}")
                 )
     return out
+
+
+def _stock_problems(inst: Instance, jobs: dict[str, Job]) -> list[Violation]:
+    """The R17 items about material stock."""
+    out: list[Violation] = []
+    if inst.stock is None:
+        if inst.deliveries:
+            out.append(Violation("bad_instance", None, "deliveries without a stock section"))
+        return out
+    for material, grams in inst.stock.items():
+        if grams < 0:
+            out.append(Violation("bad_instance", None, f"stock of {material} is {grams} g"))
+    for d in inst.deliveries:
+        if d.grams < 1:
+            out.append(Violation("bad_instance", None, f"a delivery of {d.grams} g {d.material}"))
+    fixed = {f.job_id for f in inst.fixed}
+    for j in jobs.values():
+        if j.grams_per_part is None and j.id not in fixed:
+            out.append(Violation("bad_instance", j.id, "no grams_per_part, but there is stock"))
+    return out
+
+
+def _uses(inst: Instance, plans: list[PlannedJob], jobs: dict[str, Job]) -> list[tuple[int, Job]]:
+    """(machine start, job) for each planned job that takes material from stock (R20)."""
+    fixed = {f.job_id for f in inst.fixed}
+    out = []
+    for pj in plans:
+        job = jobs[pj.job_id]
+        if job.id in fixed:
+            continue  # a running or done print took its material before the stock was stated
+        start = next((t.start for t in pj.tasks if t.kind == "machine"), None)
+        if start is not None:
+            out.append((start, job))
+    return out
+
+
+def _level(inst: Instance, uses: list[tuple[int, Job]], material: str, t: int) -> int:
+    """The level of a material at minute t: stock + deliveries so far - grams used so far."""
+    assert inst.stock is not None
+    level = inst.stock.get(material, 0)
+    level += sum(d.grams for d in inst.deliveries if d.material == material and d.at <= t)
+    level -= sum(
+        j.quantity * (j.grams_per_part or 0) for s, j in uses if j.material == material and s <= t
+    )
+    return level
+
+
+def _material_problems(
+    inst: Instance, plans: list[PlannedJob], jobs: dict[str, Job]
+) -> list[Violation]:
+    """R20: no machine task starts while its material's level is below zero."""
+    if inst.stock is None:
+        return []
+    out = []
+    uses = _uses(inst, plans, jobs)
+    for start, job in sorted(uses, key=lambda u: (u[0], u[1].id)):
+        level = _level(inst, uses, job.material, start)
+        if level < 0:
+            out.append(
+                Violation(
+                    "material_short",
+                    job.id,
+                    f"starts {start}, when {job.material} is {-level} g short",
+                )
+            )
+    return out
+
+
+def _material_free_from(inst: Instance, uses: list[tuple[int, Job]], job: Job) -> int | None:
+    """The first minute from which the level never falls below this job's grams again; a
+    minute before plan_start when that holds from the start; None when it never holds."""
+    if inst.stock is None:
+        return inst.plan_start
+    need = job.quantity * (job.grams_per_part or 0)
+    times = sorted(
+        {d.at for d in inst.deliveries if d.material == job.material}
+        | {s for s, j in uses if j.material == job.material}
+    )
+    # The level is constant between these minutes; walk from the last one back.
+    candidate: int | None = None
+    for t in reversed(times):
+        if _level(inst, uses, job.material, t) < need:
+            return candidate
+        candidate = t
+    if inst.stock.get(job.material, 0) >= need:
+        return min(inst.plan_start, *(times or [inst.plan_start]))
+    return candidate
 
 
 def _check_job(
@@ -369,6 +459,7 @@ def _witness(
     r: Rules,
     runs: dict[str, list[_Run]],
     fx: Fixed | None,
+    uses: list[tuple[int, Job]],
 ) -> str | None:
     """A placement of this one job alone (ignoring staff), or None. See SCHEDULE_RULES.md."""
     # A downtime blocks like a task of the same material (no changeover needed around it).
@@ -387,6 +478,9 @@ def _witness(
     if fx is not None:
         machine, start = fx.machine, fx.start
     else:
+        free = _material_free_from(inst, uses, job)
+        if free is None:
+            return None
         t = inst.plan_start
         if "prep" in d:
             p = _earliest_manual(inst.plan_start, d["prep"], r, inst.horizon)
@@ -399,7 +493,7 @@ def _witness(
         for m in inst.machines:
             if _fits(job, m.process, m.materials, m.build_mm):
                 s = _earliest_machine(
-                    max(t, job.release),
+                    max(t, job.release, free),
                     d["machine"],
                     job.material,
                     runs.get(m.code, []),
@@ -491,9 +585,12 @@ def _check_plan(inst: Instance, plan: Plan, r: Rules) -> CheckResult:
                     )
                 )
 
+    out += _material_problems(inst, planned, jobs)
+
     warnings = []
+    uses = _uses(inst, planned, jobs)
     for job_id in unscheduled:
-        found = _witness(jobs[job_id], inst, r, runs, fixed.get(job_id))
+        found = _witness(jobs[job_id], inst, r, runs, fixed.get(job_id), uses)
         if found is not None:
             warnings.append(Violation("suspicious_unscheduled", job_id, found))
     m, deadlines = metrics(inst, planned, len(unscheduled), r)
