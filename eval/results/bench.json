@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-27T01:21:49+00:00",
+  "generated_at": "2026-11-01T08:29:48+00:00",
   "config_checked": "2026-10-27",
   "solver": {
     "random_seed": 7,
@@ -284,7 +284,7 @@
         "solver_objective": 13578.0,
         "solver_bound": 13578.0,
         "deterministic_time": 0.0,
-        "wall_seconds": 0.1,
+        "wall_seconds": 0.11,
         "hinted": true,
         "fallback": null
       },
@@ -412,7 +412,7 @@
         "solver_objective": 72286.0,
         "solver_bound": 72286.0,
         "deterministic_time": 0.12,
-        "wall_seconds": 0.74,
+        "wall_seconds": 0.77,
         "hinted": true,
         "fallback": null
       },
@@ -476,7 +476,7 @@
         "solver_objective": 12510.0,
         "solver_bound": 12510.0,
         "deterministic_time": 1.57,
-        "wall_seconds": 4.81,
+        "wall_seconds": 4.83,
         "hinted": true,
         "fallback": null
       },
@@ -604,7 +604,7 @@
         "solver_objective": 14778.0,
         "solver_bound": 14778.0,
         "deterministic_time": 0.01,
-        "wall_seconds": 0.31,
+        "wall_seconds": 0.32,
         "hinted": true,
         "fallback": null
       },
@@ -751,7 +751,7 @@
         "solver_objective": 2707519.0,
         "solver_bound": 4018.0,
         "deterministic_time": 20.0,
-        "wall_seconds": 82.68,
+        "wall_seconds": 83.21,
         "hinted": true,
         "fallback": null
       },
@@ -821,7 +821,7 @@
         "solver_objective": 1147360.0,
         "solver_bound": 4594.0,
         "deterministic_time": 20.0,
-        "wall_seconds": 83.51,
+        "wall_seconds": 88.54,
         "hinted": true,
         "fallback": null
       },
@@ -885,7 +885,7 @@
         "solver_objective": 157004.0,
         "solver_bound": 87525.0,
         "deterministic_time": 20.0,
-        "wall_seconds": 86.98,
+        "wall_seconds": 88.14,
         "hinted": true,
         "fallback": null
       },
@@ -957,7 +957,7 @@
         "solver_objective": 591831.0,
         "solver_bound": 12978.0,
         "deterministic_time": 20.0,
-        "wall_seconds": 67.08,
+        "wall_seconds": 67.58,
         "hinted": true,
         "fallback": null
       },
@@ -1035,7 +1035,7 @@
         "solver_objective": 291029.0,
         "solver_bound": 13734.0,
         "deterministic_time": 20.0,
-        "wall_seconds": 58.52,
+        "wall_seconds": 58.5,
         "hinted": true,
         "fallback": null
       },
@@ -1070,7 +1070,7 @@
         "solver_objective": 6104205.0,
         "solver_bound": 2550.0,
         "deterministic_time": 5.0,
-        "wall_seconds": 25.23,
+        "wall_seconds": 29.39,
         "hinted": true,
         "fallback": null
       },
@@ -1100,7 +1100,7 @@
         "solver_objective": 2707519.0,
         "solver_bound": 4018.0,
         "deterministic_time": 20.0,
-        "wall_seconds": 82.68,
+        "wall_seconds": 83.21,
         "hinted": true,
         "fallback": null
       },
@@ -1130,7 +1130,7 @@
         "solver_objective": 2388589.0,
         "solver_bound": 4020.0,
         "deterministic_time": 60.0,
-        "wall_seconds": 172.02,
+        "wall_seconds": 174.27,
         "hinted": true,
         "fallback": null
       },
@@ -1158,7 +1158,7 @@
         "solver_objective": 1147360.0,
         "solver_bound": 268.0,
         "deterministic_time": 5.0,
-        "wall_seconds": 26.68,
+        "wall_seconds": 27.15,
         "hinted": true,
         "fallback": null
       },
@@ -1186,7 +1186,7 @@
         "solver_objective": 1147360.0,
         "solver_bound": 4594.0,
         "deterministic_time": 20.0,
-        "wall_seconds": 83.51,
+        "wall_seconds": 88.54,
         "hinted": true,
         "fallback": null
       },
@@ -1214,7 +1214,7 @@
         "solver_objective": 815559.0,
         "solver_bound": 8009.0,
         "deterministic_time": 60.0,
-        "wall_seconds": 271.04,
+        "wall_seconds": 309.39,
         "hinted": true,
         "fallback": null
       },
@@ -1242,7 +1242,7 @@
         "solver_objective": 203064.0,
         "solver_bound": 86924.0,
         "deterministic_time": 5.0,
-        "wall_seconds": 26.46,
+        "wall_seconds": 27.07,
         "hinted": true,
         "fallback": null
       },
@@ -1270,7 +1270,7 @@
         "solver_objective": 157004.0,
         "solver_bound": 87525.0,
         "deterministic_time": 20.0,
-        "wall_seconds": 86.98,
+        "wall_seconds": 88.14,
         "hinted": true,
         "fallback": null
       },
@@ -1298,7 +1298,7 @@
         "solver_objective": 152173.0,
         "solver_bound": 87525.0,
         "deterministic_time": 60.0,
-        "wall_seconds": 173.72,
+        "wall_seconds": 176.75,
         "hinted": true,
         "fallback": null
       },
@@ -1326,7 +1326,7 @@
         "solver_objective": 1159872.0,
         "solver_bound": -1601.0,
         "deterministic_time": 5.04,
-        "wall_seconds": 20.09,
+        "wall_seconds": 20.01,
         "hinted": true,
         "fallback": null
       },
@@ -1354,7 +1354,7 @@
         "solver_objective": 591831.0,
         "solver_bound": 12978.0,
         "deterministic_time": 20.0,
-        "wall_seconds": 67.08,
+        "wall_seconds": 67.58,
         "hinted": true,
         "fallback": null
       },
@@ -1382,7 +1382,7 @@
         "solver_objective": 591761.0,
         "solver_bound": 12978.0,
         "deterministic_time": 60.0,
-        "wall_seconds": 169.72,
+        "wall_seconds": 165.82,
         "hinted": true,
         "fallback": null
       },
@@ -1410,7 +1410,7 @@
         "solver_objective": 368809.0,
         "solver_bound": 13734.0,
         "deterministic_time": 5.0,
-        "wall_seconds": 26.76,
+        "wall_seconds": 27.34,
         "hinted": true,
         "fallback": null
       },
@@ -1438,7 +1438,7 @@
         "solver_objective": 291029.0,
         "solver_bound": 13734.0,
         "deterministic_time": 20.0,
-        "wall_seconds": 58.52,
+        "wall_seconds": 58.5,
         "hinted": true,
         "fallback": null
       },
@@ -1466,7 +1466,7 @@
         "solver_objective": 184693.0,
         "solver_bound": 13734.0,
         "deterministic_time": 60.0,
-        "wall_seconds": 144.86,
+        "wall_seconds": 160.29,
         "hinted": true,
         "fallback": null
       },
@@ -1595,6 +1595,11 @@
         "applied": 120,
         "caught": 120
       },
+      "into_downtime": {
+        "code": "machine_down",
+        "applied": 120,
+        "caught": 120
+      },
       "move_fixed": {
         "code": "fixed_moved",
         "applied": 0,
@@ -1604,6 +1609,21 @@
         "code": "past_horizon",
         "applied": 120,
         "caught": 120
+      },
+      "stock_reduced": {
+        "code": "material_short",
+        "applied": 0,
+        "caught": 0
+      },
+      "delivery_removed": {
+        "code": "material_short",
+        "applied": 0,
+        "caught": 0
+      },
+      "delivery_one_minute_late": {
+        "code": "material_short",
+        "applied": 0,
+        "caught": 0
       }
     },
     "mutations_missed": []

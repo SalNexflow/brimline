@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-27T15:40:42+00:00",
+  "generated_at": "2026-11-01T08:31:11+00:00",
   "n_jobs": 40,
   "limit_seconds": 5.0,
   "now_minute": 240,
@@ -7,6 +7,7 @@
     "moved_job": 300,
     "slip_per_minute": 5,
     "overrun_margin_minutes": 60,
+    "approval_grace_minutes": 15,
     "running_print_lost_when_machine_down": true
   },
   "rows": [

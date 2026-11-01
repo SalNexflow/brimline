@@ -4,7 +4,7 @@
 > These metrics come from the scheduler's own code (`scheduling/metrics.py`). Every plan is also
 > re-checked and re-scored by the independent checker (see *Independent checker* below).
 
-Generated 2026-10-27T01:21:49+00:00. Config `config/scheduler.toml` (checked 2026-10-27).
+Generated 2026-11-01T08:29:48+00:00. Config `config/scheduler.toml` (checked 2026-10-27).
 CP-SAT: seed 7, 1 worker, deterministic time limit 20 s (CP-SAT's machine-independent work measure, roughly seconds).
 **CP-SAT is hinted with the EDD schedule** (`AddHint`, with a value for every model variable), so it
 starts from the greedy answer. If it finds no solution within the limit it returns the EDD schedule and
@@ -27,7 +27,7 @@ fit at all as late, so dropping a job never improves a column; lateness is over 
 | 40 | cpsat-simple | 0.8 | 0.8 | 18.3 | 12.0 | 45.4% | 183.1 | 0.0 | 44,972 | 1.3 |
 | 80 | fcfs | 32.8 | 35.8 | 3168.3 | 34.6 | 53.8% | 288.0 | 3.0 | 6,234,598 | 0.0 |
 | 80 | edd | 34.0 | 38.4 | 1624.9 | 38.0 | 52.4% | 290.6 | 4.4 | 5,640,516 | 0.0 |
-| 80 | cpsat-simple | 10.6 | 10.8 | 787.9 | 37.6 | 58.0% | 279.7 | 0.2 | 990,697 | 75.8 |
+| 80 | cpsat-simple | 10.6 | 10.8 | 787.9 | 37.6 | 58.0% | 279.7 | 0.2 | 990,697 | 77.2 |
 
 ## Per instance: weighted objective and CP-SAT verdict
 
@@ -60,9 +60,9 @@ real changeover count.
 
 | Time limit (s) | Mean objective | Mean late jobs | Mean lateness (h) | Mean changeovers | Optimal runs (stand-in) | Mean solve (wall s) |
 |---|---|---|---|---|---|---|
-| 5 | 1,803,238 | 17.0 | 1297.7 | 33.2 | 0 of 5 | 25.0 |
-| 20 | 990,697 | 10.6 | 787.9 | 37.6 | 0 of 5 | 75.8 |
-| 60 | 841,439 | 9.8 | 674.6 | 33.6 | 0 of 5 | 186.3 |
+| 5 | 1,803,238 | 17.0 | 1297.7 | 33.2 | 0 of 5 | 26.2 |
+| 20 | 990,697 | 10.6 | 787.9 | 37.6 | 0 of 5 | 77.2 |
+| 60 | 841,439 | 9.8 | 674.6 | 33.6 | 0 of 5 | 197.3 |
 
 ## Independent checker
 
@@ -73,7 +73,7 @@ shift windows and metrics itself, and checks every rule in `docs/SCHEDULE_RULES.
 - Plans checked: 60 (FCFS, EDD and CP-SAT, including the time sweep); valid: 60; rule violations: 0.
 - Metric disagreements with the scheduler's numbers above: 0.
 - Unscheduled jobs flagged suspicious (a warning, not a violation): 1.
-- Mutation test on these plans: 2760 of 2760 corrupted plans caught (23 kinds of corruption applied; a kind that needs fixed tasks cannot apply here, because bench instances have none, and is tested on instances with fixed tasks in `tests/test_checker_mutations.py`).
+- Mutation test on these plans: 2880 of 2880 corrupted plans caught (24 kinds of corruption applied; a kind that needs fixed tasks or stock cannot apply here, because bench instances have neither; those are tested in `tests/test_checker_mutations.py`, and the stock kinds also in `make shortage-bench`).
 
 | Corruption | Expected rule | Applied | Caught |
 |---|---|---|---|
@@ -100,8 +100,12 @@ shift windows and metrics itself, and checks every rule in `docs/SCHEDULE_RULES.
 | staff_overload | `staff_overload` | 120 | 120 |
 | staff_overload_one_minute | `staff_overload` | 120 | 120 |
 | before_plan_start | `before_plan_start` | 120 | 120 |
+| into_downtime | `machine_down` | 120 | 120 |
 | move_fixed | `fixed_moved` | 0 | 0 |
 | shrink_horizon | `past_horizon` | 120 | 120 |
+| stock_reduced | `material_short` | 0 | 0 |
+| delivery_removed | `material_short` | 0 | 0 |
+| delivery_one_minute_late | `material_short` | 0 | 0 |
 
 ## Limits
 

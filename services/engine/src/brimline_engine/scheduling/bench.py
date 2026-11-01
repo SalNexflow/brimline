@@ -155,8 +155,9 @@ def _checker_lines(c: dict[str, Any] | None) -> list[str]:
         f"- Unscheduled jobs flagged suspicious (a warning, not a violation): {c['warnings']}.",
         f"- Mutation test on these plans: {caught} of {applied} corrupted plans caught"
         f" ({sum(m['applied'] > 0 for m in c['mutations'].values())} kinds of corruption applied;"
-        " a kind that needs fixed tasks cannot apply here, because bench instances have none, and"
-        " is tested on instances with fixed tasks in `tests/test_checker_mutations.py`).",
+        " a kind that needs fixed tasks or stock cannot apply here, because bench instances have"
+        " neither; those are tested in `tests/test_checker_mutations.py`, and the stock kinds also"
+        " in `make shortage-bench`).",
         "",
         "| Corruption | Expected rule | Applied | Caught |",
         "|---|---|---|---|",

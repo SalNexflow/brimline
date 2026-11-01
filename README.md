@@ -64,7 +64,7 @@ the gate fails if this table and the results disagree. Full tables, every miss a
 | File checker (code) | Overall verdict agrees with the label | 12/12 | `make eval` |
 | Scheduler, 80 jobs | Late or unscheduled jobs: CP-SAT / EDD / first-come | 10.8 / 38.4 / 35.8 | `make bench` |
 | Scheduler, 80 jobs | Total lateness, hours: CP-SAT / EDD | 787.9 / 1624.9 | `make bench` |
-| Independent checker | Corrupted plans caught | 2760/2760 (23 kinds) | `make bench` |
+| Independent checker | Corrupted plans caught | 2880/2880 (24 kinds) | `make bench` |
 | Independent checker | Plans checked valid / disagreements with the scheduler | 60/60 / 0 | `make bench` |
 | Re-planning | Jobs moved after a breakdown: stability costs / none, same hint | 3.7 / 14.3 of 32.7 | `make replan-bench` |
 | Re-planning | Re-plans that pass the independent checker | 60/60 | `make replan-bench` |
@@ -117,7 +117,7 @@ Every plan passes the independent checker, its stock rule included (60/60), and 
 ## Resume claims, each with its measured number
 
 <!-- generated:claims:start (scripts/readme.mjs; do not edit by hand) -->
-- Built an **independent plan checker** that shares no code with the scheduler and caught **2760/2760** deliberately corrupted plans across 23 kinds of error (`make bench`).
+- Built an **independent plan checker** that shares no code with the scheduler and caught **2880/2880** deliberately corrupted plans across 24 kinds of error (`make bench`).
 - Scheduled with **OR-Tools CP-SAT**: on 80-job instances, **10.8** late or unscheduled jobs on average against **38.4** for earliest-due-date (`make bench`).
 - Made re-planning stable: after a machine breakdown the re-plan moves **3.7** of 32.7 jobs instead of **14.3** without stability costs, with all **60/60** re-plans checker-valid (`make replan-bench`).
 - Kept the LLM out of decisions: natural-language search turns a question into a typed filter (never SQL) with **18/20** exactly right on a blind held-out set and **2/2** access-widening attacks blocked (`make eval`).
