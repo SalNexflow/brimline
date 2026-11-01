@@ -196,3 +196,25 @@ def seed_price_rules_if_missing(owner_url: str) -> bool:
             return False
         seed_price_rules(conn, cfg, _ids(conn, "materials"))
         return True
+
+
+def backfill_seed_grams(owner_url: str, config: ShopConfig | None = None) -> int:
+    """For a database seeded before M9: give each seeded job the grams per part config/shop.toml
+    now states. A job is matched by its seeded order number, line and part name, and only an
+    empty value is filled, so nothing a person entered and no other order is touched. Returns
+    how many jobs were filled (0 the second time)."""
+    cfg = config or load_shop_config()
+    filled = 0
+    with psycopg.connect(owner_url) as conn, conn.transaction():
+        for i, o in enumerate(cfg.orders, start=1):
+            for line_no, line in enumerate(o.lines, start=1):
+                if line.grams_per_part is None:
+                    continue
+                cur = conn.execute(
+                    "UPDATE jobs SET grams_per_part = %s FROM orders o"
+                    " WHERE o.id = jobs.order_id AND o.order_number = %s AND jobs.line_no = %s"
+                    " AND jobs.part_name = %s AND jobs.grams_per_part IS NULL",
+                    (line.grams_per_part, f"BL-{i:04d}", line_no, line.part),
+                )
+                filled += cur.rowcount
+    return filled

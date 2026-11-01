@@ -80,3 +80,48 @@ def test_config_rejects_a_material_on_the_wrong_kind_of_machine() -> None:
     raw["machines"][0]["materials"].append("RESIN-GREY")  # FDM-1 cannot print resin
     with pytest.raises(ValidationError, match="RESIN-GREY is unknown or not a fdm material"):
         type(load_shop_config()).model_validate(raw)
+
+
+def test_a_database_seeded_before_m9_gets_its_grams_and_plans_fully(settings: Settings) -> None:
+    """DEFECT_LOG #94: the hosted demo migrated to 0013 with its seeded jobs' grams empty, so
+    every seeded job would have been "cannot plan". `db setup` now fills them from the config."""
+    from datetime import UTC, datetime
+
+    from brimline_engine.db.seed import backfill_seed_grams
+    from brimline_engine.planning.inputs import build_inputs
+    from brimline_engine.scheduling.config import scheduler_config
+
+    assert settings.database_owner_url
+    name = "brimline_test_backfill"
+    owner = with_database(settings.database_owner_url, name)
+    app = with_database(settings.database_url, name)
+    drop_database(settings.database_owner_url, name)
+    ensure_database(settings.database_owner_url, name)
+    try:
+        migrate(owner, app)
+        seed(owner)
+        with psycopg.connect(owner) as conn:
+            conn.execute("UPDATE jobs SET grams_per_part = NULL")  # as seeded before M9
+            # A number a person entered later is kept.
+            conn.execute(
+                "UPDATE jobs SET grams_per_part = 99 FROM orders o WHERE o.id = jobs.order_id"
+                " AND o.order_number = 'BL-0001' AND jobs.line_no = 1"
+            )
+        # 13 seeded lines carry grams in config/shop.toml; one already has a person's 99.
+        assert backfill_seed_grams(owner) == 12
+        assert backfill_seed_grams(owner) == 0
+        with psycopg.connect(owner) as conn:
+            rows: dict[str, int] = dict(
+                conn.execute(
+                    "SELECT o.order_number || '-' || j.line_no, j.grams_per_part FROM jobs j"
+                    " JOIN orders o ON o.id = j.order_id"
+                ).fetchall()
+            )
+        assert rows["BL-0001-1"] == 99 and rows["BL-0005-2"] == 55 and rows["BL-0007-2"] == 3
+        with psycopg.connect(app) as conn:
+            inputs = build_inputs(
+                conn, datetime(2026, 10, 26, 9, 0, tzinfo=UTC), scheduler_config(), "Europe/Berlin"
+            )
+        assert [u["missing"] for u in inputs.unplannable] == [["part size"]]
+    finally:
+        drop_database(settings.database_owner_url, name)

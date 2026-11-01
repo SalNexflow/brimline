@@ -27,7 +27,12 @@ from brimline_engine.db.migrate import (
     migrate,
     with_database,
 )
-from brimline_engine.db.seed import SeedError, seed, seed_price_rules_if_missing
+from brimline_engine.db.seed import (
+    SeedError,
+    backfill_seed_grams,
+    seed,
+    seed_price_rules_if_missing,
+)
 from brimline_engine.settings import get_settings
 from brimline_engine.shop_config import load_shop_config
 
@@ -70,6 +75,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{dbname}: already has data, not seeded (use reset to start over)")
             if seed_price_rules_if_missing(owner_url):
                 print(f"{dbname}: added the price rules from config/shop.toml")
+            filled = backfill_seed_grams(owner_url)
+            if filled:  # a database seeded before M9 (DEFECT_LOG #94)
+                print(f"{dbname}: filled grams per part for {filled} seeded job(s)")
     return 0
 
 
