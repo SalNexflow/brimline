@@ -72,6 +72,8 @@ const WRITES = [
     call("POST", "/purchase-orders", { token: t, body: {
       material_code: "PLA-BLACK", grams: 1000, supplier: "Smoke test", expected_at: `${inDays(5)}T09:00:00Z`,
     } })],
+  // M12: asking the dispatcher writes a run (proposals only; nothing reaches a machine without Proceed).
+  ["dispatch_runs", "planner", (t) => call("POST", "/dispatch/runs", { token: t })],
 ];
 
 async function main() {
@@ -102,6 +104,10 @@ async function main() {
   const stock = await call("GET", "/stock", { token: tokens.staff });
   const short = (stock.json?.plans ?? []).find((p) => p.status === "approved")?.shortages.map((x) => x.material) ?? [];
   check(stock.status === 200 && short.includes("TPU-BLACK"), `the TPU-BLACK shortage shows: ${stock.status}, short ${short.join(", ") || "nothing"}`);
+  // M12: the six simulated machines answer through their own protocols.
+  const dispatch = await call("GET", "/dispatch", { token: tokens.planner });
+  const answering = (dispatch.json?.machines ?? []).filter((m) => m.state !== null).map((m) => m.code);
+  check(dispatch.status === 200 && dispatch.json?.connected && answering.length === 6, `the six simulated machines answer: ${answering.join(", ") || "none"}`);
 
   const ctx = {};
   for (const [table, role, write] of WRITES) {

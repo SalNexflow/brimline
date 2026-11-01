@@ -212,6 +212,7 @@ const TASKS = {
       step("file checker eval", ENGINE, "uv run --locked python -m brimline_engine.evals.files"),
       step("search eval", ENGINE, "uv run --locked python -m brimline_engine.evals.search"),
       step("quoted-versus-actual flag eval (code only)", ENGINE, "uv run --locked python -m brimline_engine.evals.costing"),
+      step("dispatch agent and guard eval (stops at $0.20)", ENGINE, "uv run --locked python -m brimline_engine.evals.dispatch"),
     ]),
   // Extra arguments pass through, e.g. node scripts/tasks.mjs bench --quick
   bench: () =>

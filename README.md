@@ -22,6 +22,7 @@ hosting: after a quiet spell the first visit shows "The demo is waking up" for a
 | Model file | Optional advice on a preview, labelled as advice (off by default) | Measures the file: closed surface, size and units, fit per printer, walls, overhangs, loose parts |
 | Planning | Nothing | CP-SAT plans; an independent checker that shares no code with the scheduler re-checks every plan |
 | Materials | Nothing | Stock and deliveries limit the plan; shortages and what to order by when are computed; a person orders |
+| Dispatch | Proposes which approved prints to start or stop; after a person's Proceed, issues exactly those actions as typed tool calls | Checks every call (the approved plan through the checker, the machine's own state, stock, the Proceed); runs the approved actions itself when the model cannot be used |
 | Disruption | Reads "Printer 1 jammed for 4 hours" into typed events or "unclear", copying times as written | Resolves the times in shop time, re-plans with stability costs, shows the diff; a planner approves |
 | Re-plan summary | Writes a summary from the diff only | Rejects any summary mentioning something the diff does not contain |
 | Search | Turns a question into a typed filter (never SQL) | Checks the filter, resolves dates, adds permissions, builds a parameterised query |
@@ -37,6 +38,10 @@ flowchart LR
   E --> C[Independent checker<br/>imports nothing from the scheduler]
   E --> F[File checker: own STL/3MF reader, numpy]
   E --> P[(PostgreSQL 18<br/>append-only audit log,<br/>non-superuser owner)]
+  E --> D[Dispatch agent and guard<br/>propose, Proceed, typed tool calls;<br/>guard checks each call]
+  D --> C
+  D --> A[Six machine adapters<br/>OctoPrint, Moonraker, PrusaLink,<br/>Bambu MQTT, Formlabs, GRBL]
+  A -. "each machine's own protocol" .-> M((simulated machines:<br/>protocol mock servers))
   AI -. "DeepSeek (default) or Claude" .-> X((model API))
 ```
 
@@ -68,6 +73,8 @@ the gate fails if this table and the results disagree. Full tables, every miss a
 | Independent checker | Plans checked valid / disagreements with the scheduler | 60/60 / 0 | `make bench` |
 | Re-planning | Jobs moved after a breakdown: stability costs / none, same hint | 3.7 / 14.3 of 32.7 | `make replan-bench` |
 | Re-planning | Re-plans that pass the independent checker | 60/60 | `make replan-bench` |
+| Dispatch (AI + guard) | Unsafe tool calls blocked / got through, held out | 6/6 / 0 | `make eval` |
+| Dispatch (AI + guard) | Actions without a Proceed / injections that changed anything, all 36 scenarios | 0 / 0 of 9 | `make eval` |
 | Quoted vs actual (code) | Under-quoted type flagged: true bias 1.40, 40 jobs/type | 100 % of 200 runs | `make eval` |
 | Quoted vs actual (code) | Flagged at 1.10 (under the 15 % threshold), any sample size | 0 runs of 800 | `make eval` |
 | Quoted vs actual (code) | Control false alarms per run, all job types together, worst sample size | 0 % | `make eval` |
@@ -114,6 +121,27 @@ short, when, the jobs affected, and what to order by when (lead times and pack s
 Every plan passes the independent checker, its stock rule included (60/60), and it catches 60/60 deliberately corrupted stock records (stock reduced, a delivery removed, a delivery one minute late). Suggested orders are placed at the moment of planning; 23 of 48 could arrive before the first short need.
 <!-- generated:shortage:end -->
 
+### Machines and the dispatch agent
+
+All six machines are **simulated and untested on real hardware**: each adapter speaks its machine's
+protocol to a mock server that copies that protocol (with success, failure, slow and unresponsive modes).
+The dispatcher only proposes; a person presses Proceed on specific proposals; the agent then issues exactly
+those actions, and a code guard (`docs/DISPATCH_RULES.md`) checks every call. Text from people and machines
+never decides a verdict. When the model cannot be used, code carries out the approved actions, labelled.
+
+<!-- generated:machines:start (scripts/readme.mjs; do not edit by hand) -->
+| Machine | Protocol | Source of the protocol | Documentation (read on) |
+|---|---|---|---|
+| FDM-1 | OctoPrint REST + API key | official documentation | https://docs.octoprint.org/en/master/api/ (2026-11-02) |
+| FDM-2 | Klipper/Moonraker websocket JSON-RPC | official documentation | https://moonraker.readthedocs.io/en/latest/external_api/introduction/ (2026-11-02) |
+| FDM-3 | PrusaLink REST (Digest auth) | official documentation | https://github.com/prusa3d/Prusa-Link-Web/blob/master/spec/openapi.yaml (2026-11-02) |
+| FDM-4 | Bambu Lab LAN mode MQTT | **community** documentation (not supported by the vendor) | https://github.com/Doridian/OpenBambuAPI/blob/main/mqtt.md (2026-11-02) |
+| RESIN-1 | Formlabs Local API (REST, PreForm Server) | official documentation | https://formlabs-dashboard-api-resources.s3.amazonaws.com/formlabs-local-api-latest.html (2026-11-02) |
+| CNC-1 | GRBL serial G-code streaming | official documentation | https://github.com/gnea/grbl/wiki/Grbl-v1.1-Interface (2026-11-02) |
+
+The dispatch eval: 36 scenarios written blind from the rules (21 dev, 15 held out), model deepseek-flash, cost $0.011 of a $0.20 cap (`make eval`, `eval/results/DISPATCH.md`). Unsafe tool calls (an action no Proceed approved, or one the scenario forbids), by the model + by a scripted misbehaving agent: dev 1 + 3, held out 1 + 5; blocked 10, got through **0**. Actions executed without a Proceed: **0**. Prompt-injection scenarios (job names, notes, file names, machine messages) where anything changed: **0 of 9**. Expected starts that did not happen: 7 scenarios, each refused by the guard's plan check (DISPATCH.md says why).
+<!-- generated:machines:end -->
+
 ## Resume claims, each with its measured number
 
 <!-- generated:claims:start (scripts/readme.mjs; do not edit by hand) -->
@@ -122,6 +150,7 @@ Every plan passes the independent checker, its stock rule included (60/60), and 
 - Made re-planning stable: after a machine breakdown the re-plan moves **3.7** of 32.7 jobs instead of **14.3** without stability costs, with all **60/60** re-plans checker-valid (`make replan-bench`).
 - Kept the LLM out of decisions: natural-language search turns a question into a typed filter (never SQL) with **18/20** exactly right on a blind held-out set and **2/2** access-widening attacks blocked (`make eval`).
 - Evaluated every AI step blind, with dev and held-out sets written by a fresh agent: the disruption reader is exactly right on **92 %** of held-out messages with **0** unsafe cancellations (`make eval`).
+- Built an AI dispatch agent that cannot act on its own: it proposes, a person presses Proceed, and a code guard checks each typed tool call against the approved plan (through the independent checker), the machine's own state and the stock; on 36 blind scenarios with prompt injection, **0** unsafe calls got through, **0** actions ran without a Proceed and **0** injections changed anything (`make eval`, six simulated machines over six real protocols).
 - Made material a hard constraint: stock and deliveries go into CP-SAT as a reservoir and an independent checker rule; after a 4-day delivery slip, following the code's purchase suggestions cut late or unscheduled jobs from **6.4** to **2.2** on average, with **60/60** plans passing the checker, stock rule included (`make shortage-bench`).
 - Closed the quote-versus-actual loop with a code-only under-quote flag (a sign test against a 15 % threshold): on held-out synthetic histories it flags a material quoted 40 % low in **93 %** of runs at 10 jobs per material and **100 %** at 40, flags a 10 % under-quote in **0** of 800 runs and raises **0 %** false alarms per run; its weak spot is a 20 % under-quote, caught in only **36 %** of runs even at 40 jobs (`make eval`).
 <!-- generated:claims:end -->
@@ -177,6 +206,14 @@ The hosted demo at https://brimline-alpha.vercel.app (Vercel + Render + Neon, al
 
 ## Known limits
 
+- **Machines are simulated (M12) and untested on real hardware.** The mocks copy each protocol's messages
+  from its documentation, not a real controller's behaviour. FDM-4's Bambu LAN format is community-documented
+  (Bambu Lab does not support it), and the mock speaks plain MQTT where a real printer needs TLS. The
+  Formlabs Local API has no cancel call, so Resin prints are stopped at the printer. GRBL and the Formlabs
+  API report no print time, so their times are code's polling on the simulated clock (labelled "polled").
+- Dispatch starts a print only inside a shift and only on its planned machine; starting a job earlier than
+  planned is refused when it would collide with work planned before it (re-plan instead). The watcher is one
+  thread in the engine and pauses while the free hosted engine sleeps.
 - Plan day runs on one background thread inside the engine process: fine for one engine, not for several
   (a separate worker would be the next step, `docs/DECISIONS.md` D68).
 - Plan times are wall-clock minutes in the shop's time zone, so an overnight print across a clock change is

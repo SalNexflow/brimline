@@ -42,6 +42,7 @@ services:
       DEMO_LOGIN: "true"
       AI_MODE: ${DEMO_AI_MODE:-fake}
       DEMO_RESET_ON_START: "1"
+      SIM_MACHINES: "true"
     ports:
       - "${ENGINE_PORT:-8000}:8000"
     healthcheck:

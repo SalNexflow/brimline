@@ -14,6 +14,7 @@ from brimline_engine.ai.config import models_config
 from brimline_engine.ai.guard import VISITOR, demo_config, over_limit, spend
 from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, Now
 from brimline_engine.api.planning import Tz
+from brimline_engine.demo import check_storage
 from brimline_engine.dispatch import service
 from brimline_engine.dispatch.runtime import Floor, sources
 from brimline_engine.idempotency import IdempotencyConflictError
@@ -183,6 +184,7 @@ def ask_dispatcher(
     if not can(user.actor, "dispatch.ask"):
         raise HTTPException(403, "not allowed")
     floor = _floor(request)
+    check_storage(conn, "dispatch_runs")  # demo mode only (config/demo.toml)
     endpoint = "POST /dispatch/runs"
     try:
         # One transaction: a refused request leaves no claimed key behind.

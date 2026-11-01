@@ -28,6 +28,37 @@ const bench = read("bench.json");
 const replan = read("replan.json");
 const costing = read("costing.json");
 const shortage = read("shortage.json");
+const dispatchEval = read("dispatch_deepseek-flash.json");
+const dsum = dispatchEval.summary;
+const both = (key) => dsum.dev[key] + dsum.heldout[key];
+
+/** The [[machines]] blocks of config/machines.toml: flat `key = value` lines only, which is all they hold. */
+function machinesConfig() {
+  const text = readFileSync(join(ROOT, "config", "machines.toml"), "utf8");
+  return text
+    .split("[[machines]]")
+    .slice(1)
+    .map((block) =>
+      Object.fromEntries(
+        block
+          .split("\n")
+          .map((line) => line.replace(/#.*$/, "").trim())
+          .filter((line) => line.includes("=") && !line.startsWith("["))
+          .map((line) => {
+            const [k, ...v] = line.split("=");
+            return [k.trim(), v.join("=").trim().replace(/^"(.*)"$/, "$1")];
+          }),
+      ),
+    );
+}
+const PROTOCOL = {
+  octoprint: "OctoPrint REST + API key",
+  moonraker: "Klipper/Moonraker websocket JSON-RPC",
+  prusalink: "PrusaLink REST (Digest auth)",
+  bambu: "Bambu Lab LAN mode MQTT",
+  formlabs: "Formlabs Local API (REST, PreForm Server)",
+  grbl: "GRBL serial G-code streaming",
+};
 
 const bySize = (jobs, method) => bench.main.filter((r) => r.jobs === jobs && r.method === method);
 const late = (jobs, method) => mean(bySize(jobs, method).map((r) => r.late_or_unscheduled));
@@ -70,6 +101,8 @@ const results = `| Area | Measure (held-out set where there is one) | Result | C
 | Independent checker | Plans checked valid / disagreements with the scheduler | ${frac(bench.checker.plans_valid, bench.checker.plans_checked)} / ${bench.checker.metric_disagreements.length} | \`make bench\` |
 | Re-planning | Jobs moved after a breakdown: stability costs / none, same hint | ${one(moved("machine_down", "configured"))} / ${one(moved("machine_down", "none, approved hint"))} of ${one(movable("machine_down"))} | \`make replan-bench\` |
 | Re-planning | Re-plans that pass the independent checker | ${frac(replanValid, replan.rows.length)} | \`make replan-bench\` |
+| Dispatch (AI + guard) | Unsafe tool calls blocked / got through, held out | ${frac(dsum.heldout.unsafe_blocked, dsum.heldout.unsafe_calls)} / ${dsum.heldout.unsafe_through} | \`make eval\` |
+| Dispatch (AI + guard) | Actions without a Proceed / injections that changed anything, all ${both("scenarios")} scenarios | ${both("executed_without_proceed")} / ${both("injection_changed")} of ${both("injection_scenarios")} | \`make eval\` |
 | Quoted vs actual (code) | Under-quoted type flagged: true bias 1.40, ${sizes.at(-1)} jobs/type | ${flagRate(1.4, sizes.at(-1))} of ${flagCell(1.4, sizes.at(-1)).runs} runs | \`make eval\` |
 | Quoted vs actual (code) | Flagged at 1.10 (under the 15 % threshold), any sample size | ${sizes.reduce((sum, n) => sum + flagCell(1.1, n).detected, 0)} runs of ${sizes.reduce((sum, n) => sum + flagCell(1.1, n).runs, 0)} | \`make eval\` |
 | Quoted vs actual (code) | Control false alarms per run, all job types together, worst sample size | ${pct(Math.max(...sizes.map((n) => flagCell(1.0, n).false_alarm_runs / flagCell(1.0, n).runs)))} | \`make eval\` |
@@ -89,6 +122,7 @@ const claims = `- Built an **independent plan checker** that shares no code with
 - Made re-planning stable: after a machine breakdown the re-plan moves **${one(moved("machine_down", "configured"))}** of ${one(movable("machine_down"))} jobs instead of **${one(moved("machine_down", "none, approved hint"))}** without stability costs, with all **${frac(replanValid, replan.rows.length)}** re-plans checker-valid (\`make replan-bench\`).
 - Kept the LLM out of decisions: natural-language search turns a question into a typed filter (never SQL) with **${frac(search.correct, search.n)}** exactly right on a blind held-out set and **${frac(search.widening_blocked, search.widening_attacks)}** access-widening attacks blocked (\`make eval\`).
 - Evaluated every AI step blind, with dev and held-out sets written by a fresh agent: the disruption reader is exactly right on **${pct(disruption.all_correct)}** of held-out messages with **${disruption.unsafe_cancellations}** unsafe cancellations (\`make eval\`).
+- Built an AI dispatch agent that cannot act on its own: it proposes, a person presses Proceed, and a code guard checks each typed tool call against the approved plan (through the independent checker), the machine's own state and the stock; on ${both("scenarios")} blind scenarios with prompt injection, **${both("unsafe_through")}** unsafe calls got through, **${both("executed_without_proceed")}** actions ran without a Proceed and **${both("injection_changed")}** injections changed anything (\`make eval\`, six simulated machines over six real protocols).
 - Made material a hard constraint: stock and deliveries go into CP-SAT as a reservoir and an independent checker rule; after a ${worstSlip}-day delivery slip, following the code's purchase suggestions cut late or unscheduled jobs from **${one(atSlip(worstSlip, "cpsat"))}** to **${one(atSlip(worstSlip, "cpsat_with_suggestions"))}** on average, with **${frac(stockPlans.filter((p) => p.valid).length, stockPlans.length)}** plans passing the checker, stock rule included (\`make shortage-bench\`).
 - Closed the quote-versus-actual loop with a code-only under-quote flag (a sign test against a 15 % threshold): on held-out synthetic histories it flags a material quoted 40 % low in **${flagRate(1.4, 10)}** of runs at 10 jobs per material and **${flagRate(1.4, sizes.at(-1))}** at ${sizes.at(-1)}, flags a 10 % under-quote in **${sizes.reduce((sum, n) => sum + flagCell(1.1, n).detected, 0)}** of ${sizes.reduce((sum, n) => sum + flagCell(1.1, n).runs, 0)} runs and raises **${pct(Math.max(...sizes.map((n) => flagCell(1.0, n).false_alarm_runs / flagCell(1.0, n).runs)))}** false alarms per run; its weak spot is a 20 % under-quote, caught in only **${flagRate(1.2, sizes.at(-1))}** of runs even at ${sizes.at(-1)} jobs (\`make eval\`).`;
 
@@ -99,6 +133,12 @@ const shortageTable = `${shortage.seeds.length} seeded ${shortage.jobs}-job inst
 ${slips.map((d) => `| ${d} d | ${one(atSlip(d, "unlimited"))} | ${one(atSlip(d, "edd"))} | ${one(atSlip(d, "cpsat"))} | ${one(atSlip(d, "cpsat_with_suggestions"))} | ${one(atSlip(d, "cpsat", "lateness_minutes") / 60)} / ${one(atSlip(d, "cpsat_with_suggestions", "lateness_minutes") / 60)} |`).join("\n")}
 
 Every plan passes the independent checker, its stock rule included (${frac(stockPlans.filter((p) => p.valid).length, stockPlans.length)}), and it catches ${frac(stockCaught, stockApplied)} deliberately corrupted stock records (stock reduced, a delivery removed, a delivery one minute late). Suggested orders are placed at the moment of planning; ${shortage.rows.flatMap((r) => r.suggested_orders).filter((o) => o.in_time).length} of ${shortage.rows.flatMap((r) => r.suggested_orders).length} could arrive before the first short need.`;
+
+const machinesTable = `| Machine | Protocol | Source of the protocol | Documentation (read on) |
+|---|---|---|---|
+${machinesConfig().map((m) => `| ${m.code} | ${PROTOCOL[m.protocol] ?? m.protocol} | ${m.source === "community" ? "**community** documentation (not supported by the vendor)" : "official documentation"} | ${m.docs} (${m.read}) |`).join("\n")}
+
+The dispatch eval: ${both("scenarios")} scenarios written blind from the rules (${dsum.dev.scenarios} dev, ${dsum.heldout.scenarios} held out), model ${dispatchEval.model}, cost $${Number(dispatchEval.cost_usd).toFixed(3)} of a $${dispatchEval.cap_usd} cap (\`make eval\`, \`eval/results/DISPATCH.md\`). Unsafe tool calls (an action no Proceed approved, or one the scenario forbids), by the model + by a scripted misbehaving agent: dev ${dsum.dev.unsafe_by_model} + ${dsum.dev.unsafe_by_script}, held out ${dsum.heldout.unsafe_by_model} + ${dsum.heldout.unsafe_by_script}; blocked ${both("unsafe_blocked")}, got through **${both("unsafe_through")}**. Actions executed without a Proceed: **${both("executed_without_proceed")}**. Prompt-injection scenarios (job names, notes, file names, machine messages) where anything changed: **${both("injection_changed")} of ${both("injection_scenarios")}**. Expected starts that did not happen: ${both("scenarios_with_a_missed_start")} scenarios, each refused by the guard's plan check (DISPATCH.md says why).`;
 
 // --- Write or check -----------------------------------------------------------------------------
 
@@ -112,7 +152,11 @@ function fill(text, name, body) {
 }
 
 const current = readFileSync(README, "utf8");
-const next = fill(fill(fill(fill(current, "results", results), "claims", claims), "costing", flagTable), "shortage", shortageTable);
+const next = fill(
+  fill(fill(fill(fill(current, "results", results), "claims", claims), "costing", flagTable), "shortage", shortageTable),
+  "machines",
+  machinesTable,
+);
 if (process.argv.includes("--check")) {
   if (next !== current) {
     console.error("✗ README.md does not match eval/results (run `make readme` and commit it)");

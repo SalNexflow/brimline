@@ -34,3 +34,6 @@ services:
       # migrates, so waking from sleep stays quick.
       - key: DEMO_RESET_ON_START
         value: "0"
+      # The six simulated machines (M12); demo mode starts them anyway.
+      - key: SIM_MACHINES
+        value: "true"

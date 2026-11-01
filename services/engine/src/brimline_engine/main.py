@@ -51,7 +51,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # The simulated machines and the dispatch watcher (M12), when switched on (demo, dev).
     settings = get_settings()
     app.state.floor = (
-        open_floor(pool, free_ports=settings.sim_free_ports) if settings.sim_machines else None
+        # The hosted demo (demo mode) always has them: there is nothing real to connect to.
+        open_floor(pool, free_ports=settings.sim_free_ports)
+        if settings.sim_machines or settings.demo_mode
+        else None
     )
     try:
         yield
