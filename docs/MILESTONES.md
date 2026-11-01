@@ -132,6 +132,11 @@ Deliverables: material arrival times as scheduler constraints, shortage detectio
 
 Acceptance: jobs are never started before their material arrives, checked by the independent checker.
 
+Done (2026-11-01): stock and deliveries in CP-SAT (a reservoir) and the baselines; checker rule R20 with
+hand-worked and blind cases and three mutations; MRP shortages per plan and purchase suggestions with lead
+times (code only, a person orders); the stock ledger; a grams fallback (entered, file, quote); the Materials
+page; `make shortage-bench` (decisions D147 to D157).
+
 ## M10. Quoted versus actual, and failed prints
 **Goal:** close the learning loop.
 

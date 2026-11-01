@@ -35,3 +35,8 @@ Bigger "nice to have" ideas, one-line pitch each. Not commitments.
 - **Correct a recorded time:** let a planner fix a Done pressed hours late, with the change audited, so actual times stay honest.
 - **Flag by material and post-processing, or by machine,** once the shop has enough jobs that the smaller groups still reach the minimum sample.
 - **Flag over-quoting too** (types that always finish well under their quote), where the shop may be losing work on price.
+- **Stock counts:** a planner records a counted balance, logged as a correction with the difference, so the "count is due" warning can be cleared.
+- **Material per part as it prints:** take grams over the print instead of all at the start, for long multi-part prints on one spool.
+- **Expedite or move a delivery:** let staff change a purchase order's expected time (audited) instead of reporting it as a disruption.
+- **Need times with capacity:** work back from due dates through the plan's own machine queues, so shortages are found earlier when machines are busy.
+- **Edit JavaScript only with exact edits:** twice a Python-written edit put a real line break inside a JavaScript string (#86, and once in M9, caught before commit by the parse step); a small script that rewrites JS through a JS parser would remove the trap.
