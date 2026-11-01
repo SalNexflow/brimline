@@ -11,7 +11,7 @@ on Mon 26 Oct 2026 at 10:00 Berlin (minute 120; Thursday is [4320, 4860)):
   Tue 27 it arrives Thu 29 10:00, before 13:39, so the latest day is Tue 27 Oct.
 """
 
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import replace
 from datetime import UTC, date, datetime
 from typing import Any
@@ -356,15 +356,28 @@ def test_a_print_lost_to_a_breakdown_counts_only_the_share_it_used(
     assert free == 3950
 
 
+@pytest.fixture
+def clear_wheel_hub_grams(owner_url: str) -> Iterator[Callable[[], None]]:
+    """Clears the wheel hub's grams, as for a job that was printing before M9; its seeded 25 g
+    come back afterwards."""
+
+    def set_grams(value: int | None) -> None:
+        with psycopg.connect(owner_url) as conn:
+            conn.execute(
+                "UPDATE jobs SET grams_per_part = %s FROM orders o WHERE o.id = jobs.order_id"
+                " AND o.order_number = 'BL-0001' AND jobs.line_no = 2",
+                (value,),
+            )
+
+    yield lambda: set_grams(None)
+    set_grams(25)
+
+
 def test_a_print_without_grams_must_be_weighed_when_it_ends(
-    client: TestClient, owner_url: str
+    client: TestClient, owner_url: str, clear_wheel_hub_grams: Callable[[], None]
 ) -> None:
     start_wheel_hub_print(client)
-    with psycopg.connect(owner_url) as conn:  # as for a job that was printing before M9
-        conn.execute(
-            "UPDATE jobs SET grams_per_part = NULL FROM orders o"
-            " WHERE o.id = jobs.order_id AND o.order_number = 'BL-0001' AND jobs.line_no = 2"
-        )
+    clear_wheel_hub_grams()
     q = client.get("/queues", headers=login(client, "U-OPERATOR")).json()
     machine = tasks_of(q, "BL-0001-2")[1]
     r = run(client, FIXED_NOW, machine["id"], "done")
