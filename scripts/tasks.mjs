@@ -44,8 +44,11 @@ const ENV = loadEnv();
 // Windows; the folder goes in `cwd` (never in the command string) so spaces in paths are safe.
 const step = (name, cwd, command) => ({ name, cwd, command });
 
-const WEB_UNIT = step("web: unit tests", WEB, "pnpm run test");
-const ENGINE_UNIT = step("engine: tests", ENGINE, "uv run --locked pytest");
+// GATE_FAIL_FAST=1 (the gate self-test's mutation runs): each test runner stops at its first failure.
+// The gate still fails at the same step, so the self-test proves the same thing, in minutes.
+const FAST = process.env.GATE_FAIL_FAST === "1";
+const WEB_UNIT = step("web: unit tests", WEB, FAST ? "pnpm run test --bail=1" : "pnpm run test");
+const ENGINE_UNIT = step("engine: tests", ENGINE, FAST ? "uv run --locked pytest -x" : "uv run --locked pytest");
 
 // Order: fastest checks first, so most mistakes fail in seconds.
 const GATE = [
@@ -63,7 +66,7 @@ const GATE = [
   step("engine: typecheck", ENGINE, "uv run --locked mypy"),
   ENGINE_UNIT,
   step("web: build", WEB, "pnpm run build"),
-  step("web: browser tests", WEB, "pnpm run e2e"),
+  step("web: browser tests", WEB, FAST ? "pnpm run e2e --max-failures=1" : "pnpm run e2e"),
 ];
 
 function runSteps(title, steps) {

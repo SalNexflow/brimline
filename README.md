@@ -214,6 +214,11 @@ The hosted demo at https://brimline-alpha.vercel.app (Vercel + Render + Neon, al
 - Dispatch starts a print only inside a shift and only on its planned machine; starting a job earlier than
   planned is refused when it would collide with work planned before it (re-plan instead). The watcher is one
   thread in the engine and pauses while the free hosted engine sleeps.
+- The hosted demo pins the shop's clock inside a shift ("Demo time", Monday 10:00 of the current week), so
+  planning and dispatch work at any real hour; the rules are unchanged. In the demo, Start and Done presses
+  therefore all happen at that one moment, so their own durations are zero (machine times come from the
+  simulated machines). Between Monday 00:00 and the nightly reset at 03:30 (shop time) the demo clock is
+  already on the new week while the data is still on the last one.
 - Plan day runs on one background thread inside the engine process: fine for one engine, not for several
   (a separate worker would be the next step, `docs/DECISIONS.md` D68).
 - Plan times are wall-clock minutes in the shop's time zone, so an overnight print across a clock change is

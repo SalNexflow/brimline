@@ -280,14 +280,19 @@ function capture(command, cwd) {
   return spawnSync(command, { cwd, shell: true, encoding: "utf8" }).stdout ?? "";
 }
 
-function runGate() {
+// `failFast`: each test runner stops at its first failure (GATE_FAIL_FAST, scripts/tasks.mjs). Used for
+// the mutations, never the baseline: a mutation only has to fail at its expected step, and a test
+// runner that stops early still fails at that step.
+function runGate(failFast = false) {
   rmSync(RESULT_FILE, { force: true });
-  const status = sh("node scripts/tasks.mjs gate", COPY, { GATE_RESULT_FILE: RESULT_FILE });
+  const env = { GATE_RESULT_FILE: RESULT_FILE, ...(failFast ? { GATE_FAIL_FAST: "1" } : {}) };
+  const status = sh("node scripts/tasks.mjs gate", COPY, env);
   const failedStep = existsSync(RESULT_FILE) ? JSON.parse(readFileSync(RESULT_FILE, "utf8")).failedStep : "unknown";
   return { status, failedStep };
 }
 
 function main() {
+  const started = Date.now();
   if (capture("git status --porcelain", ROOT).trim() !== "") {
     console.error("✗ Refusing to run: the git tree has uncommitted changes. Commit or stash them first.");
     return 1;
@@ -323,13 +328,15 @@ function main() {
     }
     console.log(`\n=== Mutation: ${m.name}  (expect '${m.expect}' to fail)`);
     writeFileSync(path, original.replace(m.find, m.replace));
-    const { status, failedStep } = runGate();
+    const began = Date.now();
+    const { status, failedStep } = runGate(true);
     writeFileSync(path, original);
+    console.log(`    (${Math.round((Date.now() - began) / 1000)} s)`);
     const caught = status !== 0 && failedStep === m.expect;
     results.push({ ...m, caught, note: status === 0 ? "gate stayed GREEN" : `failed at '${failedStep}'` });
   }
 
-  console.log("\nGate self-test results");
+  console.log(`\nGate self-test results (${Math.round((Date.now() - started) / 60000)} min in all)`);
   for (const r of results) console.log(`  ${r.caught ? "CAUGHT" : "MISSED"}  ${r.name}: ${r.note}`);
   const missed = results.filter((r) => !r.caught).length;
   console.log(missed ? `\n✗ ${missed} of ${results.length} mutations not caught as expected` : `\n✓ all ${results.length} mutations caught at the expected step`);
