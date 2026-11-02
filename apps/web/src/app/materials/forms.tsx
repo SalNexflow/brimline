@@ -35,7 +35,7 @@ export function PurchaseOrderForm({
 }) {
   const [state, action, pending] = useActionState(recordPurchaseOrder, INITIAL);
   return (
-    <form action={action} className="stack" aria-label="Record a purchase order">
+    <form action={action} className="stack form-card" aria-label="Record a purchase order">
       <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <input type="hidden" name="time_zone" value={timeZone} />
       <Errors errors={state.errors} />

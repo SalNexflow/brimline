@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { can, signedInEngine, type StockOverview } from "@/lib/engine";
 import { formatShopTime } from "@/lib/timeline";
 
+import { Stats, StatusPill } from "../ui";
 import { CancelButton, PurchaseOrderForm, ReceiveButton } from "./forms";
 
 export const metadata: Metadata = { title: "Materials · Brimline" };
@@ -50,18 +51,35 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
   return (
     <>
       {done ? (
-        <p role="status" className="notice">
+        <p role="status" className="toast">
           {done}
         </p>
       ) : null}
-      <p className="muted">
-        Planning counts the stock on hand and every open purchase order at its expected time; no job starts before its
-        material is there (checked by the independent checker). Shortages and suggestions are computed by code on every
-        visit. Brimline never orders anything: a person orders from the supplier, then records it here.
-      </p>
-      {data.plans.length === 0 ? <p role="status">No plan yet: shortages appear once a plan is made.</p> : null}
+      <p className="lede">Stock, what runs short in each plan, and what to order. Brimline never orders anything.</p>
+      <details className="how">
+        <summary>How this works</summary>
+        <p>
+          Planning counts the stock on hand and every open purchase order at its expected time; no job starts before its
+          material is there (checked by the independent checker). Shortages and suggestions are computed by code on every
+          visit. A person orders from the supplier, then records it here.
+        </p>
+      </details>
+      <Stats
+        label="Stock and orders, counted by code"
+        items={[
+          ["Materials", data.stock.length],
+          ["Short in a plan", new Set(current.flatMap((p) => p.shortages.map((s) => s.material))).size],
+          ["Open purchase orders", data.purchase_orders.filter((po) => po.status === "open").length],
+          ["Overdue", data.purchase_orders.filter((po) => po.overdue).length],
+        ]}
+      />
+      {data.plans.length === 0 ? (
+        <p role="status" className="lede">
+          No plan yet: shortages appear once a plan is made.
+        </p>
+      ) : null}
       {data.plans.length > 1 ? (
-        <p className="muted">
+        <p className="muted lede">
           The approved plan and the draft each have their own shortages. A suggestion that appears in both is the same
           need: order once.
         </p>
@@ -70,15 +88,15 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
         <PlanSection key={p.schedule_id} plan={p} timeZone={tz} />
       ))}
 
-      <h2>Stock</h2>
-      <div className="table-scroll">
+      <h2 id="stock-heading">Stock</h2>
+      <div className="table-scroll" role="region" aria-labelledby="stock-heading" tabIndex={0}>
         <table>
           <caption className="visually-hidden">Stock on hand and on order</caption>
           <thead>
             <tr>
               <th scope="col">Material</th>
-              <th scope="col">On hand</th>
-              <th scope="col">On order</th>
+              <th scope="col" className="num">On hand</th>
+              <th scope="col" className="num">On order</th>
               <th scope="col">Supplier (lead time)</th>
             </tr>
           </thead>
@@ -88,8 +106,8 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
                 <td>
                   {s.material} <span className="muted">{s.name}</span>
                 </td>
-                <td>{grams(s.on_hand_g)}</td>
-                <td>{s.on_order_g ? grams(s.on_order_g) : "—"}</td>
+                <td className="num">{grams(s.on_hand_g)}</td>
+                <td className="num">{s.on_order_g ? grams(s.on_order_g) : "—"}</td>
                 <td>{s.supplier ? `${s.supplier} (${s.lead_time_days} days)` : "—"}</td>
               </tr>
             ))}
@@ -97,18 +115,20 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
         </table>
       </div>
 
-      <h2>Purchase orders</h2>
+      <h2 id="po-heading">Purchase orders</h2>
       {data.purchase_orders.length === 0 ? (
-        <p role="status">None recorded.</p>
+        <p role="status" className="lede">
+          None recorded.
+        </p>
       ) : (
-        <div className="table-scroll">
+        <div className="table-scroll" role="region" aria-labelledby="po-heading" tabIndex={0}>
           <table>
             <caption className="visually-hidden">Purchase orders, open first</caption>
             <thead>
               <tr>
                 <th scope="col">Order</th>
                 <th scope="col">Material</th>
-                <th scope="col">Grams</th>
+                <th scope="col" className="num">Grams</th>
                 <th scope="col">Supplier</th>
                 <th scope="col">Expected</th>
                 <th scope="col">Status</th>
@@ -119,14 +139,17 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
                 <tr key={po.number} data-testid={`po-${po.number}`}>
                   <td>{po.number}</td>
                   <td>{po.material}</td>
-                  <td>{grams(po.grams)}</td>
+                  <td className="num">{grams(po.grams)}</td>
                   <td>{po.supplier}</td>
                   <td>
                     {formatShopTime(po.expected_at, tz)}
                     {po.overdue ? <span className="badge badge-rush">overdue: not counted</span> : null}
                   </td>
                   <td>
-                    {po.status === "received" && po.received_at ? `received ${formatShopTime(po.received_at, tz)}` : po.status}
+                    <StatusPill status={po.status} />
+                    {po.status === "received" && po.received_at ? (
+                      <span className="muted"> {formatShopTime(po.received_at, tz)}</span>
+                    ) : null}
                     {po.status === "open" && mayRecord ? (
                       <div className="task-actions">
                         <ReceiveButton number={po.number} idempotencyKey={crypto.randomUUID()} />
@@ -144,7 +167,7 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
       {mayRecord ? (
         <>
           <h2>Record a purchase order</h2>
-          <p className="muted">
+          <p className="muted lede">
             After ordering from the supplier, record it so the next plan counts the delivery.
             {firstSuggestion && firstShort ? " Filled in from the first suggestion above." : null}
           </p>
@@ -164,7 +187,7 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
       {data.movements.length > 0 ? (
         <>
           <h2>Latest stock changes</h2>
-          <ul className="stack">
+          <ul className="log-list">
             {data.movements.map((m, i) => (
               <li key={i}>
                 {formatShopTime(m.at, tz)}: {m.grams > 0 ? "+" : ""}
@@ -176,7 +199,7 @@ async function MaterialsContent({ searchParams }: { searchParams: PageProps<"/ma
           </ul>
         </>
       ) : null}
-      <p className="muted">Purchasing settings from config/purchasing.toml, checked {data.checked}.</p>
+      <p className="muted lede">Purchasing settings from config/purchasing.toml, checked {data.checked}.</p>
     </>
   );
 }
@@ -195,14 +218,21 @@ function PlanSection({ plan, timeZone }: { plan: PlanShortages; timeZone: string
         </p>
       ) : null}
       {!plan.material_known ? (
-        <p role="status">This plan was made before stock was part of planning; plan again to see shortages.</p>
+        <p role="status" className="lede">
+          This plan was made before stock was part of planning; plan again to see shortages.
+        </p>
       ) : plan.shortages.length === 0 ? (
-        <p role="status">No material runs short in this plan.</p>
+        <p role="status" className="lede">
+          No material runs short in this plan.
+        </p>
       ) : (
-        <ul className="flag-list">
+        <ul className="flag-list shortage-list">
           {plan.shortages.map((s) => (
-            <li key={s.material} className="error-box" data-testid={`shortage-${s.material}`}>
+            <li key={s.material} className="card shortage" data-testid={`shortage-${s.material}`}>
               <p>
+                <span className="state state-bad">
+                  <span aria-hidden="true">!</span> short
+                </span>{" "}
                 <strong>{s.material}</strong> runs short {formatShopTime(s.short_at, timeZone)}, by {grams(s.short_by_g)}.
               </p>
               <ul>
