@@ -97,7 +97,7 @@ test("the Brimline story, end to end", async ({ page }) => {
     "Brimline",
     [
       "Planning software for a fictional made-to-order 3D-print and CNC shop.",
-      "All data in this video is fake.",
+      "All data in this video is fake. The machines are simulated: mock servers that speak each machine's protocol.",
       `AI replies are replayed from a recorded run (deepseek-flash, ${recordedOn()}).`,
       "Prices, dates, permissions and plans are always computed by code.",
     ],
@@ -147,8 +147,42 @@ test("the Brimline story, end to end", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Draft plan, waiting for approval" })).toHaveCount(0);
   await say(page, "Nothing reaches an operator's queue until a planner approves.", 3);
 
-  // 4. Something breaks.
-  await card(page, "4 · Disruption", ["The planner types what broke. AI reads it; code resolves the times."], 3);
+  // 4. Materials (M9).
+  await card(page, "4 · Materials", ["Stock and deliveries limit the plan. Code says what runs short and what to order."], 3);
+  await page.goto("/materials");
+  const shortage = page.getByTestId("shortage-TPU-BLACK").first();
+  await expect(shortage).toBeVisible();
+  await shortage.scrollIntoViewIfNeeded();
+  await say(page, "TPU-BLACK runs short before its delivery. The clip waits; nothing starts without its material.", 5);
+  await say(page, "A suggestion: what to order, how much, and by when. Code computes it; a person orders.", 5);
+
+  // 5. Dispatch to a machine (M12).
+  await card(page, "5 · Dispatch", ["An AI agent proposes; a person presses Proceed; code checks every call."], 3);
+  await signIn(page, "Jonas Weber", "operator");
+  await page.goto("/queues");
+  await page.getByRole("button", { name: /^Start: Prep for BL-0005 Chain guide/ }).click();
+  await page.getByRole("button", { name: /^Done: Prep for BL-0005 Chain guide/ }).click();
+  await say(page, "The operator finishes the chain guide's prep, so its milling can start.", 3);
+  await signIn(page, "Priya Nandakumar", "planner");
+  await page.goto("/dispatch");
+  await expect(page.getByTestId("machine-CNC-1")).toContainText("Idle");
+  await say(page, "Six simulated machines, each reached through its own protocol. Demo time is pinned inside a shift.", 5);
+  await page.getByRole("button", { name: "Ask the dispatcher" }).click();
+  const proposal = page.getByRole("checkbox", { name: /Start BL-0005-1 on CNC-1/ });
+  await expect(proposal).toBeVisible();
+  await proposal.scrollIntoViewIfNeeded();
+  await say(page, "The agent proposes; the guard pre-checks it. Nothing has reached a machine.", 4);
+  await proposal.check();
+  await page.getByRole("button", { name: "Proceed" }).click();
+  await expect(page.getByTestId("call-row").filter({ hasText: "start_task" })).toContainText("allowed");
+  await page.getByTestId("call-row").first().scrollIntoViewIfNeeded();
+  await say(page, "After Proceed the agent issues exactly that call; code checked it against the plan, the machine and the stock.", 6);
+  await page.getByTestId("machine-CNC-1").scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("machine-CNC-1")).toContainText("Running");
+  await say(page, "The simulated mill (GRBL) is running the job.", 3);
+
+  // 6. Something breaks.
+  await card(page, "6 · Disruption", ["The planner types what broke. AI reads it; code resolves the times."], 3);
   await page.goto("/board"); // the title card replaced the page
   await page.getByLabel("What happened?").fill("Printer 1 jammed for 4 hours");
   await page.getByRole("button", { name: "Read message" }).click();
@@ -166,7 +200,7 @@ test("the Brimline story, end to end", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Draft plan, waiting for approval" })).toHaveCount(0);
 
   // 5. Search.
-  await card(page, "5 · Search", ["A question becomes a typed filter. Permissions are added by code."], 3);
+  await card(page, "7 · Search", ["A question becomes a typed filter. Permissions are added by code."], 3);
   await page.goto("/search");
   await page.getByRole("textbox", { name: "Question" }).fill("jobs due this week not printed yet");
   await page.getByRole("button", { name: "Search", exact: true }).click();

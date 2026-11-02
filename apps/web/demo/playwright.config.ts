@@ -51,6 +51,8 @@ export default defineConfig({
         DEMO_LOGIN: "true",
         DEMO_MODE: "true",
         AI_MODE: process.env.SHOWCASE_AI_MODE ?? "replay",
+        DEMO_CLOCK: "Mon 10:00", // the shop clock pinned inside a shift, as on the hosted demo (M12)
+        SIM_FREE_PORTS: "true", // the simulated machines on ports the system picks
       },
       reuseExistingServer: false,
       timeout: 180_000,

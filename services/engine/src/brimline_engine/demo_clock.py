@@ -10,6 +10,7 @@ from datetime import UTC, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 DAYS = {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4, "Sat": 5, "Sun": 6}
+DEFAULT_DEMO_CLOCK = "Mon 10:00"  # the hosted demo's, unless DEMO_CLOCK says otherwise
 PATTERN = r"^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) ([01][0-9]|2[0-3]):[0-5][0-9]$"
 
 

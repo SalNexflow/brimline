@@ -39,3 +39,11 @@ def test_a_malformed_demo_clock_is_refused() -> None:
 
     with pytest.raises(ValidationError):
         Settings(demo_clock="Monday 10am")  # type: ignore[call-arg]
+
+
+def test_demo_mode_brings_its_shop_clock() -> None:
+    from brimline_engine.settings import Settings
+
+    assert Settings(demo_mode=True).demo_clock == "Mon 10:00"  # type: ignore[call-arg]
+    assert Settings(demo_mode=True, demo_clock="Sat 10:00").demo_clock == "Sat 10:00"  # type: ignore[call-arg]
+    assert Settings(demo_mode=False).demo_clock is None  # type: ignore[call-arg]

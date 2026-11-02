@@ -4,10 +4,10 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from brimline_engine.demo_clock import PATTERN
+from brimline_engine.demo_clock import DEFAULT_DEMO_CLOCK, PATTERN
 
 # src/brimline_engine/settings.py -> repo root is four folders up.
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     engine_web_key: SecretStr | None = None
     # Read by the DeepSeek client. (The Claude client finds ANTHROPIC_API_KEY itself.)
     deepseek_api_key: SecretStr | None = None
+
+    @model_validator(mode="after")
+    def demo_has_a_shop_clock(self) -> "Settings":
+        """The hosted demo always pins its shop clock inside a shift (Render does not re-read
+        render.yaml on every deploy, so this does not rely on DEMO_CLOCK being set there)."""
+        if self.demo_mode and self.demo_clock is None:
+            self.demo_clock = DEFAULT_DEMO_CLOCK
+        return self
 
     @field_validator("session_secret")
     @classmethod
