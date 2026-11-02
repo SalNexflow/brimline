@@ -17,7 +17,7 @@ function Problem({ state }: { state: DispatchState }) {
 export function AskButton({ idempotencyKey }: { idempotencyKey: string }) {
   const [state, action, pending] = useActionState(askDispatcher, INITIAL);
   return (
-    <form action={action}>
+    <form action={action} className="ask-form">
       <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <Problem state={state} />
       <button type="submit" disabled={pending}>

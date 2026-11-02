@@ -176,30 +176,32 @@ function Price({ quote }: { quote: QuoteDetail }) {
     return (
       <section aria-labelledby="price-heading">
         <h2 id="price-heading">Price</h2>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Line</th>
-              <th scope="col">Material</th>
-              <th scope="col">Machine time</th>
-              <th scope="col">Post-processing</th>
-              <th scope="col">Setup</th>
-              <th scope="col">Line total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {quote.price.lines.map((line, i) => (
-              <tr key={i}>
-                <td>{i + 1}</td>
-                <td>{money(line.material_cents)}</td>
-                <td>{money(line.machine_cents)}</td>
-                <td>{money(line.post_process_cents)}</td>
-                <td>{money(line.setup_cents)}</td>
-                <td>{money(line.total_cents)}</td>
+        <div className="table-scroll" role="region" aria-labelledby="price-heading" tabIndex={0}>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Line</th>
+                <th scope="col">Material</th>
+                <th scope="col">Machine time</th>
+                <th scope="col">Post-processing</th>
+                <th scope="col">Setup</th>
+                <th scope="col">Line total</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {quote.price.lines.map((line, i) => (
+                <tr key={i}>
+                  <td>{i + 1}</td>
+                  <td>{money(line.material_cents)}</td>
+                  <td>{money(line.machine_cents)}</td>
+                  <td>{money(line.post_process_cents)}</td>
+                  <td>{money(line.setup_cents)}</td>
+                  <td>{money(line.total_cents)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <dl className="facts">
           <dt>Subtotal</dt>
           <dd>{money(quote.price.subtotal_cents)}</dd>
@@ -228,28 +230,30 @@ function ReadOnlyLines({ quote }: { quote: QuoteDetail }) {
   return (
     <>
       <h2>Lines</h2>
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col">Part</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">Material</th>
-            <th scope="col">Post-processing</th>
-          </tr>
-        </thead>
-        <tbody>
-          {quote.lines.map((line) => (
-            <tr key={line.line_no}>
-              <td>{line.line_no}</td>
-              <td>{line.part_name}</td>
-              <td>{line.quantity ?? "to be confirmed"}</td>
-              <td>{line.material_name ?? line.material_as_written ?? "to be confirmed"}</td>
-              <td>{line.post_processing.join(", ") || "none"}</td>
+      <div className="table-scroll" role="region" aria-label="Lines (scrolls sideways)" tabIndex={0}>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Part</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Material</th>
+              <th scope="col">Post-processing</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {quote.lines.map((line) => (
+              <tr key={line.line_no}>
+                <td>{line.line_no}</td>
+                <td>{line.part_name}</td>
+                <td>{line.quantity ?? "to be confirmed"}</td>
+                <td>{line.material_name ?? line.material_as_written ?? "to be confirmed"}</td>
+                <td>{line.post_processing.join(", ") || "none"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <p>Due: {quote.due_date ?? "to be confirmed"}</p>
     </>
   );

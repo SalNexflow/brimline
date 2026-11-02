@@ -31,38 +31,40 @@ async function Versions() {
 
   return (
     <>
-      <table>
-        <caption className="visually-hidden">Price versions, newest first</caption>
-        <thead>
-          <tr>
-            <th scope="col">Version</th>
-            <th scope="col">Effective from</th>
-            <th scope="col">Setup (c)</th>
-            <th scope="col">Rush (%)</th>
-            <th scope="col">FDM / resin / CNC (c/min)</th>
-            <th scope="col">Added by</th>
-            <th scope="col">Note</th>
-          </tr>
-        </thead>
-        <tbody>
-          {versions.map((v) => (
-            <tr key={v.id}>
-              <td>
-                {v.id}
-                {v.id === current?.id ? <span className="badge">in effect</span> : null}
-              </td>
-              <td>{v.effective_from}</td>
-              <td>{v.setup_cents}</td>
-              <td>{v.rush_multiplier_percent}</td>
-              <td>
-                {v.machine_cents_per_minute.fdm} / {v.machine_cents_per_minute.resin} / {v.machine_cents_per_minute.cnc}
-              </td>
-              <td>{v.created_by_name ?? "seed"}</td>
-              <td>{v.note}</td>
+      <div className="table-scroll" role="region" aria-label="Price rules (scrolls sideways)" tabIndex={0}>
+        <table>
+          <caption className="visually-hidden">Price versions, newest first</caption>
+          <thead>
+            <tr>
+              <th scope="col">Version</th>
+              <th scope="col">Effective from</th>
+              <th scope="col">Setup (c)</th>
+              <th scope="col">Rush (%)</th>
+              <th scope="col">FDM / resin / CNC (c/min)</th>
+              <th scope="col">Added by</th>
+              <th scope="col">Note</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {versions.map((v) => (
+              <tr key={v.id}>
+                <td>
+                  {v.id}
+                  {v.id === current?.id ? <span className="badge">in effect</span> : null}
+                </td>
+                <td>{v.effective_from}</td>
+                <td>{v.setup_cents}</td>
+                <td>{v.rush_multiplier_percent}</td>
+                <td>
+                  {v.machine_cents_per_minute.fdm} / {v.machine_cents_per_minute.resin} / {v.machine_cents_per_minute.cnc}
+                </td>
+                <td>{v.created_by_name ?? "seed"}</td>
+                <td>{v.note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {can(me, "price_rules.write") ? (
         <>
           <h2>Add a price version</h2>

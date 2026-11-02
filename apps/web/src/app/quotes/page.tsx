@@ -33,33 +33,35 @@ async function Quotes() {
       ) : !quotes || quotes.length === 0 ? (
         <p>No quote requests yet.</p>
       ) : (
-        <table>
-          <caption className="visually-hidden">Quotes you can see</caption>
-          <thead>
-            <tr>
-              <th scope="col">Quote</th>
-              <th scope="col">Customer</th>
-              <th scope="col">Status</th>
-              <th scope="col">Lines</th>
-              <th scope="col">Still missing</th>
-              <th scope="col">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {quotes.map((quote) => (
-              <tr key={quote.quote_number}>
-                <td>
-                  <Link href={`/quotes/${quote.quote_number}`}>{quote.quote_number}</Link>
-                </td>
-                <td>{quote.customer_name}</td>
-                <td>{quote.status}</td>
-                <td>{quote.line_count}</td>
-                <td>{quote.missing_count}</td>
-                <td>{quote.total_cents == null ? "—" : formatMoney(quote.total_cents, quote.currency)}</td>
+        <div className="table-scroll" role="region" aria-label="Quote requests (scrolls sideways)" tabIndex={0}>
+          <table>
+            <caption className="visually-hidden">Quotes you can see</caption>
+            <thead>
+              <tr>
+                <th scope="col">Quote</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Status</th>
+                <th scope="col">Lines</th>
+                <th scope="col">Still missing</th>
+                <th scope="col">Total</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {quotes.map((quote) => (
+                <tr key={quote.quote_number}>
+                  <td>
+                    <Link href={`/quotes/${quote.quote_number}`}>{quote.quote_number}</Link>
+                  </td>
+                  <td>{quote.customer_name}</td>
+                  <td>{quote.status}</td>
+                  <td>{quote.line_count}</td>
+                  <td>{quote.missing_count}</td>
+                  <td>{quote.total_cents == null ? "—" : formatMoney(quote.total_cents, quote.currency)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </>
   );

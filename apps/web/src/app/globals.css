@@ -257,6 +257,11 @@ a {
   margin: 0 auto;
 }
 
+/* Every page's main heading is centered (with or without .page-title). */
+.page h1 {
+  text-align: center;
+}
+
 /* Titles are centered; any actions next to them sit centered underneath. */
 .page-title {
   display: flex;
@@ -1541,10 +1546,11 @@ section.check {
   text-align: left;
 }
 
-.page > form,
-[data-testid="latest-run"] > form {
+/* "Ask the dispatcher": its one button centered under the machines. */
+.ask-form {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Proposals: one glass card; each proposal a row with a large checkbox and its reason below. */

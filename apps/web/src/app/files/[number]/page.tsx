@@ -69,32 +69,34 @@ async function FileCheck({ params }: Pick<PageProps<"/files/[number]">, "params"
       ) : null}
 
       <h2>Checks</h2>
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Check</th>
-            <th scope="col">Result</th>
-            <th scope="col">Why</th>
-          </tr>
-        </thead>
-        <tbody>
-          {file.report.checks.map((c) => (
-            <tr key={c.name}>
-              <td>{CHECK_LABELS[c.name] ?? c.name}</td>
-              <td>
-                <span className={`check check-${c.status}`}>{STATUS_LABELS[c.status]}</span>
-                {accepted.has(c.name) ? <span className="muted"> (accepted)</span> : null}
-              </td>
-              <td>
-                {c.reason}
-                {c.status === "warn" && file.can_override && !accepted.has(c.name) ? (
-                  <AcceptWarningForm fileNumber={file.file_number} check={c.name} formKey={crypto.randomUUID()} />
-                ) : null}
-              </td>
+      <div className="table-scroll" role="region" aria-label="Checks (scrolls sideways)" tabIndex={0}>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Check</th>
+              <th scope="col">Result</th>
+              <th scope="col">Why</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {file.report.checks.map((c) => (
+              <tr key={c.name}>
+                <td>{CHECK_LABELS[c.name] ?? c.name}</td>
+                <td>
+                  <span className={`check check-${c.status}`}>{STATUS_LABELS[c.status]}</span>
+                  {accepted.has(c.name) ? <span className="muted"> (accepted)</span> : null}
+                </td>
+                <td>
+                  {c.reason}
+                  {c.status === "warn" && file.can_override && !accepted.has(c.name) ? (
+                    <AcceptWarningForm fileNumber={file.file_number} check={c.name} formKey={crypto.randomUUID()} />
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {file.overrides.length > 0 ? (
         <>
           <h3>Accepted warnings</h3>
