@@ -161,8 +161,10 @@ The dispatch eval: 36 scenarios written blind from the rules (21 dev, 15 held ou
 |---|---|---|
 | ![Quote](docs/screenshots/quote.png) | ![Disruption review](docs/screenshots/disruption-review.png) | ![Search](docs/screenshots/search.png) |
 
-Regenerate with `make screenshots`. A 3-minute walkthrough video, with captions, is made by `make demo-video`
-(it replays model replies from a recorded run, and says so).
+Regenerate with `make screenshots`. A 4-minute walkthrough video, with captions, is made by `make demo-video`
+(`docs/video/brimline-demo.mp4`): quote, plan, materials, a dispatch to a simulated machine, a disruption and
+search. It replays model replies from a recorded run and says so, and its opening card says the machines are
+simulated.
 
 ## Run it
 
