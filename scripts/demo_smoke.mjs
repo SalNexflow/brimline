@@ -108,6 +108,26 @@ async function main() {
   const dispatch = await call("GET", "/dispatch", { token: tokens.planner });
   const answering = (dispatch.json?.machines ?? []).filter((m) => m.state !== null).map((m) => m.code);
   check(dispatch.status === 200 && dispatch.json?.connected && answering.length === 6, `the six simulated machines answer: ${answering.join(", ") || "none"}`);
+  // M12 follow-up: with the demo clock (inside a shift) a dispatch goes from Proceed to a simulated
+  // start at whatever hour this runs. The chain guide (CNC-1, GRBL) is the mill's only job.
+  check(Boolean(status.json?.demo_time), `the demo clock is shown: ${status.json?.demo_time}`);
+  const queues = await call("GET", "/queues", { token: tokens.operator });
+  const guide = (queues.json?.queues ?? []).flatMap((q) => q.tasks).filter((t) => t.job === "BL-0005-1");
+  const prep = guide.find((t) => t.kind === "prep");
+  if (prep) {
+    await call("POST", `/tasks/${prep.id}/start`, { token: tokens.operator });
+    await call("POST", `/tasks/${prep.id}/done`, { token: tokens.operator });
+  }
+  const asked = await call("POST", "/dispatch/runs", { token: tokens.planner });
+  const view = await call("GET", "/dispatch", { token: tokens.planner });
+  const run = (view.json?.runs ?? []).find((r) => r.id === asked.json?.run_id);
+  const proposal = run?.proposals.find((p) => p.job === "BL-0005-1" && p.precheck === "allowed");
+  const proceeded = proposal
+    ? await call("POST", `/dispatch/runs/${run.id}/proceed`, { token: tokens.operator, body: { proposal_ids: [proposal.id] } })
+    : null;
+  const started = (proceeded?.json?.calls ?? []).filter((c) => c.tool === "start_task" && c.verdict === "allowed");
+  const cnc = (await call("GET", "/dispatch", { token: tokens.planner })).json?.machines?.find((m) => m.code === "CNC-1");
+  check(started.length === 1 && cnc?.state === "running", `a dispatch goes from Proceed to a simulated start on CNC-1 (GRBL): ${proposal ? `${started.length} start(s) allowed, CNC-1 ${cnc?.state}` : `no passing proposal (${JSON.stringify(run?.proposals?.map((p) => p.precheck))})`}`);
 
   const ctx = {};
   for (const [table, role, write] of WRITES) {

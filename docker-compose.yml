@@ -43,6 +43,7 @@ services:
       AI_MODE: ${DEMO_AI_MODE:-fake}
       DEMO_RESET_ON_START: "1"
       SIM_MACHINES: "true"
+      DEMO_CLOCK: "Mon 10:00"   # the shop clock pinned inside a shift (demo only)
     ports:
       - "${ENGINE_PORT:-8000}:8000"
     healthcheck:

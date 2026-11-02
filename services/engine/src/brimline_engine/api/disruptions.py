@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Path, Response
 
 from brimline_engine.ai.clients import client_for
 from brimline_engine.ai.config import models_config
-from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, Now
+from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, ShopNow
 from brimline_engine.api.planning import Config, Tz
 from brimline_engine.demo import check_storage
 from brimline_engine.idempotency import IdempotencyConflictError, StoredResponse
@@ -62,7 +62,7 @@ def read_disruption(
     response: Response,
     conn: Conn,
     user: CurrentUser,
-    now: Now,
+    now: ShopNow,
     key: IdempotencyKey,
     settings: CurrentSettings,
     cfg: Config,
@@ -94,7 +94,7 @@ def enter_disruption(
     response: Response,
     conn: Conn,
     user: CurrentUser,
-    now: Now,
+    now: ShopNow,
     key: IdempotencyKey,
 ) -> dict[str, Any]:
     check_storage(conn, "disruptions")  # demo mode only (config/demo.toml)
@@ -112,7 +112,7 @@ def confirm_disruption(
     response: Response,
     conn: Conn,
     user: CurrentUser,
-    now: Now,
+    now: ShopNow,
     key: IdempotencyKey,
 ) -> dict[str, Any]:
     try:
@@ -128,7 +128,7 @@ def dismiss_disruption(
     response: Response,
     conn: Conn,
     user: CurrentUser,
-    now: Now,
+    now: ShopNow,
     key: IdempotencyKey,
 ) -> dict[str, Any]:
     try:

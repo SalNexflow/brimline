@@ -12,7 +12,7 @@ from brimline_engine import audit, idempotency
 from brimline_engine.ai.clients import client_for
 from brimline_engine.ai.config import models_config
 from brimline_engine.ai.guard import VISITOR, demo_config, over_limit, spend
-from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, Now
+from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, ShopNow
 from brimline_engine.api.planning import Tz
 from brimline_engine.demo import check_storage
 from brimline_engine.dispatch import service
@@ -175,7 +175,7 @@ def ask_dispatcher(
     request: Request,
     conn: Conn,
     user: CurrentUser,
-    now: Now,
+    now: ShopNow,
     key: IdempotencyKey,
     settings: CurrentSettings,
     tz: Tz,
@@ -227,7 +227,7 @@ def proceed(
     response: Response,
     conn: Conn,
     user: CurrentUser,
-    now: Now,
+    now: ShopNow,
     key: IdempotencyKey,
     settings: CurrentSettings,
     tz: Tz,

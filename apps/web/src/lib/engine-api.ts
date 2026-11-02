@@ -1137,6 +1137,8 @@ export interface components {
         DemoStatus: {
             /** Demo Mode */
             demo_mode: boolean;
+            /** Demo Time */
+            demo_time: string | null;
             /** Full Solver Seconds */
             full_solver_seconds: number;
             /** Max Upload Bytes */

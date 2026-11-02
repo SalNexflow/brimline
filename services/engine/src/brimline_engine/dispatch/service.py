@@ -53,6 +53,9 @@ class Shop:
     prepare: Any  # (machine, job, seconds) -> None
     speed: float  # simulated machine seconds per real second (1.0 for real machines)
     simulated: bool = True
+    # Simulated shops only: the simulated clock's count of a machine's last job, for protocols that
+    # report no time (the demo's shop clock is pinned, so elapsed shop time says nothing).
+    sim_seconds: Any = None  # (machine) -> int | None
 
 
 # --- Reading -----------------------------------------------------------------------------------
@@ -604,7 +607,9 @@ def _poll_task(
     if s.seconds is not None:
         source, seconds = "machine", s.seconds
     else:  # the protocol reports no time: code's watch, on the simulated clock
-        source, seconds = "polled", int((now - started).total_seconds() * shop.speed)
+        counted = shop.sim_seconds(machine) if shop.sim_seconds else None
+        elapsed = int((now - started).total_seconds() * shop.speed)
+        source, seconds = "polled", counted if counted is not None else elapsed
     action: TaskAction
     if s.state == "done" or (s.state == "idle" and not adapter.reports_job):
         action, mark = "done", TaskMark()

@@ -8,9 +8,12 @@ from datetime import UTC, datetime
 
 from psycopg_pool import ConnectionPool
 
+from brimline_engine.demo_clock import shop_time
 from brimline_engine.dispatch.service import Shop, poll_once
 from brimline_engine.machines.config import MachinesConfig, machines_config
 from brimline_engine.machines.fleet import Fleet, start_fleet
+from brimline_engine.settings import get_settings
+from brimline_engine.shop_config import load_shop_config
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +37,7 @@ def shop_for(fleet: Fleet) -> Shop:
         adapters=dict(fleet.adapters),
         prepare=lambda code, job, seconds: fleet.sims[code].prepare(job, seconds),
         speed=fleet.config.sim.speed,
+        sim_seconds=lambda code: fleet.sims[code].status().seconds,
     )
 
 
@@ -53,13 +57,19 @@ def open_floor(
     shop = shop_for(fleet)
     stop = threading.Event()
     watcher = None
+    settings = get_settings()
+    tz = load_shop_config().shop.time_zone
+
+    def shop_clock() -> datetime:
+        return shop_time(datetime.now(UTC), settings.demo_clock, tz)
+
     if watch and pool is not None:
 
         def loop() -> None:
             while not stop.wait(cfg.sim.poll_seconds):
                 try:
                     with pool.connection() as conn:
-                        poll_once(conn, shop, datetime.now(UTC))
+                        poll_once(conn, shop, shop_clock())
                 except Exception:  # keep watching; the next round tries again
                     log.exception("dispatch watcher round failed")
 

@@ -10,14 +10,25 @@ import psycopg
 from fastapi import Depends, Header, HTTPException, Request
 from psycopg_pool import ConnectionPool
 
+from brimline_engine.demo_clock import shop_time
 from brimline_engine.permissions import Actor, Role
 from brimline_engine.session import InvalidSessionError, verify_token
 from brimline_engine.settings import Settings, get_settings
+from brimline_engine.shop_config import load_shop_config
 from brimline_engine.text import IDEMPOTENCY_KEY_PATTERN
 
 
 def utc_now() -> datetime:
     return datetime.now(UTC)
+
+
+def shop_now(
+    now: Annotated[datetime, Depends(utc_now)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> datetime:
+    """The shop's "now" for planning, disruptions, queues and dispatch: the real time, or in the
+    hosted demo the demo clock's moment inside a shift (demo_clock.py)."""
+    return shop_time(now, settings.demo_clock, load_shop_config().shop.time_zone)
 
 
 def get_conn(request: Request) -> Iterator[psycopg.Connection]:
@@ -89,3 +100,4 @@ IdempotencyKey = Annotated[str, Depends(idempotency_key)]
 CurrentUser = Annotated[SessionUser, Depends(current_user)]
 CurrentSettings = Annotated[Settings, Depends(get_settings)]
 Now = Annotated[datetime, Depends(utc_now)]
+ShopNow = Annotated[datetime, Depends(shop_now)]  # the shop's clock (demo clock in the demo)

@@ -8,7 +8,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, Response
 from psycopg_pool import ConnectionPool
 
-from brimline_engine.api.deps import Conn, CurrentUser, IdempotencyKey, Now
+from brimline_engine.api.deps import Conn, CurrentUser, IdempotencyKey, ShopNow
 from brimline_engine.demo import check_storage, effective_scheduler_config
 from brimline_engine.idempotency import IdempotencyConflictError, StoredResponse
 from brimline_engine.planning import queues, runs, schedules
@@ -73,7 +73,9 @@ def _write(response: Response, stored: StoredResponse, replayed: bool) -> dict[s
 
 
 @router.get("/board")
-def get_board(conn: Conn, user: CurrentUser, now: Now, cfg: Config, tz: Tz) -> schedules.BoardOut:
+def get_board(
+    conn: Conn, user: CurrentUser, now: ShopNow, cfg: Config, tz: Tz
+) -> schedules.BoardOut:
     try:
         return schedules.get_board(conn, user.actor, now, cfg, tz)
     except tuple(ERRORS) as exc:
@@ -82,7 +84,7 @@ def get_board(conn: Conn, user: CurrentUser, now: Now, cfg: Config, tz: Tz) -> s
 
 @router.get("/schedules/{schedule_id}")
 def get_schedule(
-    schedule_id: Id, conn: Conn, user: CurrentUser, now: Now, cfg: Config, tz: Tz
+    schedule_id: Id, conn: Conn, user: CurrentUser, now: ShopNow, cfg: Config, tz: Tz
 ) -> schedules.ScheduleOut:
     try:
         return schedules.get_schedule(conn, user.actor, schedule_id, now, cfg, tz)
@@ -92,7 +94,7 @@ def get_schedule(
 
 @router.post("/planning-runs", status_code=202)
 def start_planning(
-    conn: Conn, user: CurrentUser, now: Now, key: IdempotencyKey, runner: Runner
+    conn: Conn, user: CurrentUser, now: ShopNow, key: IdempotencyKey, runner: Runner
 ) -> runs.PlanningRun:
     """Plan day. Returns at once with a run to poll; the solve happens in the background."""
     check_storage(conn, "planning_runs")  # demo mode only (config/demo.toml)
@@ -135,7 +137,7 @@ def approve_schedule(
     response: Response,
     conn: Conn,
     user: CurrentUser,
-    now: Now,
+    now: ShopNow,
     key: IdempotencyKey,
     cfg: Config,
     tz: Tz,
@@ -157,7 +159,7 @@ def discard_schedule(
     response: Response,
     conn: Conn,
     user: CurrentUser,
-    now: Now,
+    now: ShopNow,
     key: IdempotencyKey,
 ) -> dict[str, Any]:
     try:
@@ -188,7 +190,7 @@ def act_on_task(
     response: Response,
     conn: Conn,
     user: CurrentUser,
-    now: Now,
+    now: ShopNow,
     key: IdempotencyKey,
     mark: queues.TaskMark | None = None,
 ) -> dict[str, Any]:

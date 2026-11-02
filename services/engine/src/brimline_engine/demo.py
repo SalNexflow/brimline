@@ -4,14 +4,18 @@ Locally and in the gate nothing here changes anything: each function returns the
 config. On the hosted demo: a shorter solver run (labelled on the board), smaller uploads, and
 writes refused before the free database fills up."""
 
+from datetime import UTC, datetime
+
 import psycopg
 from psycopg import sql
 from pydantic import BaseModel
 
 from brimline_engine.ai.guard import demo_config, over_limit, spend
+from brimline_engine.demo_clock import shop_time
 from brimline_engine.files.config import FilesConfig, files_config
 from brimline_engine.scheduling.config import SchedulerConfig, scheduler_config
 from brimline_engine.settings import get_settings
+from brimline_engine.shop_config import load_shop_config
 
 
 class StorageFullError(Exception):
@@ -67,6 +71,7 @@ class DemoStatus(BaseModel):
     full_solver_seconds: float
     max_upload_bytes: int
     model_limit_reason: str | None  # why live model calls are paused now, if they are
+    demo_time: datetime | None  # the shop's pinned clock, when the demo has one ("Demo time")
 
 
 def status(conn: psycopg.Connection, visitor: str | None) -> DemoStatus:
@@ -80,4 +85,9 @@ def status(conn: psycopg.Connection, visitor: str | None) -> DemoStatus:
         full_solver_seconds=scheduler_config().solver.deterministic_time_seconds,
         max_upload_bytes=effective_files_config().limits.max_upload_bytes,
         model_limit_reason=reason,
+        demo_time=shop_time(
+            datetime.now(UTC), settings.demo_clock, load_shop_config().shop.time_zone
+        )
+        if settings.demo_clock
+        else None,
     )

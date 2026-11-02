@@ -33,6 +33,7 @@ from brimline_engine.db.seed import (
     seed,
     seed_price_rules_if_missing,
 )
+from brimline_engine.demo_clock import shop_time
 from brimline_engine.settings import get_settings
 from brimline_engine.shop_config import load_shop_config
 
@@ -93,7 +94,8 @@ def demo_reset(owner_url: str, app_url: str, dbname: str) -> int:
         conn.execute("CREATE SCHEMA public")
     applied = migrate(owner_url, app_url)
     shop = load_shop_config()
-    now = datetime.now(UTC)
+    # The demo plans at its shop clock (inside a shift), like every later Plan day there.
+    now = shop_time(datetime.now(UTC), get_settings().demo_clock, shop.shop.time_zone)
     today = shop_today(now, shop.shop.time_zone)
     seed(owner_url, shifted(shop, today))
     schedule_id = plan_and_approve(app_url, now, shop.shop.time_zone)

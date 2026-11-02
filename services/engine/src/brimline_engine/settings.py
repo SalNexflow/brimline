@@ -7,6 +7,8 @@ from typing import Literal
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from brimline_engine.demo_clock import PATTERN
+
 # src/brimline_engine/settings.py -> repo root is four folders up.
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
@@ -34,6 +36,9 @@ class Settings(BaseSettings):
     sim_machines: bool = False
     # Let the system pick the mock servers' ports (the browser tests run next to a dev engine).
     sim_free_ports: bool = False
+    # The hosted demo's shop clock, e.g. "Mon 10:00": planning and dispatch read the shop's time as
+    # that moment of the current week, inside a shift, whatever the real hour (demo_clock.py).
+    demo_clock: str | None = Field(default=None, pattern=PATTERN)
     # When set, every request except /health must carry it (X-Engine-Key): only the web can
     # call the engine, and only then is the visitor id it passes on (X-Visitor) believed.
     engine_web_key: SecretStr | None = None

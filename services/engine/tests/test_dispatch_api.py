@@ -7,7 +7,7 @@ machine is idle and, after Proceed, issues exactly the approved actions.
 """
 
 from collections.abc import Iterator
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import psycopg
@@ -477,3 +477,51 @@ def test_the_simulation_switch_is_idempotent_and_audited(client: TestClient, flo
     assert floor.fleet.sims["FDM-1"].mode == "slow"
     assert client.post("/machines/FDM-1/simulation", json=body,
                        headers=login(client, "U-OPERATOR") | key()).status_code == 403  # fmt: skip
+
+
+# --- The demo clock (M12 follow-up) --------------------------------------------------------------
+
+SUNDAY_NIGHT = datetime(2026, 11, 1, 19, 0, tzinfo=UTC)  # 20:00 in Berlin: no shift until Monday
+
+
+def test_with_the_demo_clock_a_dispatch_starts_at_any_real_hour(client: TestClient, floor: Floor,
+                                                                owner_url: str) -> None:  # fmt: skip
+    """Sunday night in the real world; the demo's shop clock says Monday 10:00, inside a shift."""
+    from brimline_engine.settings import get_settings
+    from tests.test_costing_api import clock
+
+    def start_one() -> tuple[dict[str, Any], dict[str, Any]]:
+        q = replan(client, SUNDAY_NIGHT)
+        pick = first_on_its_machine(client)
+        prep, machine_task, *_ = tasks_of(q, pick["job"])
+        for t, action in ((prep, "start"), (prep, "done")):
+            assert run(client, SUNDAY_NIGHT, t["id"], action).status_code == 200
+        with clock(SUNDAY_NIGHT):
+            run_view = ask(client)
+        p = next(p for p in run_view["proposals"] if p["task_id"] == machine_task["id"])
+        return {**pick, "task_id": machine_task["id"]}, p
+
+    pinned = get_settings().model_copy(update={"demo_clock": "Mon 10:00"})
+    app.dependency_overrides[get_settings] = lambda: pinned
+    try:
+        r, p = start_one()
+        assert p["precheck"] == "allowed"
+        with clock(SUNDAY_NIGHT):
+            out = proceed(client, p_run(client), [p["id"]])
+        assert [c["verdict"] for c in out.json()["calls"] if c["tool"] == "start_task"] == [
+            "allowed"
+        ]
+        assert floor.fleet.sims[r["machine"]].status().state == "running"
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+    # The same at the real hour, without the demo clock: outside every shift, so refused (R10).
+    floor.fleet.sims[r["machine"]].stop()
+    _, p = start_one()
+    assert p["precheck"] == "plan_check" and "machine_off_shift" in p["precheck_detail"]
+
+
+def p_run(client: TestClient) -> int:
+    run_id: int = client.get("/dispatch", headers=login(client, "U-PLANNER")).json()["runs"][0][
+        "id"
+    ]
+    return run_id

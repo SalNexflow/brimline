@@ -37,3 +37,6 @@ services:
       # The six simulated machines (M12); demo mode starts them anyway.
       - key: SIM_MACHINES
         value: "true"
+      # The shop clock pinned inside a shift, so planning and dispatch work at any hour (M12).
+      - key: DEMO_CLOCK
+        value: "Mon 10:00"
