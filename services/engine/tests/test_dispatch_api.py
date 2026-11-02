@@ -6,15 +6,20 @@ starting and finishing its prep as an operator. The offline stand-in model propo
 machine is idle and, after Proceed, issues exactly the approved actions.
 """
 
+import re
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
-from brimline_engine.dispatch import service
+from brimline_engine.ai.clients import fake_reply
+from brimline_engine.ai.gateway import ScriptedClient
+from brimline_engine.ai.guard import RecordingClient, ReplayClient
+from brimline_engine.dispatch import agent, service
 from brimline_engine.dispatch.agent import ToolCallOut
 from brimline_engine.dispatch.facts import gather
 from brimline_engine.dispatch.guard import Call, Facts, check
@@ -525,3 +530,59 @@ def p_run(client: TestClient) -> int:
         "id"
     ]
     return run_id
+
+
+def test_the_dispatch_prompt_has_no_dates(client: TestClient, floor: Floor, owner_url: str) -> None:
+    """Start times go to the agent as minutes from the shop clock: the showcase seed moves to the
+    current week, and a prompt with dates would stop matching its recorded reply a week later."""
+    r = ready(client)
+    board = client.get("/board", headers=login(client, "U-PLANNER")).json()["approved"]
+    start = next(
+        t["start"] for t in board["tasks"] if t["job"] == r["job"] and t["kind"] == "machine"
+    )
+    expected = round((datetime.fromisoformat(start) - FIXED_NOW).total_seconds() / 60)
+    with psycopg.connect(owner_url) as conn:
+        schedule = conn.execute("SELECT id FROM schedules WHERE status = 'approved'").fetchone()
+        assert schedule is not None
+        tasks = service._startable(conn, int(schedule[0]), FIXED_NOW)
+    mine = next(t for t in tasks if t["task_id"] == r["task_id"])
+    assert mine["starts_in_minutes"] == expected
+    prompt = agent.propose_prompt(
+        tasks, [m.model_dump() for m in service.machine_states(floor.shop, sources())]
+    )
+    assert re.search(r"\d{4}-\d{2}-\d{2}", prompt) is None
+
+
+def test_a_recorded_dispatch_replays_as_the_agent(client: TestClient, floor: Floor,
+                                                  monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:  # fmt: skip
+    """With a recorded reply for the prompt, the dispatch is the agent's: no code-fallback label.
+    The label appears only when the budget is actually reached."""
+    import brimline_engine.api.dispatch as api
+
+    recording = tmp_path / "replies.jsonl"
+    r = ready(client)
+    monkeypatch.setattr(
+        api,
+        "client_for",
+        lambda mode, model: RecordingClient(ScriptedClient(fake_reply), recording),
+    )
+    recorded = ask(client)
+    monkeypatch.setattr(api, "client_for", lambda mode, model: ReplayClient(recording))
+    replayed = ask(client)
+    assert (recorded["proposed_by"], replayed["proposed_by"]) == ("agent", "agent")
+    assert replayed["note"] == ""
+    pid = next(p["id"] for p in replayed["proposals"] if p["task_id"] == r["task_id"])
+    monkeypatch.setattr(
+        api,
+        "client_for",
+        lambda mode, model: RecordingClient(ScriptedClient(fake_reply), recording),
+    )
+    proceed(client, replayed["id"], [pid])
+    calls = client.get("/dispatch", headers=login(client, "U-PLANNER")).json()["runs"][0]["calls"]
+    assert {c["made_by"] for c in calls} == {"agent"}
+    assert all(c["why_code"] == "" for c in calls)
+
+    monkeypatch.setattr(api, "budget_reason", lambda conn, settings: "over budget")
+    floor.fleet.sims[r["machine"]].stop()
+    capped = ask(client)
+    assert (capped["proposed_by"], capped["note"]) == ("code", "over budget")

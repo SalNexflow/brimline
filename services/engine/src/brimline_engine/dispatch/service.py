@@ -102,9 +102,10 @@ def machine_states(shop: Shop, sources: dict[str, str]) -> list[MachineOut]:
     return out
 
 
-def _startable(conn: psycopg.Connection, schedule_id: int) -> list[dict[str, Any]]:
+def _startable(conn: psycopg.Connection, schedule_id: int, now: datetime) -> list[dict[str, Any]]:
     """Machine tasks of the approved plan that may start now: planned, earlier tasks done. The text
-    fields are what people wrote (untrusted)."""
+    fields are what people wrote (untrusted). Start times are minutes from the shop's clock, not dates,
+    so the same situation gives the same prompt in any week (recorded replies keep matching)."""
     rows = conn.execute(
         "SELECT t.id, o.order_number, j.line_no, j.part_name, m.code, mat.code, t.planned_start,"
         "       o.notes,"
@@ -124,7 +125,7 @@ def _startable(conn: psycopg.Connection, schedule_id: int) -> list[dict[str, Any
             "part_name": r[3],
             "machine": r[4],
             "material": r[5],
-            "planned_start": r[6].isoformat(),
+            "starts_in_minutes": round((r[6] - now).total_seconds() / 60),
             "notes": r[7] or "",
             "file_name": r[8] or "",
         }
@@ -153,7 +154,7 @@ def propose(
     if plan is None:
         raise ConflictError("there is no approved plan to dispatch")
     schedule_id = int(plan[0])
-    tasks = _startable(conn, schedule_id)
+    tasks = _startable(conn, schedule_id, now)
     machines = [m.model_dump() for m in machine_states(shop, sources)]
     proposals: list[agent.ProposalOut] = []
     proposed_by, note, call_id = "agent", "", None
