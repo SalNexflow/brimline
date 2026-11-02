@@ -105,32 +105,50 @@ function barLabel(t: BoardTask, job: BoardJob | undefined, timeZone: string): st
   return `${barText(t, job)}: ${what}, ${kindLabel(t.kind)} on ${where}, ${formatShopTime(t.start, timeZone)} to ${formatShopTime(t.end, timeZone)}, ${statusLabel(t.status)}`;
 }
 
-/** Bars per machine over time, plus rows for manual work (several people can work at once). By
-    default only the first days are drawn, wide enough to read; work after them is marked per row,
-    and the table below lists everything. */
-export function Timeline({ schedule, timeZone, now, span = "days" }: Props) {
+/** The days the timeline draws. "days": three days from today (or from the plan's start, if that is
+    later), so a plan made earlier in the week still opens on now; "all": the whole plan. */
+export function drawnWindow(schedule: Schedule, timeZone: string, now: Date, span: Span) {
   const start = new Date(schedule.plan_start);
   const ends = schedule.tasks.map((t) => new Date(t.end));
-  const w = boardWindow(start, ends, timeZone, SHOWN_DAYS, span === "all" ? Infinity : SHOWN_DAYS);
+  if (span === "all") return boardWindow(start, ends, timeZone, SHOWN_DAYS);
+  return boardWindow(now > start ? now : start, ends, timeZone, SHOWN_DAYS, SHOWN_DAYS);
+}
+
+type Row = { key: string; label: string; tasks: BoardTask[]; earlier: number; later: number };
+
+/** Bars per machine over time, plus rows for manual work (several people can work at once). By
+    default three days are drawn, wide enough to read; work outside them is counted on its row, and
+    the table below lists everything. */
+export function Timeline({ schedule, timeZone, now, span = "days" }: Props) {
+  const w = drawnWindow(schedule, timeZone, now, span);
   const jobs = new Map(schedule.jobs.map((j) => [j.key, j]));
   const materials = schedule.jobs.map((j) => j.material_code);
-  const manual = schedule.tasks.filter((t) => t.machine === null);
+  const drawn = (t: BoardTask) => new Date(t.start) < w.to && new Date(t.end) > w.from;
+  const outside = (tasks: BoardTask[]) => ({
+    earlier: tasks.filter((t) => new Date(t.end) <= w.from).length,
+    later: tasks.filter((t) => new Date(t.start) >= w.to).length,
+  });
+  // Manual lanes from the drawn work only, so no empty "Manual 2" row stands for other days.
+  const allManual = schedule.tasks.filter((t) => t.machine === null);
+  const manual = allManual.filter(drawn);
   const manualLanes = lanes(manual.map((t) => ({ start: new Date(t.start), end: new Date(t.end) })));
   const laneCount = Math.max(1, ...manualLanes.map((l) => l + 1));
-  const rows: { key: string; label: string; tasks: BoardTask[] }[] = [
-    ...schedule.machines.map((m) => ({
-      key: m.code,
-      label: m.code,
-      tasks: schedule.tasks.filter((t) => t.machine === m.code),
-    })),
+  const rows: Row[] = [
+    ...schedule.machines.map((m) => {
+      const tasks = schedule.tasks.filter((t) => t.machine === m.code);
+      return { key: m.code, label: m.code, tasks: tasks.filter(drawn), ...outside(tasks) };
+    }),
     ...Array.from({ length: laneCount }, (_, lane) => ({
       key: `manual-${lane}`,
       label: laneCount > 1 ? `Manual ${lane + 1}` : "Manual",
       tasks: manual.filter((_, i) => manualLanes[i] === lane),
+      // Manual work outside the drawn days is counted once, on the first manual row.
+      ...(lane === 0 ? outside(allManual) : { earlier: 0, later: 0 }),
     })),
   ];
   const nowInside = now >= w.from && now <= w.to;
   const style = { "--days": w.days.length } as CSSProperties;
+  const firstDay = formatShopDay(w.from, timeZone);
   const lastDay = formatShopDay(w.days.at(-1) ?? w.from, timeZone);
 
   return (
@@ -154,7 +172,10 @@ export function Timeline({ schedule, timeZone, now, span = "days" }: Props) {
         </div>
         {rows.map((row, rowIndex) => (
           <div className="timeline-row" key={row.key} style={{ "--row": rowIndex } as CSSProperties}>
-            <div className="timeline-label">{row.label}</div>
+            <div className="timeline-label">
+              {row.label}
+              <OutsideMarker row={row} firstDay={firstDay} lastDay={lastDay} version={schedule.version} />
+            </div>
             <div className="timeline-track">
               {schedule.shifts.map((s) => {
                 const left = percentAt(new Date(s.start), w);
@@ -166,7 +187,7 @@ export function Timeline({ schedule, timeZone, now, span = "days" }: Props) {
               {w.days.map((d) => (
                 <span key={d.toISOString()} className="day-line" style={{ left: `${percentAt(d, w)}%` }} />
               ))}
-              {row.tasks.filter((t) => new Date(t.start) < w.to).map((t) => {
+              {row.tasks.map((t) => {
                 const job = jobs.get(t.job);
                 const left = percentAt(new Date(t.start), w);
                 const width = Math.max(0.15, percentAt(new Date(t.end), w) - left);
@@ -176,11 +197,12 @@ export function Timeline({ schedule, timeZone, now, span = "days" }: Props) {
                   "--bar-color": t.machine ? materialToken(job?.material_code ?? "", materials) : "var(--bar-manual)",
                 } as CSSProperties;
                 const label = barLabel(t, job, timeZone);
+                const cut = (new Date(t.start) < w.from ? " bar-began" : "") + (new Date(t.end) > w.to ? " bar-continues" : "");
                 return (
                   <a
                     key={`${t.job}-${t.kind}`}
                     href={`#${taskAnchor(t, schedule.version)}`}
-                    className={`bar bar-${t.machine ? "machine" : "manual"} bar-${t.status}${job?.rush ? " bar-rush" : ""}${new Date(t.end) > w.to ? " bar-continues" : ""}`}
+                    className={`bar bar-${t.machine ? "machine" : "manual"} bar-${t.status}${job?.rush ? " bar-rush" : ""}${cut}`}
                     style={barStyle}
                     aria-label={label}
                     data-tip={label}
@@ -189,7 +211,6 @@ export function Timeline({ schedule, timeZone, now, span = "days" }: Props) {
                   </a>
                 );
               })}
-              <LaterMarker row={row} to={w.to} lastDay={lastDay} version={schedule.version} />
               {nowInside ? <span className="now-marker" style={{ left: `${percentAt(now, w)}%` }} aria-hidden="true" /> : null}
             </div>
           </div>
@@ -202,25 +223,24 @@ export function Timeline({ schedule, timeZone, now, span = "days" }: Props) {
   );
 }
 
-/** Work on this row that starts after the drawn days: a marker that points to the table. */
-function LaterMarker({ row, to, lastDay, version }: { row: { key: string; label: string; tasks: BoardTask[] }; to: Date; lastDay: string; version: number }) {
-  const later = row.tasks.filter((t) => new Date(t.start) >= to).length;
-  if (later === 0) return null;
+/** Work on this row outside the drawn days: one marker in the row's label (in view however far the
+    timeline is scrolled), pointing to the table. */
+function OutsideMarker({ row, firstDay, lastDay, version }: { row: Row; firstDay: string; lastDay: string; version: number }) {
+  if (row.earlier === 0 && row.later === 0) return null;
+  const tasks = (n: number) => `${n} ${n === 1 ? "task" : "tasks"}`;
+  const text = [row.earlier ? `${row.earlier} earlier` : "", row.later ? `+${row.later} later` : ""].filter(Boolean).join(", ");
+  const said = [row.earlier ? `${tasks(row.earlier)} before ${firstDay}` : "", row.later ? `${tasks(row.later)} after ${lastDay}` : ""]
+    .filter(Boolean)
+    .join(" and ");
   return (
-    <a
-      className="later"
-      href={`#table-${version}`}
-      aria-label={`+${later} later: ${later} more ${later === 1 ? "task" : "tasks"} on ${row.label} after ${lastDay}, listed in the table`}
-      data-testid={`later-${row.key}`}
-    >
-      +{later} later
+    <a className="later" href={`#table-${version}`} aria-label={`${text}: ${said} on ${row.label}, listed in the table`} data-testid={`later-${row.key}`}>
+      {text}
     </a>
   );
 }
 
 /** Choose how much of the plan the timeline draws. Links, so it works without script and by keyboard. */
 function SpanSwitch({ span, days, version }: { span: Span; days: number; version: number }) {
-  if (days <= SHOWN_DAYS) return null;
   const option = (value: Span, text: string) => (
     <Link
       href={value === "days" ? `/board#timeline-${version}` : `/board?span=all#timeline-${version}`}
@@ -233,7 +253,7 @@ function SpanSwitch({ span, days, version }: { span: Span; days: number; version
   );
   return (
     <nav className="segmented" aria-label="Timeline span">
-      {option("days", `First ${SHOWN_DAYS} days`)}
+      {option("days", `${SHOWN_DAYS} days`)}
       {option("all", `Whole plan (${days} days)`)}
     </nav>
   );
@@ -359,14 +379,16 @@ function AttachLink({ job, show }: { job: string; show: boolean }) {
 }
 
 export function ScheduleView({ schedule, timeZone, now, canAttach, span = "days" }: Props) {
-  const ends = schedule.tasks.map((t) => new Date(t.end));
-  const allDays = boardWindow(new Date(schedule.plan_start), ends, timeZone, SHOWN_DAYS).days.length;
+  const whole = drawnWindow(schedule, timeZone, now, "all");
+  const three = drawnWindow(schedule, timeZone, now, "days");
+  // The switch only when the two views differ.
+  const differs = whole.from.getTime() !== three.from.getTime() || whole.to.getTime() !== three.to.getTime();
   return (
     <>
       <CheckBadge schedule={schedule} />
       <Metrics schedule={schedule} />
       <NotPlanned schedule={schedule} canAttach={canAttach} />
-      <SpanSwitch span={span} days={allDays} version={schedule.version} />
+      {differs ? <SpanSwitch span={span} days={whole.days.length} version={schedule.version} /> : null}
       <Timeline schedule={schedule} timeZone={timeZone} now={now} span={span} />
       <h3 id={`table-${schedule.version}`}>Plan as a table</h3>
       <div className="table-scroll" role="region" aria-labelledby={`table-${schedule.version}`} tabIndex={0}>

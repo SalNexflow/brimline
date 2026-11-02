@@ -33,8 +33,20 @@ test("by default three days are drawn and later work is counted on its row", () 
   const marker = screen.getByTestId("later-FDM-1");
   expect(marker.textContent).toBe("+1 later");
   expect(marker.getAttribute("href")).toBe("#table-7");
-  expect(marker.getAttribute("aria-label")).toBe("+1 later: 1 more task on FDM-1 after Wed 4 Nov, listed in the table");
+  expect(marker.getAttribute("aria-label")).toBe("+1 later: 1 task after Wed 4 Nov on FDM-1, listed in the table");
   expect(screen.queryByTestId("later-manual-0")).toBeNull();
+});
+
+test("viewed days later, the three days start today and earlier work is counted", () => {
+  const thursday = new Date("2026-11-05T09:00:00Z"); // Thu 5 Nov, 10:00 in Berlin
+  const { container } = render(<Timeline schedule={schedule} timeZone={TZ} now={thursday} />);
+  const days = [...container.querySelectorAll(".day-label")].map((d) => d.textContent);
+  expect(days).toEqual(["Thu 5 Nov", "Fri 6 Nov", "Sat 7 Nov"]);
+  expect(container.querySelectorAll(".bar")).toHaveLength(1); // Saturday's print
+  expect(screen.getByTestId("later-FDM-1").textContent).toBe("1 earlier");
+  expect(screen.getByTestId("later-manual-0").getAttribute("aria-label")).toBe(
+    "1 earlier: 1 task before Thu 5 Nov on Manual, listed in the table",
+  );
 });
 
 test("the whole plan draws every day and marks nothing as later", () => {

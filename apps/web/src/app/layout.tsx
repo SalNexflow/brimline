@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense, ViewTransition } from "react";
+import { Suspense } from "react";
 
 import { AccountBar } from "./account-bar";
 import { DemoGate } from "./demo-gate";
@@ -27,18 +27,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <AccountBar />
             </Suspense>
           </header>
-          {/* Page changes cross-fade through the browser's View Transitions API (globals.css sets
-              the timing; browsers without it simply swap the page). */}
-          <ViewTransition>
-            {/* Hosted demo only: a waking-up screen while the engine sleeps, and a banner. */}
-            {process.env.DEMO_WAKE_CHECK === "1" ? (
-              <Suspense fallback={<p className="page muted">Checking the demo is awake…</p>}>
-                <DemoGate>{children}</DemoGate>
-              </Suspense>
-            ) : (
-              children
-            )}
-          </ViewTransition>
+          {/* Hosted demo only: a waking-up screen while the engine sleeps, and a banner. */}
+          {process.env.DEMO_WAKE_CHECK === "1" ? (
+            <Suspense fallback={<p className="page muted">Checking the demo is awake…</p>}>
+              <DemoGate>{children}</DemoGate>
+            </Suspense>
+          ) : (
+            children
+          )}
         </div>
       </body>
     </html>

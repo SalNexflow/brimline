@@ -40,7 +40,7 @@ const TONE: Record<string, string> = {
 export function StatusPill({ status }: { status: string }) {
   return (
     <span key={status} className={`state state-${TONE[status] ?? "neutral"}`}>
-      <span aria-hidden="true">{GLYPH[status] ?? "•"}</span> {status.replace("_", " ")}
+      <span aria-hidden="true">{GLYPH[status] ?? "•"}</span> {status.replaceAll("_", " ")}
     </span>
   );
 }

@@ -1333,6 +1333,7 @@ section.check {
 
 .segment {
   padding: 0.4rem 1rem;
+  white-space: nowrap;
   border-radius: var(--radius-pill);
   color: var(--color-fg);
   font-weight: 600;
@@ -1381,6 +1382,12 @@ section.check {
   border-bottom-right-radius: 0;
 }
 
+/* A bar that began before the first drawn day: a square start. */
+.bar-began {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
 /* The bar's full details on hover and keyboard focus (the same words as its accessible name). */
 .bar::after {
   content: attr(data-tip);
@@ -1427,19 +1434,22 @@ section.check {
   transform: none;
 }
 
-/* Work after the drawn days: one marker per row, pointing to the table. */
+/* Work outside the drawn days: a marker in the row's label (it stays in view while the timeline
+   scrolls and never covers a bar), pointing to the table. */
+.timeline-label {
+  gap: 0.15rem 0.4rem;
+  flex-wrap: wrap;
+  align-content: center;
+  line-height: 1.2;
+}
+
 .later {
-  position: absolute;
-  z-index: 2;
-  top: 50%;
-  right: 0.35rem;
-  translate: 0 -50%;
-  padding: 0.1rem 0.6rem;
+  padding: 0 0.45rem;
   border-radius: var(--radius-pill);
   background: var(--color-field);
   box-shadow: 0 0 0 1px var(--color-border), var(--shadow-card);
   color: var(--color-fg);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
@@ -1885,17 +1895,22 @@ button:not(:disabled):active,
   transform: scale(0.97);
 }
 
-/* Page content: the View Transition cross-fades it; without that API it rises in on arrival. */
+/* Page changes. A full page load cross-fades through the browser's View Transitions API (CSS
+   only); moving between pages inside the app, the new page rises in. React's <ViewTransition> was
+   tried and dropped: it left the page without a <title> for a moment after each in-app navigation
+   (DEFECT_LOG #106). */
+@view-transition {
+  navigation: auto;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: var(--motion-base);
   animation-timing-function: var(--ease-out);
 }
 
-@supports not (view-transition-name: none) {
-  .page {
-    animation: rise-in var(--motion-base) var(--ease-out) both;
-  }
+.page {
+  animation: rise-in var(--motion-base) var(--ease-out) both;
 }
 
 /* Timeline bars slide in on load, row after row. */

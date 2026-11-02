@@ -88,11 +88,12 @@ for (const [size, viewport] of [
     const rows = await page.locator("section.schedule").last().locator(".plan-table tbody tr").count();
     const bars = await timeline.locator(".bar").count();
     const markers = timeline.locator("[data-testid^='later-']");
-    const counted = (await markers.allTextContents()).reduce((n, t) => n + Number(/\+(\d+) later/.exec(t)?.[1]), 0);
+    const number = (t: string, re: RegExp) => Number(re.exec(t)?.[1] ?? 0);
+    const counted = (await markers.allTextContents()).reduce((n, t) => n + number(t, /(\d+) earlier/) + number(t, /\+(\d+) later/), 0);
     expect(bars + counted).toBe(rows);
     for (const marker of await markers.all()) {
       await expect(marker).toHaveAttribute("href", /^#table-\d+$/);
-      await expect(marker).toHaveAccessibleName(/^\+\d+ later: \d+ more tasks? on .+, listed in the table$/);
+      await expect(marker).toHaveAccessibleName(/^(\d+ earlier|\+\d+ later|\d+ earlier, \+\d+ later): .+ on .+, listed in the table$/);
     }
 
     // An hour is wide enough to read: the widest machine bar shows its whole label.

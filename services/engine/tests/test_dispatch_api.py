@@ -540,13 +540,15 @@ def test_the_dispatch_prompt_has_no_dates(client: TestClient, floor: Floor, owne
     start = next(
         t["start"] for t in board["tasks"] if t["job"] == r["job"] and t["kind"] == "machine"
     )
-    expected = round((datetime.fromisoformat(start) - FIXED_NOW).total_seconds() / 60)
+    # The clock set to half an hour before the planned start: the agent is told 30 minutes, a value
+    # that does not depend on which week it is; and nothing in the prompt is a date.
+    clock = datetime.fromisoformat(start) - timedelta(minutes=30)
     with psycopg.connect(owner_url) as conn:
         schedule = conn.execute("SELECT id FROM schedules WHERE status = 'approved'").fetchone()
         assert schedule is not None
-        tasks = service._startable(conn, int(schedule[0]), FIXED_NOW)
+        tasks = service._startable(conn, int(schedule[0]), clock)
     mine = next(t for t in tasks if t["task_id"] == r["task_id"])
-    assert mine["starts_in_minutes"] == expected
+    assert mine["starts_in_minutes"] == 30
     prompt = agent.propose_prompt(
         tasks, [m.model_dump() for m in service.machine_states(floor.shop, sources())]
     )
