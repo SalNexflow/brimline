@@ -1592,6 +1592,58 @@ section.check {
   height: 1.25rem;
 }
 
+/* --- Orders ------------------------------------------------------------------------------- */
+
+/* An order's facts: one glass card, centered, labels and values in two columns. */
+.facts-card {
+  max-width: 32rem;
+  margin: 1.5rem auto;
+  padding: 1.25rem 1.5rem;
+  gap: 0.6rem 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+}
+
+/* "Back to the list": a small glass pill above the title. */
+.back {
+  margin: 0.5rem 0 0;
+  text-align: center;
+}
+
+.back a {
+  display: inline-block;
+  padding: 0.3rem 0.9rem;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  box-shadow: 0 0 0 1px var(--glass-edge);
+  color: var(--color-fg);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+/* Status tones (StatusPill): the symbol and word carry the meaning; the tone only supports it. */
+.state-ok {
+  background: var(--color-ok-bg);
+  color: var(--color-ok-fg);
+}
+
+.state-bad {
+  background: var(--color-error-bg);
+  color: var(--color-error-fg);
+}
+
+.state-active {
+  background: var(--wash-lilac);
+  color: var(--color-fg);
+}
+
+td .state,
+.facts .state {
+  margin-left: 0;
+}
+
 /* --- Centered text blocks ----------------------------------------------------------------- */
 
 .page > [role="status"],
