@@ -1,31 +1,51 @@
 /* The look of Brimline, in one file: colours, type and sizes as CSS custom properties.
    Components use only these tokens, so a new visual direction means editing this file. */
 :root {
-  /* "Calm workshop" (M11): warm paper, ink text, one deep teal accent. Every text colour is at
-     least 4.5:1 on both the page and the surface (the axe checks in the browser tests hold it). */
-  --color-bg: #f8f7f3;
-  --color-fg: #1c1f22;
-  --color-muted: #555b62;
-  --font-sans: "Inter", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  /* "Soft glass" (redesign): a cool off-white page, frosted panels, ink text, one indigo accent and
+     pastel washes used only as decoration. Every text colour is at least 4.5:1 on the page, on a
+     glass panel, and on the strongest pastel wash with no glass at all (measured by a script; the axe
+     checks in the browser tests hold it). */
+  --color-bg: #f3f4fa;
+  --color-fg: #1b1d2a;
+  --color-muted: #545a6b;
+  --font-sans: "Inter", "Segoe UI Variable", "Segoe UI", system-ui, Roboto, sans-serif;
   --space-page: clamp(1rem, 4vw, 3rem);
-  --color-border: #d8d3c6;
-  --color-accent: #0e6a6a;
+  --color-border: #dcdfeb;
+  --color-accent: #4a3fc0;
   --color-on-accent: #ffffff;
-  --color-error-bg: #fbe9e6;
+  --color-error-bg: #fbe6e3;
   --color-error-fg: #8a1c11;
-  --color-surface: #efece4;
+  --color-surface: #eef0f8;
   --color-field: #ffffff;
-  --color-header: #ffffff;
-  --shadow-card: 0 1px 2px rgb(28 31 34 / 6%), 0 2px 8px rgb(28 31 34 / 4%);
+  --color-header: rgb(255 255 255 / 74%);
+  --shadow-card: 0 1px 1px rgb(40 44 90 / 4%), 0 6px 18px rgb(60 64 120 / 7%), 0 22px 44px rgb(60 64 120 / 6%);
+
+  /* Glass: opaque enough that text contrast never depends on what is behind the panel. */
+  --glass-bg: rgb(255 255 255 / 74%);
+  --glass-strong: rgb(255 255 255 / 90%);
+  --glass-border: rgb(255 255 255 / 95%);
+  --glass-edge: rgb(70 76 130 / 12%);
+  --glass-blur: 18px;
+
+  /* Pastel accents: decoration only, never behind text. */
+  --wash-peach: #fde3d3;
+  --wash-pink: #f9dbe8;
+  --wash-lilac: #e6defb;
+  --wash-blue: #d9e6fb;
+  --wash-teal: #d3f0ec;
+  --grad-primary: linear-gradient(135deg, #3b3ab5 0%, #5a3cc4 55%, #7a3db8 100%);
+  --color-on-primary: #ffffff;
+  --color-pill-active-bg: #1b1d2a;
+  --color-pill-active-fg: #ffffff;
 
   /* Board and badges */
-  --color-ok-bg: #e7f5ea;
+  --color-ok-bg: #e3f4e8;
   --color-ok-fg: #1d5e2c;
-  --color-warn-bg: #fff4d6;
+  --color-warn-bg: #fff1d1;
   --color-warn-fg: #6b4b00;
   --color-focus: #1a5fb4;
   --color-now: #c01c28;
-  --color-shift: #f1efe9;
+  --color-shift: rgb(236 238 248 / 80%);
   --color-late: #a51d2d;
   --bar-1: #2a5f9e;
   --bar-2: #1f6e47;
@@ -37,27 +57,66 @@
   --bar-manual: #5c5c5c;
 
   /* Sizes */
-  --board-day-width: 16rem;
+  /* A day is wide enough that an hour is about 27 px, so most bar labels can be read. The whole-plan
+     view uses the compact width. */
+  --board-day-width: 40rem;
+  --board-day-width-compact: 16rem;
   --board-row-height: 2.75rem;
   --board-label-width: 9rem;
-  --bar-radius: 5px;
-  --radius: 8px;
+  --bar-radius: 8px;
+  --radius: 14px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+  --sidebar-width: 4.75rem;
+  --sidebar-open-width: 14rem;
+  --content-width: 76rem;
+
+  /* Motion: short and gentle. Only transform and opacity are animated (globals.css). */
+  --motion-fast: 150ms;
+  --motion-base: 220ms;
+  --motion-slow: 300ms;
+  --motion-stagger: 20ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Reduced motion: every duration is zero, and globals.css turns animations off outright. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-base: 0ms;
+    --motion-slow: 0ms;
+    --motion-stagger: 0ms;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #121514;
-    --color-fg: #e8eae9;
-    --color-muted: #a8aeac;
-    --color-border: #343b3a;
-    --color-accent: #5cc4bc;
-    --color-on-accent: #0b1414;
+    --color-bg: #0e1120;
+    --color-fg: #e9eaf4;
+    --color-muted: #a9afc4;
+    --color-border: #2b3048;
+    --color-accent: #aea8ff;
+    --color-on-accent: #14162a;
     --color-error-bg: #3b1714;
     --color-error-fg: #ffb4a9;
-    --color-surface: #1b2020;
-    --color-field: #161a1a;
-    --color-header: #171b1b;
-    --shadow-card: none;
+    --color-surface: #171b2e;
+    --color-field: #12162a;
+    --color-header: rgb(28 32 52 / 78%);
+    --shadow-card: 0 1px 1px rgb(0 0 0 / 30%), 0 10px 30px rgb(0 0 0 / 35%);
+
+    --glass-bg: rgb(28 32 52 / 78%);
+    --glass-strong: rgb(28 32 52 / 92%);
+    --glass-border: rgb(255 255 255 / 8%);
+    --glass-edge: rgb(0 0 0 / 30%);
+
+    --wash-peach: #2a1c22;
+    --wash-pink: #2a1a2b;
+    --wash-lilac: #1c1835;
+    --wash-blue: #14203a;
+    --wash-teal: #112a2b;
+    --color-pill-active-bg: #e9eaf4;
+    --color-pill-active-fg: #14162a;
 
     --color-ok-bg: #16321e;
     --color-ok-fg: #9be3ad;
@@ -65,7 +124,7 @@
     --color-warn-fg: #f5d77a;
     --color-focus: #78aeed;
     --color-now: #ff6b6b;
-    --color-shift: #1f1d1a;
+    --color-shift: rgb(38 43 66 / 70%);
     --color-late: #ff8a8a;
     --bar-1: #4f8fdb;
     --bar-2: #3fae78;
@@ -82,6 +141,7 @@
 @media (max-width: 40rem) {
   :root {
     --board-label-width: 5.5rem;
-    --board-day-width: 12rem;
+    --board-day-width: 30rem;
+    --board-day-width-compact: 12rem;
   }
 }

@@ -32,6 +32,9 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     trace: "retain-on-failure",
+    // No animation in the browser tests: they read the page the moment it settles (motion.spec.ts
+    // checks that reduced motion really turns every animation off).
+    contextOptions: { reducedMotion: "reduce" },
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [

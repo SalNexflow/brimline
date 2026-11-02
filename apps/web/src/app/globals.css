@@ -12,9 +12,16 @@ body {
 
 body {
   color: var(--color-fg);
-  background: var(--color-bg);
+  /* Pastel washes sit in the page corners, behind the glass. Every text colour still passes 4.5:1
+     on the strongest wash with no glass in front of it (theme.css), so text never depends on them. */
+  background:
+    radial-gradient(38rem 30rem at 100% 0%, var(--wash-lilac), transparent 70%),
+    radial-gradient(34rem 28rem at 0% 100%, var(--wash-peach), transparent 70%),
+    radial-gradient(30rem 24rem at 100% 100%, var(--wash-teal), transparent 70%),
+    var(--color-bg);
+  min-height: 100vh;
   font-family: var(--font-sans);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 /* Layout and components: plain CSS on the tokens in theme.css. */
@@ -22,46 +29,314 @@ a {
   color: var(--color-accent);
 }
 
-.site-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 1rem 1.5rem;
-  padding: 0.75rem var(--space-page);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-header);
+/* A frosted panel. Opaque enough (theme.css) that contrast never depends on what is behind it. */
+.glass,
+.card,
+.notice,
+.chip,
+.advice,
+.run-progress,
+.disruption,
+.timeline,
+.table-scroll,
+.machine-grid .card,
+.stat {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
 }
 
-.site-header nav {
-  flex: 1;
+/* --- Shell: an icon rail on the left, the page centered in the space beside it -------------- */
+
+/* The rail is always the narrow width. Opening it (hover, or keyboard focus inside) fades and slides
+   in a wider glass panel behind the links and shows the labels: only opacity and transform move,
+   so nothing on the page reflows. */
+.sidebar {
+  position: fixed;
+  inset: 1rem auto 1rem 1rem;
+  z-index: 20;
+  width: var(--sidebar-width);
   display: flex;
+  flex-direction: column;
   gap: 1rem;
+  padding: 0.75rem;
+}
+
+.sidebar::before,
+.sidebar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+  background: var(--glass-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+}
+
+.sidebar::before {
+  width: 100%;
+}
+
+/* The open panel: invisible and untouchable until the rail is opened. */
+.sidebar::after {
+  width: var(--sidebar-open-width);
+  opacity: 0;
+  transform: translateX(-0.75rem);
+  pointer-events: none;
+  transition:
+    opacity var(--motion-base) var(--ease-out),
+    transform var(--motion-base) var(--ease-out);
+}
+
+.sidebar:hover::after,
+.sidebar:focus-within::after {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.brand,
+.nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: calc(var(--sidebar-width) - 1.5rem);
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-pill);
+  color: var(--color-fg);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sidebar:hover :is(.brand, .nav-link),
+.sidebar:focus-within :is(.brand, .nav-link) {
+  width: calc(var(--sidebar-open-width) - 1.5rem);
 }
 
 .brand {
   font-weight: 700;
   letter-spacing: 0.01em;
-  color: var(--color-accent);
-  text-decoration: none;
+  padding-left: 0.6rem;
+}
+
+/* The logo: a part resting on its brim line, drawn in CSS. */
+.brand-mark {
+  flex: 0 0 auto;
+  position: relative;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.55rem;
+  background: var(--color-pill-active-bg);
+}
+
+.brand-mark::before,
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  border-radius: 2px;
+}
+
+.brand-mark::before {
+  top: 0.35rem;
+  width: 0.65rem;
+  height: 0.75rem;
+  background: var(--color-pill-active-fg);
+}
+
+.brand-mark::after {
+  bottom: 0.3rem;
+  width: 1.15rem;
+  height: 0.15rem;
+  background: linear-gradient(90deg, var(--wash-peach), #f2a33a);
+}
+
+.nav-icon {
+  position: relative;
+  flex: 0 0 auto;
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Collapsed, the labels are hidden from sight (and from the pointer) but stay in each link's
+   accessible name. */
+.nav-label {
+  position: relative;
+  opacity: 0;
+  transform: translateX(-0.4rem);
+  pointer-events: none;
+  transition:
+    opacity var(--motion-base) var(--ease-out),
+    transform var(--motion-base) var(--ease-out);
+}
+
+.sidebar:hover .nav-label,
+.sidebar:focus-within .nav-label {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+/* Hover: a soft pill fades in behind the link. */
+.nav-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-surface);
+  opacity: 0;
+  transition: opacity var(--motion-fast) var(--ease-out);
+}
+
+.nav-link:hover::before {
+  opacity: 1;
+}
+
+.nav-link[aria-current="page"]::before {
+  opacity: 0;
+}
+
+/* The current page: a dark pill (aria-current says it in words too). */
+.nav-link[aria-current="page"] {
+  background: var(--color-pill-active-bg);
+  color: var(--color-pill-active-fg);
+}
+
+.shell {
+  padding-left: calc(var(--sidebar-width) + 2rem);
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 1rem var(--space-page) 0;
 }
 
 .account {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  padding: 0.35rem 0.5rem 0.35rem 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+}
+
+.account .link-button {
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-fg);
+  text-decoration: none;
 }
 
 .page {
-  padding: var(--space-page);
-  max-width: 64rem;
+  padding: 1.5rem var(--space-page) 4rem;
+  max-width: var(--content-width);
+  margin: 0 auto;
 }
 
+/* Titles are centered; any actions next to them sit centered underneath. */
 .page-title {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 1rem;
+  text-align: center;
+}
+
+.page-title + .muted,
+.lede {
+  max-width: 46rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+/* Phones: the rail becomes a strip of icon-and-label pills along the top that scrolls sideways. */
+@media (max-width: 40rem) {
+  .sidebar {
+    position: sticky;
+    inset: auto;
+    top: 0;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow-x: auto;
+    background: var(--glass-strong);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+  }
+
+  .sidebar::before,
+  .sidebar::after {
+    display: none;
+  }
+
+  .brand,
+  .nav-link,
+  .sidebar:hover :is(.brand, .nav-link),
+  .sidebar:focus-within :is(.brand, .nav-link) {
+    width: auto;
+  }
+
+  .nav-label {
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .nav-links {
+    flex-direction: row;
+    gap: 0.25rem;
+  }
+
+  .nav-label,
+  .brand .nav-label {
+    opacity: 1;
+  }
+
+  .brand .nav-label {
+    display: none;
+  }
+
+  .nav-link {
+    min-height: 2.5rem;
+    gap: 0.4rem;
+    padding: 0 0.8rem;
+  }
+
+  .shell {
+    padding-left: 0;
+  }
+
+  .topbar {
+    justify-content: center;
+  }
 }
 
 .muted {
@@ -71,11 +346,11 @@ a {
 .badge {
   display: inline-block;
   margin-left: 0.5rem;
-  padding: 0 0.4rem;
+  padding: 0.05rem 0.55rem;
   border: 1px solid var(--color-border);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-pill);
   font-size: 0.8rem;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .badge-rush {
@@ -92,17 +367,36 @@ table {
 }
 
 th {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-muted);
 }
 
+/* Tables stay left-aligned for reading down a column; numbers align right (.num). */
 th,
 td {
-  padding: 0.5rem 0.75rem 0.5rem 0;
+  padding: 0.65rem 1rem;
   border-bottom: 1px solid var(--color-border);
   text-align: left;
   white-space: nowrap;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+th.num,
+td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+caption {
+  padding: 0.75rem 1rem 0;
+  text-align: left;
+  font-weight: 600;
 }
 
 .facts {
@@ -146,18 +440,25 @@ button {
 input,
 select,
 textarea {
-  padding: 0.4rem 0.5rem;
+  padding: 0.5rem 0.8rem;
   border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
+  border-radius: 0.75rem;
   background: var(--color-field);
   color: var(--color-fg);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--color-accent);
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 fieldset {
   display: grid;
   gap: 0.75rem;
+  padding: 1rem 1.25rem;
   border: 1px solid var(--color-border);
-  border-radius: 0.25rem;
+  border-radius: var(--radius);
 }
 
 .line-row {
@@ -173,27 +474,32 @@ fieldset {
   }
 }
 
+/* Pill buttons. The primary one carries the only gradient behind text: every stop is at least
+   6.5:1 against its white label (theme.css). */
 button,
 .button {
   display: inline-block;
-  padding: 0.45rem 0.9rem;
-  border: 1px solid var(--color-accent);
-  border-radius: 0.375rem;
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  padding: 0.6rem 1.35rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--grad-primary);
+  color: var(--color-on-primary);
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+  box-shadow: 0 6px 16px rgb(74 63 192 / 25%);
 }
 
 button:disabled {
   opacity: 0.6;
   cursor: progress;
+  transform: none;
 }
 
 .link-button {
   padding: 0;
   border: 0;
+  box-shadow: none;
   background: none;
   color: var(--color-accent);
   text-decoration: underline;
@@ -272,9 +578,8 @@ button:disabled {
 }
 
 .notice {
-  padding: 0.75rem 1rem;
-  border-left: 4px solid var(--color-accent);
-  background: var(--color-surface);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius);
 }
 
 /* The accent colour is under 4.5:1 on the notice background; links there keep their underline. */
@@ -309,8 +614,9 @@ button:disabled {
 }
 
 .button-secondary {
-  background: none;
-  color: var(--color-accent);
+  background: var(--glass-strong);
+  color: var(--color-fg);
+  box-shadow: 0 0 0 1px var(--color-border);
 }
 
 blockquote.message {
@@ -333,11 +639,6 @@ blockquote.message {
   outline-offset: 2px;
 }
 
-/* The board uses the whole width; its timeline and tables scroll inside their own boxes. */
-.page.board {
-  max-width: none;
-}
-
 .table-scroll {
   overflow-x: auto;
 }
@@ -358,14 +659,8 @@ blockquote.message {
   background: var(--color-surface);
 }
 
-.run-progress progress {
-  width: min(24rem, 100%);
-}
-
 .schedule {
   margin-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
-  padding-top: 0.5rem;
 }
 
 .check {
@@ -408,6 +703,10 @@ blockquote.message {
 
 .timeline-grid {
   min-width: calc(var(--board-label-width) + var(--days) * var(--board-day-width));
+}
+
+.timeline-all .timeline-grid {
+  min-width: calc(var(--board-label-width) + var(--days) * var(--board-day-width-compact));
 }
 
 .timeline-row {
@@ -466,7 +765,6 @@ blockquote.message {
   top: 0.35rem;
   bottom: 0.35rem;
   z-index: 1;
-  overflow: hidden;
   border-radius: var(--bar-radius);
   background: var(--bar-color);
   color: var(--bar-fg);
@@ -505,8 +803,11 @@ blockquote.message {
 }
 
 .bar-text {
-  padding: 0 0.3rem;
+  overflow: hidden;
+  min-width: 0;
+  padding: 0 0.4rem;
   white-space: nowrap;
+  text-overflow: clip;
 }
 
 .now-marker {
@@ -579,12 +880,6 @@ blockquote.message {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
   gap: 1rem;
-}
-
-.machine-grid .card {
-  padding: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
 }
 
 .machine-grid h3 {
@@ -797,11 +1092,507 @@ h2 {
   box-shadow: var(--shadow-card);
 }
 
-/* M11 hosted demo: one quiet line under the header. */
-.demo-banner {
+
+
+/* --- Soft glass (redesign): radii, headings, stat cards ----------------------------------- */
+
+.card,
+.run-progress,
+.disruption,
+.timeline,
+.table-scroll,
+.machine-grid .card,
+.stat,
+.advice {
+  border-radius: var(--radius-lg);
+}
+
+.notice {
+  border-radius: var(--radius);
+}
+
+.chip {
+  border-radius: var(--radius-pill);
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 1rem 0 0.5rem;
+}
+
+h2 {
+  font-size: 1.3rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  margin-top: 2.5rem;
+  text-align: center;
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+/* Inside a glass box the box is the frame: the table needs no outer margin. */
+.table-scroll > table {
+  display: table;
   margin: 0;
-  padding: 0.4rem var(--space-page);
+}
+
+/* Section subheadings are centered like the page title; the tables under them stay left-aligned. */
+section > h3,
+.schedule > h3 {
+  text-align: center;
+}
+
+/* Stat cards: a label, a big number, and a pastel dot (decoration, no text on it). */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 0;
+}
+
+.stat {
+  position: relative;
+  margin: 0;
+  padding: 1.1rem 1.25rem 1.2rem;
+  text-align: center;
+}
+
+.stat::before {
+  content: "";
+  display: block;
+  width: 2.25rem;
+  height: 0.4rem;
+  margin: 0 auto 0.75rem;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--wash-peach), var(--wash-pink));
+}
+
+.stat:nth-child(4n + 2)::before {
+  background: linear-gradient(90deg, var(--wash-lilac), var(--wash-blue));
+}
+
+.stat:nth-child(4n + 3)::before {
+  background: linear-gradient(90deg, var(--wash-blue), var(--wash-teal));
+}
+
+.stat:nth-child(4n + 4)::before {
+  background: linear-gradient(90deg, var(--wash-teal), var(--wash-lilac));
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.stat-value {
+  margin: 0.2rem 0 0;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Machine and task states: a symbol and a word in a pill; colour only supports them. */
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+  vertical-align: middle;
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  color: var(--color-fg);
+}
+
+.state-running,
+.state-done {
+  background: var(--color-ok-bg);
+  color: var(--color-ok-fg);
+}
+
+.state-failed,
+.state-offline,
+.state-unknown {
+  background: var(--color-error-bg);
+  color: var(--color-error-fg);
+}
+
+/* --- Board -------------------------------------------------------------------------------- */
+
+/* The board is wider than other pages, still centered. */
+.page.board {
+  max-width: 90rem;
+}
+
+/* The controls above the plan, centered; the report form as one glass card. */
+.page.board > .muted,
+.page.board > .notice,
+.schedule > .muted {
+  max-width: 46rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.page.board > .inline-form {
+  max-width: 46rem;
+  margin: 0.5rem auto 1rem;
+  justify-content: center;
+  text-align: center;
+}
+
+.disruptions > .report-form,
+.disruptions > details {
+  max-width: 46rem;
+  margin: 1rem auto;
+}
+
+.disruptions > .report-form {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+}
+
+.report-form > button {
+  justify-self: center;
+}
+
+section.check {
+  display: block;
+  max-width: 46rem;
+  margin: 1.5rem auto;
+  padding: 1rem 1.5rem;
+  border: 0;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent), var(--shadow-card);
+}
+
+/* The plan's progress while Plan day runs: a drawn meter that glides to each new value. */
+.meter {
+  overflow: hidden;
+  width: min(24rem, 100%);
+  height: 0.6rem;
+  margin: 0.5rem 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--grad-primary);
+  transform-origin: left center;
+  transition: transform var(--motion-slow) var(--ease-out);
+}
+
+/* Before the solver reports any work: a short band that sweeps across. */
+.meter-waiting .meter-fill {
+  width: 30%;
+  transform: none;
+  animation: meter-sweep 1.6s var(--ease-in-out) infinite;
+}
+
+/* Choose the span: a pill switch, the chosen side dark (aria-current says it in words). */
+.segmented {
+  display: flex;
+  width: fit-content;
+  margin: 1.5rem auto 0;
+  padding: 0.25rem;
+  gap: 0.25rem;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+}
+
+.segment {
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-pill);
+  color: var(--color-fg);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.segment[aria-current="true"] {
+  background: var(--color-pill-active-bg);
+  color: var(--color-pill-active-fg);
+}
+
+.timeline-label {
+  background: var(--color-field);
+}
+
+.timeline-row:last-child {
+  border-bottom: 0;
+}
+
+.bar {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+}
+
+/* Manual work is short: a minimum width keeps each piece visible and easy to point at, and a thin
+   edge in the page colour keeps back-to-back pieces apart. */
+.bar-manual {
+  min-width: 0.5rem;
+  box-shadow: 0 0 0 1px var(--color-field);
+}
+
+/* A bar too narrow for its words shows none rather than a clipped letter or two; the hover and
+   focus tip, and the accessible name, still give every detail. */
+.bar {
+  container-type: inline-size;
+}
+
+@container (max-width: 4.5rem) {
+  .bar-text {
+    visibility: hidden;
+  }
+}
+
+/* A bar that runs past the last drawn day: a square end says it continues. */
+.bar-continues {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* The bar's full details on hover and keyboard focus (the same words as its accessible name). */
+.bar::after {
+  content: attr(data-tip);
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  top: calc(100% + 0.35rem);
+  width: max-content;
+  max-width: 22rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.75rem;
+  background: var(--color-pill-active-bg);
+  color: var(--color-pill-active-fg);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  white-space: normal;
+  opacity: 0;
+  transform: translateY(-0.25rem);
+  pointer-events: none;
+  transition:
+    opacity var(--motion-fast) var(--ease-out),
+    transform var(--motion-fast) var(--ease-out);
+}
+
+.bar:hover::after,
+.bar:focus-visible::after {
+  opacity: 1;
+  transform: none;
+}
+
+.bar:hover,
+.bar:focus-visible {
+  z-index: 4;
+}
+
+/* Rows near the bottom show their details above the bar, inside the timeline's box. */
+.timeline-row:nth-last-child(-n + 2) .bar::after {
+  top: auto;
+  bottom: calc(100% + 0.35rem);
+  transform: translateY(0.25rem);
+}
+
+.timeline-row:nth-last-child(-n + 2) .bar:is(:hover, :focus-visible)::after {
+  transform: none;
+}
+
+/* Work after the drawn days: one marker per row, pointing to the table. */
+.later {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 0.35rem;
+  translate: 0 -50%;
+  padding: 0.1rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-field);
+  box-shadow: 0 0 0 1px var(--color-border), var(--shadow-card);
+  color: var(--color-fg);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* --- Centered text blocks ----------------------------------------------------------------- */
+
+.page > [role="status"],
+.lede {
+  max-width: 46rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+/* Links in body text: the accent, a thin underline that thickens on hover. */
+.page a:not(.button, .bar, .later, .segment, .nav-link) {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.page a:not(.button, .bar, .later, .segment, .nav-link):hover {
+  text-decoration-thickness: 2px;
+}
+
+/* A confirmation: a pill that drops in gently. */
+.toast {
+  width: fit-content;
+  max-width: min(46rem, 100%);
+  margin: 0.75rem auto;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-ok-bg);
+  color: var(--color-ok-fg);
+  font-weight: 600;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  animation: drop-in var(--motion-slow) var(--ease-out) both;
+}
+
+/* The demo banner: a slim glass pill, centered. */
+.demo-banner {
+  max-width: var(--content-width);
+  margin: 0.75rem auto 0;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  box-shadow: 0 0 0 1px var(--glass-edge);
   font-size: 0.9rem;
+  text-align: center;
+}
+
+/* --- Motion ------------------------------------------------------------------------------- */
+/* Short and gentle (theme.css tokens), only transform and opacity, and none at all when the
+   person asks for reduced motion. Numbers never count up: they are right the moment they show. */
+
+button,
+.button,
+.segment,
+.later {
+  transition:
+    transform var(--motion-fast) var(--ease-out),
+    opacity var(--motion-fast) var(--ease-out);
+}
+
+button:not(:disabled):hover,
+.button:hover,
+.later:hover {
+  transform: translateY(-1px);
+}
+
+button:not(:disabled):active,
+.button:active,
+.segment:active,
+.later:active {
+  transform: scale(0.97);
+}
+
+/* Page content: the View Transition cross-fades it; without that API it rises in on arrival. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--motion-base);
+  animation-timing-function: var(--ease-out);
+}
+
+@supports not (view-transition-name: none) {
+  .page {
+    animation: rise-in var(--motion-base) var(--ease-out) both;
+  }
+}
+
+/* Timeline bars slide in on load, row after row. */
+.bar {
+  animation: slide-in var(--motion-slow) var(--ease-out) both;
+  animation-delay: calc(var(--row, 0) * var(--motion-stagger));
+}
+
+/* A state pill is keyed by its state, so a new state fades in. */
+.state {
+  animation: pop-in var(--motion-base) var(--ease-out) both;
+}
+
+/* New lines in the dispatch log fade in. */
+.log-row {
+  animation: rise-in var(--motion-base) var(--ease-out) both;
+}
+
+.stat,
+.machine-grid > .card {
+  animation: rise-in var(--motion-base) var(--ease-out) both;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.4rem);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-0.6rem);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes meter-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(340%);
+  }
+}
+
+/* Reduced motion: nothing moves. The theme already sets every duration to zero; this also stops
+   keyframe animations (including the endless meter sweep) and the page cross-fade outright. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

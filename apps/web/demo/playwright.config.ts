@@ -26,7 +26,8 @@ const video = process.env.SHOWCASE === "video";
 
 export default defineConfig({
   testDir: ".",
-  testMatch: "video.spec.ts", // screenshots are taken during the walkthrough
+  // Screenshots are taken during the walkthrough; SHOWCASE=design takes only the design-review shots.
+  testMatch: process.env.SHOWCASE === "design" ? "design.spec.ts" : "video.spec.ts",
   fullyParallel: false,
   workers: 1,
   retries: 0,
@@ -38,6 +39,7 @@ export default defineConfig({
     actionTimeout: 30_000, // a missing element fails in seconds, not at the run's 10-minute limit
     viewport: { width: 1280, height: 720 },
     colorScheme: "light",
+    contextOptions: { reducedMotion: "no-preference" }, // the video shows the motion
     video: video ? { mode: "on", size: { width: 1280, height: 720 } } : "off",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 720 } } }],

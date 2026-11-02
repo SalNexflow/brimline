@@ -7,7 +7,7 @@ import { formatShopTime } from "@/lib/timeline";
 import { DiffView, DisruptionCard } from "./disruption-view";
 import { EventEditor, ReportForm } from "./disruption-forms";
 import { AutoRefresh, DecisionForm, PlanDayForm } from "./forms";
-import { ScheduleView } from "./schedule-view";
+import { ScheduleView, type Span } from "./schedule-view";
 
 export const metadata: Metadata = { title: "Board · Brimline" };
 
@@ -43,9 +43,14 @@ function RunProgress({ run, now }: { run: PlanningRun; now: Date }) {
         {typeof p.jobs === "number" ? `, ${p.jobs} jobs` : null}.
       </p>
       <p className="muted">Running for {elapsed} s.</p>
-      <progress max={1} value={work} aria-label="Share of the solver's work budget used">
+      {/* The native bar is what assistive technology reads; the drawn meter glides between the
+          values the page receives every 2 s (CSS transform, so it can animate smoothly). */}
+      <progress className="visually-hidden" max={1} value={work} aria-label="Share of the solver's work budget used">
         {work === undefined ? "" : `${Math.round(work * 100)}%`}
       </progress>
+      <div className={`meter${work === undefined ? " meter-waiting" : ""}`} aria-hidden="true">
+        <span className="meter-fill" style={{ transform: `scaleX(${work ?? 0})` }} />
+      </div>
       {limit !== undefined ? (
         <p className="muted">
           {typeof p.solutions === "number" ? `Better plans found so far: ${p.solutions}. ` : null}
@@ -76,23 +81,27 @@ function Header({ s, timeZone }: { s: Schedule; timeZone: string }) {
   );
 }
 
-export default function BoardPage() {
+export default function BoardPage({ searchParams }: PageProps<"/board">) {
   return (
     <main className="page board">
       <h1 className="page-title">Production board</h1>
       <Suspense fallback={<p>Loading the board…</p>}>
-        <BoardContent />
+        <BoardContent searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function BoardContent() {
+async function BoardContent({ searchParams }: { searchParams: PageProps<"/board">["searchParams"] }) {
+  const span: Span = (await searchParams).span === "all" ? "all" : "days";
   const { client, me } = await signedInEngine();
   const { data: board } = await client.GET("/board");
   const { data: demo } = await client.GET("/demo-status");
   const canAttach = can(me, "file.attach_job");
   const now = new Date();
+  // The timeline's "now" is the shop's clock: on the hosted demo it is pinned (DEMO_CLOCK), as it is
+  // for planning and dispatch. How long a planning run has taken stays real time.
+  const shopNow = demo?.demo_time ? new Date(demo.demo_time) : now;
   if (!board) return <p>You do not have access to the board.</p>;
   const tz = board.time_zone;
   const catalog = board.can_plan ? (await client.GET("/disruptions/catalog")).data : undefined;
@@ -154,7 +163,7 @@ async function BoardContent() {
             />
           ) : null}
           <DiffView schedule={board.draft} />
-          <ScheduleView schedule={board.draft} timeZone={tz} now={now} canAttach={canAttach} />
+          <ScheduleView schedule={board.draft} timeZone={tz} now={shopNow} canAttach={canAttach} span={span} />
         </section>
       ) : null}
 
@@ -162,7 +171,7 @@ async function BoardContent() {
         <section aria-labelledby="approved-heading" className="schedule">
           <h2 id="approved-heading">Approved plan</h2>
           <Header s={board.approved} timeZone={tz} />
-          <ScheduleView schedule={board.approved} timeZone={tz} now={now} canAttach={canAttach} />
+          <ScheduleView schedule={board.approved} timeZone={tz} now={shopNow} canAttach={canAttach} span={span} />
         </section>
       ) : null}
 

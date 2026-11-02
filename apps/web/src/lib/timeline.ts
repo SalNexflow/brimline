@@ -40,13 +40,14 @@ function nextShopDay(day: Date, timeZone: string): Date {
 }
 
 /** The span the board shows: whole shop days from the day of `start` until every `end` fits,
- * at least `minDays` days. `days` holds each day's midnight; `to` is the midnight after. */
-export function boardWindow(start: Date, ends: Date[], timeZone: string, minDays = 3): Window {
+ * at least `minDays` and at most `maxDays` days. `days` holds each day's midnight; `to` is the
+ * midnight after. Work after `to` is not drawn; the board marks it and the table lists it. */
+export function boardWindow(start: Date, ends: Date[], timeZone: string, minDays = 3, maxDays = Infinity): Window {
   const from = startOfShopDay(start, timeZone);
   const last = ends.reduce((a, b) => (b > a ? b : a), start);
   const days = [from];
   let to = nextShopDay(from, timeZone);
-  while (to < last || days.length < minDays) {
+  while ((to < last || days.length < minDays) && days.length < maxDays) {
     days.push(to);
     to = nextShopDay(to, timeZone);
   }

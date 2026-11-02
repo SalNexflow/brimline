@@ -60,3 +60,72 @@ test("a planner plans the day and approves it; an operator completes a job", asy
   await page.getByRole("link", { name: "Orders" }).click();
   await expect(page.getByRole("row", { name: /BL-0003/ })).toContainText("done");
 });
+
+/** An approved plan to look at: the one the test above approved, or a new one. */
+async function approvedPlan(page: Page) {
+  await page.goto("/board");
+  if ((await page.getByRole("heading", { name: "Approved plan", exact: true }).count()) > 0) return;
+  await page.getByRole("button", { name: "Plan day" }).click();
+  await expect(page.getByRole("button", { name: "Approve plan" })).toBeVisible({ timeout: 180_000 });
+  await page.getByRole("button", { name: "Approve plan" }).click();
+  await expect(page.getByRole("heading", { name: "Approved plan", exact: true })).toBeVisible();
+}
+
+for (const [size, viewport] of [
+  ["desktop", { width: 1280, height: 800 }],
+  ["phone", { width: 390, height: 844 }],
+] as const) {
+  test(`the timeline draws three readable days and points to later work (${size})`, async ({ page }) => {
+    test.setTimeout(240_000);
+    await page.setViewportSize(viewport);
+    await signIn(page, "Priya Nandakumar", "planner");
+    await approvedPlan(page);
+    const timeline = page.getByRole("region", { name: "Plan timeline (scrolls sideways)" }).last();
+
+    // Three days drawn. Every planned task is either a bar or counted by its row's "later" marker,
+    // which points to the table (a hand-made plan with later work is in schedule-view.test.tsx).
+    await expect(timeline.locator(".day-label")).toHaveCount(3);
+    const rows = await page.locator("section.schedule").last().locator(".plan-table tbody tr").count();
+    const bars = await timeline.locator(".bar").count();
+    const markers = timeline.locator("[data-testid^='later-']");
+    const counted = (await markers.allTextContents()).reduce((n, t) => n + Number(/\+(\d+) later/.exec(t)?.[1]), 0);
+    expect(bars + counted).toBe(rows);
+    for (const marker of await markers.all()) {
+      await expect(marker).toHaveAttribute("href", /^#table-\d+$/);
+      await expect(marker).toHaveAccessibleName(/^\+\d+ later: \d+ more tasks? on .+, listed in the table$/);
+    }
+
+    // An hour is wide enough to read: the widest machine bar shows its whole label.
+    const widest = await timeline.locator(".bar-machine .bar-text").evaluateAll((spans) =>
+      Math.max(...spans.map((s) => (s.scrollWidth <= s.clientWidth ? s.clientWidth : 0))),
+    );
+    expect(widest).toBeGreaterThan(40);
+
+    // Full details on hover, in the same words as the bar's accessible name.
+    const bar = timeline.locator(".bar-machine").first();
+    await bar.hover();
+    const tip = await bar.evaluate((el) => {
+      const after = getComputedStyle(el, "::after");
+      return { text: after.content, opacity: after.opacity, name: el.getAttribute("aria-label") };
+    });
+    expect(tip.opacity).toBe("1");
+    expect(tip.text).toBe(JSON.stringify(tip.name));
+
+    // The page itself never scrolls sideways; only the timeline's own box does.
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await expectAccessible(page);
+
+    // The whole plan, when it runs past three days: more days, nothing left to mark as later.
+    const whole = page.getByRole("link", { name: /^Whole plan \(\d+ days\)$/ });
+    if ((await whole.count()) > 0) {
+      await whole.click();
+      await expect(page).toHaveURL(/span=all/);
+      expect(await timeline.locator(".day-label").count()).toBeGreaterThan(3);
+      await expect(timeline.locator("[data-testid^='later-']")).toHaveCount(0);
+      expect(await timeline.locator(".bar").count()).toBe(rows);
+    } else {
+      expect(counted).toBe(0);
+    }
+    await expectAccessible(page);
+  });
+}

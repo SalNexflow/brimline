@@ -50,6 +50,23 @@ describe("boardWindow", () => {
     const w = boardWindow(at("2026-10-26T09:00:00Z"), [at("2026-11-02T10:00:00Z")], TZ);
     expect(w.days).toHaveLength(8); // Mon 26 Oct to Mon 2 Nov
   });
+
+  it("stops at maxDays even when work ends later", () => {
+    // Mon 26 Oct 10:00 local, work until Mon 2 Nov: capped at Mon, Tue, Wed; ends Thu 29 Oct 00:00.
+    const w = boardWindow(at("2026-10-26T09:00:00Z"), [at("2026-11-02T10:00:00Z")], TZ, 3, 3);
+    expect(w.days).toHaveLength(3);
+    expect(w.to.toISOString()).toBe("2026-10-28T23:00:00.000Z");
+  });
+
+  it("still covers a day across the autumn clock change when capped", () => {
+    // Sat 24 Oct to Mon 26 Oct: Sunday 25 Oct has 25 hours in Berlin.
+    const w = boardWindow(at("2026-10-24T08:00:00Z"), [at("2026-10-30T08:00:00Z")], TZ, 3, 3);
+    expect(w.days.map((d) => d.toISOString())).toEqual([
+      "2026-10-23T22:00:00.000Z",
+      "2026-10-24T22:00:00.000Z",
+      "2026-10-25T23:00:00.000Z",
+    ]);
+  });
 });
 
 describe("percentAt", () => {
