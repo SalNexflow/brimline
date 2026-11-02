@@ -272,6 +272,36 @@ const MUTATIONS = [
   },
 ];
 
+// For each mutation caught by the engine tests: the test files that should catch it. Only these run in
+// the mutation's gate (fail-fast). A subset failing proves the full suite fails, so a catch is never
+// false; a wrong subset shows up as a miss. A mutation not listed here runs the whole suite.
+const TESTS = {
+  "permission widened (operators may create orders)": "tests/test_permissions.py",
+  "pricing rounds the rush surcharge wrongly": "tests/test_pricing.py",
+  "checker lets a changeover one minute short through": "tests/test_checker_cases.py",
+  "checker imports scheduler code": "tests/test_checker_independence.py",
+  "approval no longer re-runs the independent checker": "tests/test_planning_api.py",
+  "AI summary no longer checked against the diff": "tests/test_disruptions_api.py",
+  "file checker stops counting open edges": "tests/test_files_checks.py",
+  "search no longer narrows a customer's filter": "tests/test_search_filters.py tests/test_search_api.py",
+  "search SQL loses its customer scope": "tests/test_search_filters.py tests/test_search_api.py",
+  "engine stops checking the web key": "tests/test_demo.py",
+  "demo ignores its daily model budget": "tests/test_demo.py",
+  "under-quote flag counts a job at the threshold as over": "tests/test_costing.py",
+  "under-quote flag ignores the minimum number of jobs": "tests/test_costing.py",
+  "failed attempts left out of the actual cost": "tests/test_costing.py",
+  "checker misses a plan one gram short of material": "tests/test_checker_stock.py",
+  "CP-SAT ignores stock and deliveries": "tests/test_sched_stock.py",
+  "shortage report counts a late delivery as on time": "tests/test_shortage.py",
+  "a file estimate wins over grams a person entered": "tests/test_grams.py",
+  "dispatch guard ignores the Proceed": "tests/test_dispatch_guard.py",
+  "dispatch guard lets an approved action run twice": "tests/test_dispatch_guard.py",
+  "dispatch guard ignores the checker's verdict on the plan": "tests/test_dispatch_guard.py",
+  "code fallback loses its label": "tests/test_dispatch_api.py",
+  "OctoPrint adapter sends the wrong key header": "tests/test_machines.py",
+  "a failed file check can be accepted like a warning": "tests/test_files_api.py",
+};
+
 function sh(command, cwd, extraEnv = {}) {
   return spawnSync(command, { cwd, shell: true, stdio: "inherit", env: { ...process.env, ...extraEnv } }).status;
 }
@@ -283,9 +313,13 @@ function capture(command, cwd) {
 // `failFast`: each test runner stops at its first failure (GATE_FAIL_FAST, scripts/tasks.mjs). Used for
 // the mutations, never the baseline: a mutation only has to fail at its expected step, and a test
 // runner that stops early still fails at that step.
-function runGate(failFast = false) {
+function runGate(failFast = false, tests = "") {
   rmSync(RESULT_FILE, { force: true });
-  const env = { GATE_RESULT_FILE: RESULT_FILE, ...(failFast ? { GATE_FAIL_FAST: "1" } : {}) };
+  const env = {
+    GATE_RESULT_FILE: RESULT_FILE,
+    ...(failFast ? { GATE_FAIL_FAST: "1" } : {}),
+    ...(failFast && tests ? { GATE_PYTEST_ARGS: tests } : {}),
+  };
   const status = sh("node scripts/tasks.mjs gate", COPY, env);
   const failedStep = existsSync(RESULT_FILE) ? JSON.parse(readFileSync(RESULT_FILE, "utf8")).failedStep : "unknown";
   return { status, failedStep };
@@ -329,7 +363,7 @@ function main() {
     console.log(`\n=== Mutation: ${m.name}  (expect '${m.expect}' to fail)`);
     writeFileSync(path, original.replace(m.find, m.replace));
     const began = Date.now();
-    const { status, failedStep } = runGate(true);
+    const { status, failedStep } = runGate(true, m.expect === "engine: tests" ? (TESTS[m.name] ?? "") : "");
     writeFileSync(path, original);
     console.log(`    (${Math.round((Date.now() - began) / 1000)} s)`);
     const caught = status !== 0 && failedStep === m.expect;

@@ -48,7 +48,13 @@ const step = (name, cwd, command) => ({ name, cwd, command });
 // The gate still fails at the same step, so the self-test proves the same thing, in minutes.
 const FAST = process.env.GATE_FAIL_FAST === "1";
 const WEB_UNIT = step("web: unit tests", WEB, FAST ? "pnpm run test --bail=1" : "pnpm run test");
-const ENGINE_UNIT = step("engine: tests", ENGINE, FAST ? "uv run --locked pytest -x" : "uv run --locked pytest");
+// GATE_PYTEST_ARGS (self-test only): the test files a mutation should fail. A subset failing proves the
+// whole suite fails; a wrong subset can only make the self-test report a miss, never a false catch.
+const ENGINE_UNIT = step(
+  "engine: tests",
+  ENGINE,
+  FAST ? `uv run --locked pytest -x ${process.env.GATE_PYTEST_ARGS ?? ""}`.trim() : "uv run --locked pytest",
+);
 
 // Order: fastest checks first, so most mistakes fail in seconds.
 const GATE = [
