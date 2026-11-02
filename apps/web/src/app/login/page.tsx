@@ -9,13 +9,14 @@ import { SignInButton } from "./sign-in-button";
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <main className="page">
-      <h1>Sign in</h1>
-      <p className="muted">
-        Demo accounts only: pick a person to see the shop through their role. No passwords.
-      </p>
-      <Suspense fallback={<p>Loading demo accounts…</p>}>
-        <DemoUsers searchParams={searchParams} />
-      </Suspense>
+      <section className="login-card" aria-labelledby="sign-in-heading">
+        <span className="brand-mark login-mark" aria-hidden="true" />
+        <h1 id="sign-in-heading">Sign in</h1>
+        <p className="muted">Demo accounts only: pick a person to see the shop through their role. No passwords.</p>
+        <Suspense fallback={<p>Loading demo accounts…</p>}>
+          <DemoUsers searchParams={searchParams} />
+        </Suspense>
+      </section>
     </main>
   );
 }
@@ -34,15 +35,24 @@ async function DemoUsers({ searchParams }: Pick<PageProps<"/login">, "searchPara
   }
   return (
     <>
-      {failed ? <p role="alert">Sign-in failed. Try again.</p> : null}
+      {failed ? (
+        <p role="alert" className="error-box">
+          Sign-in failed. Try again.
+        </p>
+      ) : null}
       <ul className="user-list">
         {users.map((user) => (
           <li key={user.code}>
             <form action={signIn}>
               <input type="hidden" name="user_code" value={user.code} />
-              <SignInButton label={`Sign in as ${user.display_name}, ${user.role}`}>
-                <strong>{user.display_name}</strong>
-                <span className="badge">{user.role}</span>
+              <SignInButton>
+                <span className="avatar" aria-hidden="true" />
+                {/* The button's name is its visible words, with "Sign in as" and a comma for
+                    screen readers: "Sign in as Sam Ortega, staff" (WCAG 2.5.3, label in name). */}
+                <span>
+                  <span className="visually-hidden">Sign in as</span> <strong>{user.display_name}</strong>
+                  <span className="silent">,</span> <span className="badge">{user.role}</span>
+                </span>
                 {user.customer_name ? <span className="muted">{user.customer_name}</span> : null}
               </SignInButton>
             </form>
