@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { can, signedInEngine, type DispatchView } from "@/lib/engine";
 
+import { Stats } from "../ui";
 import { AskButton, ProceedForm, SimulationForm, type ProposalRow } from "./forms";
 
 export const metadata: Metadata = { title: "Dispatch · Brimline" };
@@ -63,19 +64,15 @@ async function DispatchContent({ searchParams }: { searchParams: PageProps<"/dis
         </p>
       </details>
       {!data.connected ? <p role="status">No machines are connected (SIM_MACHINES is off).</p> : null}
-      <dl className="stats" aria-label="Machines and proposals, counted by code">
-        {[
+      <Stats
+        label="Machines, counted by code"
+        items={[
           ["Machines", data.machines.length],
           ["Running", data.machines.filter((m) => m.state === "running").length],
           ["Idle", data.machines.filter((m) => m.state === "idle" || m.state === "done").length],
           ["Not answering", data.machines.filter((m) => !m.state || m.state === "offline" || m.state === "failed").length],
-        ].map(([label, value]) => (
-          <div className="stat" key={label}>
-            <dt className="stat-label">{label}</dt>
-            <dd className="stat-value">{value}</dd>
-          </div>
-        ))}
-      </dl>
+        ]}
+      />
       <h2>Machines</h2>
       <ul className="machine-grid">
         {data.machines.map((m) => (

@@ -14,6 +14,8 @@ import {
   percentAt,
 } from "@/lib/timeline";
 
+import { Stats } from "../ui";
+
 /** "days": the first few days, readable bars (the default); "all": the whole plan, narrower days. */
 export type Span = "days" | "all";
 export const SHOWN_DAYS = 3;
@@ -78,21 +80,16 @@ function Metrics({ schedule }: { schedule: Schedule }) {
   const metrics = schedule.check.metrics;
   if (!metrics) return null;
   const m = (name: string): number => metrics[name] ?? 0;
-  const figures: [string, string][] = [
-    ["Jobs planned", String(m("scheduled"))],
-    ["Late or unscheduled", String(m("late_or_unscheduled"))],
-    ["Total lateness", formatDuration(m("total_lateness_minutes"))],
-    ["Material changeovers", String(m("changeovers"))],
-  ];
   return (
-    <dl className="stats metrics" aria-label="Plan figures, computed by the checker">
-      {figures.map(([label, value]) => (
-        <div className="stat" key={label}>
-          <dt className="stat-label">{label}</dt>
-          <dd className="stat-value">{value}</dd>
-        </div>
-      ))}
-    </dl>
+    <Stats
+      label="Plan figures, computed by the checker"
+      items={[
+        ["Jobs planned", m("scheduled")],
+        ["Late or unscheduled", m("late_or_unscheduled")],
+        ["Total lateness", formatDuration(m("total_lateness_minutes"))],
+        ["Material changeovers", m("changeovers")],
+      ]}
+    />
   );
 }
 

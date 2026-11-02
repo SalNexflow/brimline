@@ -44,3 +44,6 @@ Bigger "nice to have" ideas, one-line pitch each. Not commitments.
 - **TLS for the Bambu mock,** with a self-signed certificate, so the adapter's TLS path is exercised as on a real printer.
 - **Dispatch to another eligible machine** when the planned one is down, as a proposal the guard checks with a one-job re-plan through the checker.
 - **Edit JavaScript only with exact edits:** twice a Python-written edit put a real line break inside a JavaScript string (#86, and once in M9, caught before commit by the parse step); a small script that rewrites JS through a JS parser would remove the trap.
+- **A pin button on the icon rail,** so a person who prefers labels can keep it open (remembered per browser).
+- **Drag to zoom the board timeline** between the three-day and whole-plan widths, with keyboard steps, instead of two fixed spans.
+- **A design-shot comparison in CI:** keep the approved design shots and flag a screen whose pixels move more than a set amount.
