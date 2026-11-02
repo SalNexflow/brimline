@@ -33,12 +33,15 @@ test("an operator records a failure with its reason", async ({ page }) => {
   const start = page.getByRole("button", { name: /^Start: Prep for / }).first();
   const name = ((await start.getAttribute("aria-label")) ?? "").replace("Start: ", "");
   await start.click();
-  await page.getByText("Failed…").first().click();
+  // The row of the task just started: another test may have left a task running (the dispatch test
+  // starts a machine job when the real clock is inside a shift), with its own "Failed…".
+  const row = page.getByRole("row").filter({ has: page.getByRole("button", { name: `Done: ${name}` }) });
+  await row.getByText("Failed…").click();
   // Without a reason the form does not go (the engine would refuse it too).
   await page.getByRole("button", { name: `Record failure: ${name}` }).click();
   await expect(page.getByRole("button", { name: `Record failure: ${name}` })).toBeVisible();
-  await page.getByLabel("Why did it fail?").first().selectOption("bed_adhesion");
-  await page.getByLabel("Note (optional)").first().fill("came loose at layer 3");
+  await row.getByLabel("Why did it fail?").selectOption("bed_adhesion");
+  await row.getByLabel("Note (optional)").fill("came loose at layer 3");
   await expectAccessible(page);
   await page.getByRole("button", { name: `Record failure: ${name}` }).click();
   await expect(page.getByRole("status")).toContainText(`${name}: failed.`);
