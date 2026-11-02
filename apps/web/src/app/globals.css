@@ -1434,6 +1434,164 @@ section.check {
   white-space: nowrap;
 }
 
+/* --- Dispatch ----------------------------------------------------------------------------- */
+
+/* Machine cards: three across on a wide screen, two, then one; a short last row is centered. */
+.machine-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.machine-grid > .card {
+  flex: 0 1 calc((100% - 2rem) / 3);
+  min-width: 0;
+  padding: 1.25rem 1.4rem;
+}
+
+@media (max-width: 60rem) {
+  .machine-grid > .card {
+    flex-basis: calc((100% - 1rem) / 2);
+  }
+}
+
+@media (max-width: 40rem) {
+  .machine-grid > .card {
+    flex-basis: 100%;
+  }
+}
+
+.machine-grid h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin: 0 0 0.5rem;
+}
+
+.machine-grid .state {
+  margin-left: 0;
+}
+
+.machine-grid .badge {
+  margin-left: 0.25rem;
+}
+
+.badge,
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Simulation settings: a pill that opens the form underneath; the arrow turns when open. */
+.sim summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.sim summary::-webkit-details-marker {
+  display: none;
+}
+
+.sim summary::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-0.1rem) rotate(45deg);
+  transition: transform var(--motion-fast) var(--ease-out);
+}
+
+.sim[open] summary::after {
+  transform: translateY(0.1rem) rotate(225deg);
+}
+
+.sim form {
+  margin-top: 0.75rem;
+}
+
+/* "How this works": a quiet disclosure under the one-line intro. */
+.how {
+  max-width: 46rem;
+  margin: 0 auto 1rem;
+  text-align: center;
+}
+
+.how summary {
+  display: inline-block;
+  color: var(--color-accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.how p {
+  text-align: left;
+}
+
+.page > form,
+[data-testid="latest-run"] > form {
+  display: flex;
+  justify-content: center;
+}
+
+/* Proposals: one glass card; each proposal a row with a large checkbox and its reason below. */
+[data-testid="latest-run"] > form.stack {
+  display: grid;
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+[data-testid="latest-run"] > form.stack > button {
+  justify-self: center;
+}
+
+.proposals {
+  margin: 0;
+  padding: 0.5rem 0.75rem 0.75rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+}
+
+.proposals legend {
+  padding: 0.2rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-pill-active-bg);
+  color: var(--color-pill-active-fg);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.proposal {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.proposal:last-child {
+  border-bottom: 0;
+}
+
+.proposal label {
+  font-weight: 600;
+}
+
+.proposal p {
+  margin: 0.25rem 0 0 1.85rem;
+}
+
+.proposal input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 /* --- Centered text blocks ----------------------------------------------------------------- */
 
 .page > [role="status"],

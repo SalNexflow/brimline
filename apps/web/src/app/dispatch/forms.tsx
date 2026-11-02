@@ -36,7 +36,7 @@ export function ProceedForm({ runId, proposals, idempotencyKey }: { runId: numbe
       <input type="hidden" name="run_id" value={runId} />
       <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <Problem state={state} />
-      <fieldset>
+      <fieldset className="proposals">
         <legend>Proposals</legend>
         {proposals.map((p) => (
           <div key={p.id} className="proposal">
