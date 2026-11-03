@@ -40,6 +40,8 @@ test("a planner plans the day and approves it; an operator completes a job", asy
 
   await page.getByRole("button", { name: "Approve plan" }).click();
   await expect(page.getByRole("heading", { name: "Approved plan", exact: true })).toBeVisible();
+  // The draft is gone: the "Approved plan" heading alone could be an older plan's (DEFECT_LOG #110).
+  await expect(page.getByRole("heading", { name: "Draft plan, waiting for approval" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Draft plan, waiting for approval" })).toHaveCount(0);
 
   await page.getByRole("button", { name: "Sign out" }).click();
@@ -69,6 +71,8 @@ async function approvedPlan(page: Page) {
   await expect(page.getByRole("button", { name: "Approve plan" })).toBeVisible({ timeout: 180_000 });
   await page.getByRole("button", { name: "Approve plan" }).click();
   await expect(page.getByRole("heading", { name: "Approved plan", exact: true })).toBeVisible();
+  // The draft is gone: the "Approved plan" heading alone could be an older plan's (DEFECT_LOG #110).
+  await expect(page.getByRole("heading", { name: "Draft plan, waiting for approval" })).toHaveCount(0);
 }
 
 for (const [size, viewport] of [

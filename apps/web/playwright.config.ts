@@ -9,6 +9,14 @@ const WEB_PORT = 3100;
 const ENGINE_PORT = 8100;
 const E2E_DATABASE = "brimline_e2e";
 
+// The shop's clock is pinned (DEMO_CLOCK), so no test depends on the hour it runs at (DEFECT_LOG #110).
+// A run is either inside a shift (every test but the @off-shift ones) or, with E2E_SHIFT=off, outside one
+// (only those); the gate runs both. E2E_IN_SHIFT_CLOCK / E2E_OFF_SHIFT_CLOCK pick other moments.
+const OFF_SHIFT = process.env.E2E_SHIFT === "off";
+const SHOP_CLOCK = OFF_SHIFT
+  ? (process.env.E2E_OFF_SHIFT_CLOCK ?? "Sun 10:00")
+  : (process.env.E2E_IN_SHIFT_CLOCK ?? "Tue 10:00");
+
 const repoRoot = path.resolve(__dirname, "..", "..");
 const envFile = path.join(repoRoot, ".env");
 if (existsSync(envFile)) process.loadEnvFile(envFile);
@@ -22,6 +30,8 @@ function withDatabase(url: string | undefined, name: string): string {
 
 export default defineConfig({
   testDir: "./e2e",
+  grep: OFF_SHIFT ? /@off-shift/ : undefined,
+  grepInvert: OFF_SHIFT ? undefined : /@off-shift/,
   // Tests share one database and create orders, so they run one at a time.
   fullyParallel: false,
   workers: 1,
@@ -49,6 +59,7 @@ export default defineConfig({
         AI_MODE: "fake", // prepared replies: browser tests never call a real model
         SIM_MACHINES: "true", // the six simulated machines (M12), on ports the system picks
         SIM_FREE_PORTS: "true",
+        DEMO_CLOCK: SHOP_CLOCK,
       },
       reuseExistingServer: false,
       timeout: 120_000,

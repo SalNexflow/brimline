@@ -40,9 +40,10 @@ function loadEnv() {
 
 const ENV = loadEnv();
 
-// A step is one command in one folder. `shell: true` because pnpm and uv are .cmd shims on
-// Windows; the folder goes in `cwd` (never in the command string) so spaces in paths are safe.
-const step = (name, cwd, command) => ({ name, cwd, command });
+// A step is one command in one folder, with optional extra environment variables. `shell: true` because
+// pnpm and uv are .cmd shims on Windows; the folder goes in `cwd` (never in the command string) so spaces
+// in paths are safe, and variables go in `env` so the command reads the same on every shell.
+const step = (name, cwd, command, env = {}) => ({ name, cwd, command, env });
 
 // GATE_FAIL_FAST=1 (the gate self-test's mutation runs): each test runner stops at its first failure.
 // The gate still fails at the same step, so the self-test proves the same thing, in minutes.
@@ -72,7 +73,12 @@ const GATE = [
   step("engine: typecheck", ENGINE, "uv run --locked mypy"),
   ENGINE_UNIT,
   step("web: build", WEB, "pnpm run build"),
+  // The shop clock is pinned in both runs (playwright.config.ts): every test inside a shift, then the
+  // @off-shift tests outside one, so the gate's result never depends on the hour (DEFECT_LOG #110).
   step("web: browser tests", WEB, FAST ? "pnpm run e2e --max-failures=1" : "pnpm run e2e"),
+  step("web: browser tests, outside a shift", WEB, FAST ? "pnpm run e2e --max-failures=1" : "pnpm run e2e", {
+    E2E_SHIFT: "off",
+  }),
 ];
 
 function runSteps(title, steps) {
@@ -80,7 +86,7 @@ function runSteps(title, steps) {
   for (const s of steps) {
     console.log(`\n▶ ${s.name}  (${s.command})`);
     const started = Date.now();
-    const { status } = spawnSync(s.command, { cwd: s.cwd, env: ENV, shell: true, stdio: "inherit" });
+    const { status } = spawnSync(s.command, { cwd: s.cwd, env: { ...ENV, ...s.env }, shell: true, stdio: "inherit" });
     const ok = status === 0;
     results.push({ name: s.name, ok, seconds: (Date.now() - started) / 1000 });
     if (!ok) break; // stop at the first failure: later steps would only add noise

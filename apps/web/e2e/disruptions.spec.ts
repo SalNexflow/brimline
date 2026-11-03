@@ -34,6 +34,8 @@ test("a planner reports a breakdown, reviews the re-plan and approves it", async
   await planAndApprove(page);
   await page.getByRole("button", { name: "Approve plan" }).click();
   await expect(page.getByRole("heading", { name: "Approved plan", exact: true })).toBeVisible();
+  // The draft is gone: the "Approved plan" heading alone could be an older plan's (DEFECT_LOG #110).
+  await expect(page.getByRole("heading", { name: "Draft plan, waiting for approval" })).toHaveCount(0);
 
   // Report the breakdown; nothing is re-planned yet.
   await page.getByLabel("What happened?").fill("printer 3 jammed until 5pm");

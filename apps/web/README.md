@@ -9,7 +9,7 @@ Next.js 16 (App Router) web app in TypeScript strict mode. It will hold the scre
 | `pnpm lint` | ESLint with Next's rules; any warning fails |
 | `pnpm test` | Vitest unit tests (`src/**/*.test.tsx`) in jsdom |
 | `pnpm build` | Production build |
-| `pnpm e2e` | Playwright browser tests (`e2e/`) against the production build on port 3100. Run `pnpm build` first. |
+| `pnpm e2e` | Playwright browser tests (`e2e/`) against the production build on port 3100, with the shop clock pinned inside a shift. `E2E_SHIFT=off pnpm e2e` runs the `@off-shift` tests with it pinned outside one. Run `pnpm build` first. |
 
 Notes:
 - Styling uses CSS variables in `src/app/globals.css`, so the visual direction can change in M5 without touching components.

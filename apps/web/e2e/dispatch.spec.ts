@@ -2,8 +2,9 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 // M12: the dispatcher proposes, a person presses Proceed, the agent's calls go through the guard, and a
-// simulated machine starts. Runs on the real clock: a print may only start inside a shift (R10, checked
-// by the guard's plan check), so outside shift hours the proposal is shown as refused instead.
+// simulated machine starts. A print may only start inside a shift (R10, checked by the guard's plan check).
+// The shop clock is pinned (playwright.config.ts): the main run is inside a shift, and the @off-shift test
+// runs on its own, outside one, where the same proposal is shown as refused.
 
 async function signIn(page: Page, name: string, role: string) {
   await page.goto("/login");
@@ -19,27 +20,18 @@ async function expectAccessible(page: Page) {
   expect(problems).toEqual([]);
 }
 
-/** Inside a staffed shift in the shop (Mon-Fri 08:00-17:00, Sat 09:00-13:00, Berlin), with a margin. */
-function inShift(): boolean {
-  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Berlin", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
-  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
-  const minutes = Number(get("hour")) * 60 + Number(get("minute"));
-  const day = get("weekday");
-  if (["Mon", "Tue", "Wed", "Thu", "Fri"].includes(day)) return minutes >= 8 * 60 + 5 && minutes < 16 * 60 + 50;
-  if (day === "Sat") return minutes >= 9 * 60 + 5 && minutes < 12 * 60 + 50;
-  return false;
-}
-
-test("a dispatch goes from Proceed to a simulated start, through the guard", async ({ page }) => {
-  test.setTimeout(240_000);
+/** An approved plan, the chain guide's prep done by the operator (the mill has no other job, so nothing
+ * collides), and the dispatcher asked. Returns the proposal to start the chain guide on CNC-1. */
+async function askDispatcher(page: Page) {
   await signIn(page, "Priya Nandakumar", "planner");
   await page.goto("/board");
   await page.getByRole("button", { name: "Plan day" }).click();
   await expect(page.getByRole("button", { name: "Approve plan" })).toBeVisible({ timeout: 180_000 });
   await page.getByRole("button", { name: "Approve plan" }).click();
   await expect(page.getByRole("heading", { name: "Approved plan", exact: true })).toBeVisible();
+  // The draft is gone: the "Approved plan" heading alone could be an older plan's (DEFECT_LOG #110).
+  await expect(page.getByRole("heading", { name: "Draft plan, waiting for approval" })).toHaveCount(0);
 
-  // The operator finishes the chain guide's prep (the mill has no other job, so nothing collides).
   await page.getByRole("button", { name: "Sign out" }).click();
   await signIn(page, "Jonas Weber", "operator");
   await page.goto("/queues");
@@ -57,17 +49,33 @@ test("a dispatch goes from Proceed to a simulated start, through the guard", asy
   const proposal = page.getByRole("checkbox", { name: /Start BL-0005-1 on CNC-1/ });
   await expect(proposal).toBeVisible();
   await expectAccessible(page);
+  return proposal;
+}
 
-  if (inShift()) {
-    await proposal.check();
-    await page.getByRole("button", { name: "Proceed" }).click();
-    await expect(page.getByRole("status").filter({ hasText: "Proceed recorded" })).toBeVisible();
-    await expect(page.getByTestId("call-row").filter({ hasText: "start_task" })).toContainText("allowed");
-    await expect(page.getByTestId("machine-CNC-1")).toContainText("Running");
-  } else {
-    await expect(proposal).toBeDisabled();
-    await expect(page.getByText(/refused \(plan_check/)).toBeVisible();
-  }
+test("a dispatch goes from Proceed to a simulated start, through the guard", async ({ page }) => {
+  test.setTimeout(240_000);
+  const proposal = await askDispatcher(page);
+  await proposal.check();
+  await page.getByRole("button", { name: "Proceed" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Proceed recorded" })).toBeVisible();
+  await expect(page.getByTestId("call-row").filter({ hasText: "start_task" })).toContainText("allowed");
+  await expect(page.getByTestId("machine-CNC-1")).toContainText("Running");
+
+  // The watcher records the job the machine finishes (3 h of machining, about 18 s at the simulation's
+  // speed). Waiting for it also leaves no running work behind: a running task that finishes later makes
+  // the next test's draft plan stale (DEFECT_LOG #110).
+  await page.goto("/queues");
+  await expect(async () => {
+    await page.reload();
+    await expect(page.getByTestId("task-BL-0005-1-machine")).toContainText("Done", { timeout: 1_000 });
+  }).toPass({ timeout: 90_000 });
+});
+
+test("outside a shift the same proposal is refused by the plan check @off-shift", async ({ page }) => {
+  test.setTimeout(240_000);
+  const proposal = await askDispatcher(page);
+  await expect(proposal).toBeDisabled();
+  await expect(page.getByText(/refused \(plan_check/)).toBeVisible();
 });
 
 test("customers and office staff do not dispatch", async ({ page }) => {
