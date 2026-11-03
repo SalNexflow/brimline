@@ -60,6 +60,17 @@ async function shot(page: Page, name: string, top?: string) {
     // Put this heading at the top of the picture.
     await page.getByRole("heading", { name: top, exact: true }).first().evaluate((el) => el.scrollIntoView({ block: "start" }));
   }
+  // Off the icon rail, which opens on hover and would cover the page; then let every animation
+  // and transition finish (motion is on in the showcase).
+  await page.mouse.move(1200, 700);
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+        .map((a) => a.finished.catch(() => undefined)),
+    ),
+  );
   await page.screenshot({ path: path.join(SHOTS, `${name}.png`) });
 }
 
