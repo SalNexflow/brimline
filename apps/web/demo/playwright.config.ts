@@ -32,6 +32,8 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   timeout: 10 * 60_000,
+  // Recording calls the live model, which can take many seconds per step; replays are instant.
+  expect: { timeout: process.env.SHOWCASE_AI_MODE === "record" ? 90_000 : 5_000 },
   reporter: "list",
   outputDir: path.join(repoRoot, "apps", "web", "test-results", "showcase"),
   use: {

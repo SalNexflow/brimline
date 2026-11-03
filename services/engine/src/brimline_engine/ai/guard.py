@@ -134,6 +134,10 @@ class ReplayClient:
 
 
 class RecordingClient:
+    """Records live replies for the showcase. A prompt already in the recording is replayed, not
+    asked again: a full re-record starts from an empty file, and a top-up run (`--record-missing`)
+    asks the model only for new prompts, so unchanged scenes keep their replies."""
+
     def __init__(self, inner: ModelClient, path: Path) -> None:
         self._inner, self._path = inner, path
 
@@ -147,6 +151,10 @@ class RecordingClient:
         max_tokens: int,
         effort: Effort,
     ) -> ModelReply:
+        recorded = load_recording(self._path).get(prompt_key(model, system, turns))
+        if recorded is not None:
+            REPLAYED.set(True)
+            return ModelReply(text=recorded, stop_reason="end_turn", usage=TokenUsage())
         reply = self._inner.call(
             model=model, system=system, turns=turns, json_schema=json_schema,
             max_tokens=max_tokens, effort=effort,

@@ -72,6 +72,18 @@ class CountingClient:
         return ScriptedClient(fake_reply).call(**kw)  # type: ignore[arg-type]
 
 
+def test_recording_asks_the_model_only_for_prompts_not_yet_recorded(tmp_path: Path) -> None:
+    path = tmp_path / "rec.jsonl"
+    counting = CountingClient()
+    recorder = RecordingClient(counting, path)  # type: ignore[arg-type]
+    recorder.call(turns=TURNS, **CALL)  # type: ignore[arg-type]
+    recorder.call(turns=TURNS, **CALL)  # type: ignore[arg-type]
+    assert counting.calls == 1  # the second time it was replayed from the file
+    recorder.call(turns=[Turn("user", "a new prompt")], **CALL)  # type: ignore[arg-type]
+    assert counting.calls == 2
+    assert len(path.read_text(encoding="utf-8").splitlines()) == 2
+
+
 def test_over_the_daily_budget_no_live_call_is_made(app_url: str, tmp_path: Path) -> None:
     live = CountingClient()
     empty = ReplayClient(tmp_path / "none.jsonl")

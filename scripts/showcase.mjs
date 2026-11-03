@@ -3,6 +3,8 @@
 //
 //   node scripts/showcase.mjs screenshots          -> docs/screenshots/*.png
 //   node scripts/showcase.mjs video                -> docs/video/brimline-demo.mp4 (replayed AI)
+//   node scripts/showcase.mjs <what> --record-missing -> records only replies not yet in the
+//                                                     recording (live model for new prompts only)
 //   node scripts/showcase.mjs video --record       -> records the model replies first (live
 //                                                     model, DEEPSEEK_API_KEY; a few cents)
 //
@@ -22,8 +24,9 @@ const OUT_DIR = join(WEB, "test-results", "showcase");
 
 const what = process.argv[2];
 const record = process.argv.includes("--record");
+const recordMissing = process.argv.includes("--record-missing");
 if (what !== "screenshots" && what !== "video") {
-  console.error("Usage: node scripts/showcase.mjs <screenshots|video> [--record]");
+  console.error("Usage: node scripts/showcase.mjs <screenshots|video> [--record | --record-missing]");
   process.exit(2);
 }
 
@@ -39,11 +42,11 @@ rmSync(OUT_DIR, { recursive: true, force: true });
 mkdirSync(join(ROOT, "docs", "screenshots"), { recursive: true });
 run("pnpm exec playwright test -c demo/playwright.config.ts", {
   SHOWCASE: what,
-  SHOWCASE_AI_MODE: record ? "record" : "replay",
+  SHOWCASE_AI_MODE: record || recordMissing ? "record" : "replay",
   // Screenshots only: the same walkthrough at high speed, without video.
   ...(what === "screenshots" ? { SHOWCASE_PACE: "0.05" } : {}),
 });
-if (record) {
+if (record || recordMissing) {
   writeFileSync(META, JSON.stringify({ recorded_at: new Date().toISOString(), model: "deepseek-flash" }, null, 2) + "\n");
   console.log(`Recorded replies in ${RECORDING}`);
 }
