@@ -1,0 +1,4 @@
+# Generated before every render (scripts/numbers.mjs) and by SHOWCASE=stills; never edited by hand.
+src/numbers.generated.json
+public/stills/
+out/

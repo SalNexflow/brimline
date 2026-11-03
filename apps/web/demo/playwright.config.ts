@@ -26,8 +26,9 @@ const video = process.env.SHOWCASE === "video";
 
 export default defineConfig({
   testDir: ".",
-  // Screenshots are taken during the walkthrough; SHOWCASE=design takes only the design-review shots.
-  testMatch: process.env.SHOWCASE === "design" ? "design.spec.ts" : "video.spec.ts",
+  // Screenshots are taken during the walkthrough; SHOWCASE=design takes only the design-review shots,
+  // SHOWCASE=stills the product video's stills of the app.
+  testMatch: { design: "design.spec.ts", stills: "stills.spec.ts" }[process.env.SHOWCASE ?? ""] ?? "video.spec.ts",
   fullyParallel: false,
   workers: 1,
   retries: 0,
