@@ -92,7 +92,7 @@ a {
 }
 
 .sidebar:hover::after,
-.sidebar:focus-within::after {
+.sidebar:has(:focus-visible)::after {
   opacity: 1;
   transform: none;
   pointer-events: auto;
@@ -120,7 +120,7 @@ a {
 }
 
 .sidebar:hover :is(.brand, .nav-link),
-.sidebar:focus-within :is(.brand, .nav-link) {
+.sidebar:has(:focus-visible) :is(.brand, .nav-link) {
   width: calc(var(--sidebar-open-width) - 1.5rem);
 }
 
@@ -188,7 +188,7 @@ a {
 }
 
 .sidebar:hover .nav-label,
-.sidebar:focus-within .nav-label {
+.sidebar:has(:focus-visible) .nav-label {
   opacity: 1;
   transform: none;
   pointer-events: auto;
@@ -306,7 +306,7 @@ a {
   .brand,
   .nav-link,
   .sidebar:hover :is(.brand, .nav-link),
-  .sidebar:focus-within :is(.brand, .nav-link) {
+  .sidebar:has(:focus-visible) :is(.brand, .nav-link) {
     width: auto;
   }
 
