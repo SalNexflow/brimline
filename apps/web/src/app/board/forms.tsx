@@ -37,15 +37,19 @@ export function DecisionForm({
   discardKey,
   canApprove,
   reason,
+  replan,
 }: {
   scheduleId: number;
   approveKey: string;
   discardKey: string;
   canApprove: boolean;
   reason: string | null;
+  /** Set when the draft is stale: offers "Plan again" right where it says why it cannot be approved. */
+  replan?: { idempotencyKey: string; busy: boolean };
 }) {
   const [approveState, approveAction, approving] = useActionState(decide, INITIAL);
   const [discardState, discardAction, discarding] = useActionState(decide, INITIAL);
+  const [planState, planAction, planning] = useActionState(planDay, INITIAL);
   return (
     <div className="actions">
       <form action={approveAction}>
@@ -69,8 +73,17 @@ export function DecisionForm({
           {reason}
         </p>
       ) : null}
+      {replan ? (
+        <form action={planAction}>
+          <input type="hidden" name="idempotency_key" value={replan.idempotencyKey} />
+          <button type="submit" disabled={replan.busy || planning}>
+            Plan again
+          </button>
+        </form>
+      ) : null}
       <ErrorLine state={approveState} />
       <ErrorLine state={discardState} />
+      <ErrorLine state={planState} />
     </div>
   );
 }

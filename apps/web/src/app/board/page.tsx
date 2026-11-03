@@ -65,7 +65,7 @@ function RunProgress({ run, now }: { run: PlanningRun; now: Date }) {
 function approveReason(s: Schedule): string | null {
   if (s.can_approve) return null;
   if (!s.check.valid) return "It cannot be approved: the independent check failed.";
-  if (s.stale) return "It cannot be approved: jobs or work changed since it was made. Plan again.";
+  if (s.stale) return "It cannot be approved: jobs or work changed since it was made.";
   return null;
 }
 
@@ -160,6 +160,7 @@ async function BoardContent({ searchParams }: { searchParams: PageProps<"/board"
               discardKey={crypto.randomUUID()}
               canApprove={board.draft.can_approve}
               reason={approveReason(board.draft)}
+              replan={board.draft.stale ? { idempotencyKey: crypto.randomUUID(), busy } : undefined}
             />
           ) : null}
           <DiffView schedule={board.draft} />
