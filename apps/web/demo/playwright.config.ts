@@ -23,12 +23,14 @@ function withDatabase(url: string | undefined, name: string): string {
 }
 
 const video = process.env.SHOWCASE === "video";
+// Stills for the product video: full HD at twice the pixel density, so the camera can push in.
+const size = process.env.SHOWCASE === "stills" ? { width: 1920, height: 1080 } : { width: 1280, height: 720 };
 
 export default defineConfig({
   testDir: ".",
   // Screenshots are taken during the walkthrough; SHOWCASE=design takes only the design-review shots,
-  // SHOWCASE=stills the product video's stills of the app.
-  testMatch: { design: "design.spec.ts", stills: "stills.spec.ts" }[process.env.SHOWCASE ?? ""] ?? "video.spec.ts",
+  // SHOWCASE=stills the product video's stills of the app (the same walkthrough, see video.spec.ts).
+  testMatch: process.env.SHOWCASE === "design" ? "design.spec.ts" : "video.spec.ts",
   fullyParallel: false,
   workers: 1,
   retries: 0,
@@ -40,12 +42,18 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     actionTimeout: 30_000, // a missing element fails in seconds, not at the run's 10-minute limit
-    viewport: { width: 1280, height: 720 },
+    viewport: size,
+    deviceScaleFactor: process.env.SHOWCASE === "stills" ? 2 : 1,
     colorScheme: "light",
     contextOptions: { reducedMotion: "no-preference" }, // the video shows the motion
     video: video ? { mode: "on", size: { width: 1280, height: 720 } } : "off",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 720 } } }],
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"], viewport: size, deviceScaleFactor: process.env.SHOWCASE === "stills" ? 2 : 1 },
+    },
+  ],
   webServer: [
     {
       command: `uv run --locked python -m brimline_engine.db reset --demo --database ${DATABASE} && uv run --locked uvicorn brimline_engine.main:app --port ${ENGINE_PORT}`,
