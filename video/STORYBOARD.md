@@ -1,6 +1,6 @@
 # Brimline product video: storyboard (draft for approval)
 
-75 s, 1920 x 1080, 30 fps, captions only, CC0 music. Built in Remotion (not yet added: test shot
+76.8 s, 1920 x 1080, 30 fps, captions only, CC0 music. Built in Remotion (not yet added: test shot
 and render wait until the design is final). Craft rules: `.claude/skills/motion-video/SKILL.md`.
 
 - **Beat grid:** cut points assume a 100 BPM track (a beat is 0.6 s, a bar 2.4 s); every shot
@@ -28,15 +28,16 @@ and render wait until the design is final). Craft rules: `.claude/skills/motion-
 | 10 | 37.2 to 40.8 | Number reveal | The two halves of the number settle | "2,880 / 2,880" + "planted rule breaks caught" | 4 words, 1.8 s, 3.0 s | N4 | blur dissolve |
 | 11 | 40.8 to 45.6 | Macro UI crop | Board, "Something went wrong?": a planner types that FDM-1 is down; the events appear as chips to confirm | "A printer goes down." | 4 words, 1.8 s, 3.6 s | none | hard cut |
 | 12 | 45.6 to 50.4 | State change | Draft plan with its changes: bars shift on the timeline, the check badge passes, the cursor presses "Approve plan" | "The plan moves. A person approves." | 6 words, 2.5 s, 3.6 s | none | hard cut |
-| 13 | 50.4 to 54.0 | Number reveal | "3.7" settles beside a struck-through "22.3" | "jobs moved instead of 22.3, same lateness" + small "40-job benchmark, FDM-1 down" | 7 words, 2.8 s, 3.0 s | N5, N6, N7 | blur dissolve |
+| 13 | 50.4 to 54.0 | Number reveal | "3.7" settles beside a struck-through "14.3" | "jobs moved instead of 14.3, same lateness" + source line "40-job benchmark, FDM-1 down 4 h; baseline: re-solved from the approved plan without re-planning costs" | 7 words, 2.8 s, 3.0 s | N5, N6, N7 | blur dissolve |
 | 14 | 54.0 to 58.8 | Floating window | Dispatch: the proposal card, the box ticked, "Proceed" pressed. Corner label "Simulated machines" | "An agent proposes. A person says go." | 7 words, 2.8 s, 3.6 s | none | hard cut |
 | 15 | 58.8 to 62.4 | State change | The tool-call row fades in ("agent · start_task · allowed"); CNC-1's pill turns from "○ Idle" to "▶ Running" | "Code checks every call." | 4 words, 1.8 s, 3.0 s | none | hard cut |
-| 16 | 62.4 to 66.0 | Number reveal | Two lines, one after the other | "0 of 10 unsafe calls got through" / "0 actions without a Proceed" | 7 + 5 words, but shown one after the other: 2.8 s then 2.2 s, **needs 5.0 s, has 3.6 s** (see open points) | N8, N9, N10 | blur dissolve |
-| 17 | 66.0 to 70.8 | Number reveal | "38.4" slides to "10.8" | "late jobs per 80-job plan, vs a deadline-first rule" / "better on 15 of 15 plans" | 9 + 5 words, 3.5 s + 2.2 s, **needs 5.7 s, has 4.8 s** (see open points) | N11, N12 | hard cut |
-| 18 | 70.8 to 75.0 | Typewriter + end card | Monospace caps type out, then the logo holds | "BRIMLINE" / "FICTIONAL SHOP · FAKE DATA · SIMULATED MACHINES" / "github.com/SalNexflow/brimline" | held 2.4 s | none | end |
+| 16 | 62.4 to 66.0 | Number reveal | Two short lines on one card | "Unsafe calls passed: 0 of 10." / "Without Proceed: 0" | 9 words, 3.5 s, 3.6 s | N8, N9, N10 | blur dissolve |
+| 17a | 66.0 to 69.6 | Number reveal | "38.4" settles, then "10.8" beside it | "80 jobs. Late: earliest-due-date 38.4, ours 10.8" (each part of "earliest-due-date" counted as a word) | 9 words, 3.5 s, 3.6 s | N11 | hard cut on the beat |
+| 17b | 69.6 to 72.6 | Number reveal | "15 / 15" settles | "Better on 15 of 15 plans" + source line "lower weighted cost than earliest-due-date, seeded 20 to 80-job plans" | 6 words, 2.5 s, 3.0 s | N12 | hard cut |
+| 18 | 72.6 to 76.8 | Typewriter + end card | Monospace caps type out, then the logo holds | "BRIMLINE" / "FICTIONAL SHOP · FAKE DATA · SIMULATED MACHINES" / "github.com/SalNexflow/brimline" | held 2.4 s | none | end |
 
 Chapters: opening 0 to 14.4 s, AI versus code 14.4 to 28.8 s, the checker 28.8 to 40.8 s,
-re-plan 40.8 to 54.0 s, dispatch 54.0 to 66.0 s, results 66.0 to 75.0 s.
+re-plan 40.8 to 54.0 s, dispatch 54.0 to 66.0 s, results 66.0 to 76.8 s.
 
 ## Number register (read at render time)
 
@@ -50,13 +51,13 @@ file or field is missing.
 | N3 | "0 harmful errors" | 0 | same | `summary.heldout.harmful_errors` |
 | N4 | "2,880 / 2,880" | 2880 / 2880 | `eval/results/bench.json` | sum of `checker.mutations[*].caught` / sum of `checker.mutations[*].applied` |
 | N5 | "3.7" | 3.7 | `eval/results/replan.json` | mean `jobs_moved` of `rows` with `scenario == "machine_down"` and `costs == "configured"` |
-| N6 | "22.3" | 22.3 | same | same, `costs == "none"` |
-| N7 | "same lateness" | 36.3 h both | same | mean `lateness_minutes` / 60 of the two groups; the render fails unless they are equal |
+| N6 | "14.3" | 14.3 | same | same, `costs == "none, approved hint"`: the M6 report's fair baseline (no re-planning costs, search started from the approved plan) |
+| N7 | "same lateness" | identical per seed (2896, 0, 3631 min; mean 36.3 h) | same | `lateness_minutes` and `late_or_unscheduled` of the N5 and N6 rows, compared seed by seed; the render fails unless every pair is equal |
 | N8 | "0" (got through) | 0 | `eval/results/dispatch_deepseek-flash.json` | `summary.dev.unsafe_through + summary.heldout.unsafe_through` |
 | N9 | "of 10" | 10 | same | `summary.dev.unsafe_calls + summary.heldout.unsafe_calls` |
 | N10 | "0 actions without a Proceed" | 0 | same | `summary.dev.executed_without_proceed + summary.heldout.executed_without_proceed` |
-| N11 | "38.4 to 10.8" | 38.4 / 10.8 | `eval/results/bench.json` | mean `late_or_unscheduled` of `main` rows with `jobs == 80`, `method == "edd"` / `"cpsat-simple"` |
-| N12 | "15 of 15" | 15 / 15 | same | instances in `main` where `cpsat-simple`'s `objective` is below `edd`'s / all instances |
+| N11 | "earliest-due-date 38.4, ours 10.8" | 38.4 / 10.8 | `eval/results/bench.json` | mean `late_or_unscheduled` of `main` rows with `jobs == 80`, `method == "edd"` (earliest-due-date) / `"cpsat-simple"` (Brimline's planner) |
+| N12 | "15 of 15" | 15 / 15 | same | instances in `main` (5 seeds each at 20, 40, 80 jobs) where `cpsat-simple`'s `objective` is below `edd`'s / all instances |
 
 Source lines under the numbers come from the same files: `generated_at`, `model` and the set
 (held out, seeded benchmark), so each number says where it came from.
@@ -90,11 +91,25 @@ Source lines under the numbers come from the same files: `generated_at`, `model`
 5. **Shot 9 is an illustration** of a planted error, labelled as such; the measured claim is N4.
 6. **Dispatch runs against simulated machines**; shots 14 to 16 carry the "Simulated machines" label.
 
+## Changes after review (2026-11-03)
+
+- **Re-plan baseline (shot 13, N6):** the first draft compared 3.7 jobs moved with 22.3, the
+  "none" run, which re-solves from scratch. The M6 report (`eval/results/REPLAN.md`) names
+  "none, approved hint" (14.3) as the fair baseline: no re-planning costs, but the search starts
+  from the approved plan. The shot now uses 14.3 and its source line names that baseline.
+  "Same lateness" was checked seed by seed: lateness minutes (2896, 0, 3631), late counts (3, 0, 2)
+  and solver status (all OPTIMAL) are identical for the two runs, so the claim holds per seed, not
+  only on average.
+- **Shot 16:** fixed by cutting words only ("Unsafe calls passed: 0 of 10." / "Without Proceed: 0",
+  9 words in 3.6 s). Length unchanged.
+- **Shot 17:** cutting words alone could not fit both the comparison and the win count, so it was
+  split into two beats (17a, 17b) and lengthened by 1.8 s (within the 1 to 2 s allowed). It now
+  names the earliest-due-date baseline and 80 jobs on screen; "15 of 15" says in its source line that
+  it covers 20 to 80-job plans. No caption's reading time was shortened.
+- **Total:** 75.0 s to 76.8 s (limit 80 s). Shot 18 moves to 72.6 to 76.8 s.
+
 ## Open points for your decision
 
-- **Shots 16 and 17 are short of reading time** (3.6 s for 5.0 s of words; 4.8 s for 5.7 s).
-  Proposal: shorten the words ("0 of 10 unsafe calls passed" / "0 without a Proceed"; "late jobs,
-  80-job plans" / "better on 15 of 15"), which fits both; or take 1.2 s from shot 3.
 - **Shot 4 overlaps shot 5 by 1.0 s** for its small line; alternatively drop "fictional shop · fake
   data" there, since the end card says it.
 - **Music:** a CC0 track near 100 BPM with a clear build at about 54 s (dispatch) and a resolve at
