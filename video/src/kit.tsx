@@ -1,7 +1,7 @@
 // Reusable shot parts (motion-video skill recipes): a camera on a real app still, a number card,
 // kinetic words, a typewriter line, and the chapter dissolve.
 import type { ReactNode } from "react";
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Html5Audio, Img, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
 
 import boxes from "../public/stills/boxes.json";
 import { easeIn, easeOut, rise, Source } from "./parts";
@@ -115,6 +115,7 @@ export function NumberCard({ big, lines, source, sourceAt = 30 }: { big: ReactNo
         );
       })}
       <Source text={source} from={sourceAt} />
+      <Sfx sound="hit" at={0} />
     </AbsoluteFill>
   );
 }
@@ -134,6 +135,7 @@ export function KineticWords({ words, every }: { words: string[]; every: number 
           </div>
         );
       })}
+      <Sfx sound="hit" at={words.map((_, i) => i * every)} volume={0.5} />
     </AbsoluteFill>
   );
 }
@@ -147,7 +149,36 @@ export function Typewriter({ text, from, size = 44, perChar = 1.7, cursor = true
     <div style={{ fontFamily: font.mono, fontSize: size, letterSpacing: "0.1em", whiteSpace: "pre" }}>
       {text.slice(0, n)}
       <span style={{ display: "inline-block", width: "0.62em", height: "1em", verticalAlign: "-0.12em", background: (blink || n < text.length) && (cursor || n < text.length) && frame >= from ? color.fg : "transparent" }} />
+      {/* Key sounds while the letters appear (at most one every 3 frames, so fast lines stay calm). */}
+      <Sfx sound="key" at={keys(from, from + text.length * perChar)} volume={0.5} />
     </div>
+  );
+}
+
+/** The sound effects made by scripts/sfx.mjs. */
+export type Sound = "tick" | "click" | "pop" | "whoosh" | "swish" | "key" | "hit" | "confirm" | "error";
+
+/** Typing: one key sound every `every` frames from `from` to `to`, cycling the three variants. */
+export function keys(from: number, to: number, every = 3): number[] {
+  const at: number[] = [];
+  for (let f = from; f < to; f += every) at.push(f);
+  return at;
+}
+
+/**
+ * A sound effect at frame `at` of the shot it sits in, so it moves with the animation it belongs
+ * to. Several frames play the same sound at each; "key" cycles three variants.
+ */
+export function Sfx({ sound, at, volume = 0.6 }: { sound: Sound; at: number | number[]; volume?: number }) {
+  const frames = Array.isArray(at) ? at : [at];
+  return (
+    <>
+      {frames.map((f, i) => (
+        <Sequence key={`${f}-${i}`} from={f} durationInFrames={24} layout="none" name={`sfx ${sound}`}>
+          <Html5Audio src={staticFile(`sfx/${sound === "key" ? `key${(i % 3) + 1}` : sound}.wav`)} volume={volume} />
+        </Sequence>
+      ))}
+    </>
   );
 }
 

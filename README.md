@@ -164,7 +164,7 @@ The dispatch eval: 36 scenarios written blind from the rules (21 dev, 15 held ou
 Regenerate with `make screenshots`. A 4-minute walkthrough video, with captions, is made by `make demo-video`
 (`docs/video/brimline-demo.mp4`): quote, plan, materials, a dispatch to a simulated machine, a disruption and
 search. It replays model replies from a recorded run and says so, and its opening card says the machines are
-simulated. A 77-second motion-design product video is made by `make product-video` (`video/out/Brimline.mp4`,
+simulated. A 77-second motion-design product video, with sound effects on its animations, is made by `make product-video` (`video/out/Brimline.mp4`,
 storyboard in `video/STORYBOARD.md`): stills of the real app, with every number read from `eval/results/` when it
 renders.
 

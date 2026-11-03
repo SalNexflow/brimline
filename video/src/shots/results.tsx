@@ -2,7 +2,7 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 
 import numbers from "../numbers.generated.json";
-import { NumberCard, Typewriter } from "../kit";
+import { NumberCard, Sfx, Typewriter } from "../kit";
 import { easeOut, Page } from "../parts";
 import { color } from "../theme";
 
@@ -28,6 +28,8 @@ export function LateJobs() {
           source={s.lateSource}
           sourceAt={16}
         />
+        {/* "Ours" arrives after the arrow. */}
+        <Sfx sound="tick" at={14} volume={0.5} />
       </AbsoluteFill>
     </Page>
   );

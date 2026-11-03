@@ -1,7 +1,8 @@
 // Render a composition: node scripts/render.mjs [CompositionId] -> out/<id>.mp4
 // 1. Reads every number from the result files (numbers.mjs; fails if one is missing).
-// 2. Checks the app stills exist (made by SHOWCASE=stills on the showcase stack).
-// 3. Renders with the Chromium that Playwright already installed, so Remotion downloads no browser.
+// 2. Makes the sound effects (sfx.mjs, from formulas with the repo's ffmpeg).
+// 3. Checks the app stills exist (made by SHOWCASE=stills on the showcase stack).
+// 4. Renders with the Chromium that Playwright already installed, so Remotion downloads no browser.
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
@@ -17,6 +18,7 @@ function run(cmd, args) {
 }
 
 run("node", ["scripts/numbers.mjs"]);
+run("node", ["scripts/sfx.mjs"]);
 
 const stills = join(ROOT, "public", "stills");
 if (!existsSync(join(stills, "board-check.png"))) {

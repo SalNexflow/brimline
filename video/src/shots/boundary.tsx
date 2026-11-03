@@ -2,7 +2,7 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 
 import numbers from "../numbers.generated.json";
-import { NumberCard, target, Window } from "../kit";
+import { NumberCard, Sfx, target, Window } from "../kit";
 import { Caption, easeOut, Page, rise } from "../parts";
 import { color, font, shadow } from "../theme";
 
@@ -25,6 +25,9 @@ export function ReadsMessage() {
           { f: 120, x: lines.x, y: lines.y, z: 1.6 },
         ]}
       />
+      {/* The zoom to the message, then the pan to the lines read from it. */}
+      <Sfx sound="whoosh" at={24} volume={0.4} />
+      <Sfx sound="swish" at={84} volume={0.3} />
       <Caption text="AI reads the customer's message." from={18} out={141} />
     </Page>
   );
@@ -76,6 +79,9 @@ export function Boundary() {
           <Window still="quote-price" left={0} top={0} width={700} keys={[{ f: 0, x: focus.x, y: focus.y, z: 3.3 }, { f: 144, x: focus.x, y: focus.y, z: 3.5 }]} />
         </div>
       </div>
+      {/* The boundary line draws, then each chip lands. */}
+      <Sfx sound="swish" at={6} volume={0.3} />
+      <Sfx sound="pop" at={chips.map((_, i) => 30 + i * 6)} volume={0.5} />
       <Caption text="Code computes every price, date and permission." from={18} out={141} />
     </Page>
   );

@@ -3,7 +3,7 @@ import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 
 import numbers from "../numbers.generated.json";
 import boxes from "../../public/stills/boxes.json";
-import { NumberCard, project, target, Window } from "../kit";
+import { keys as keyFrames, NumberCard, project, Sfx, target, Window } from "../kit";
 import { Caption, Page, rise } from "../parts";
 import { color } from "../theme";
 
@@ -35,6 +35,9 @@ export function PrinterDown() {
           borderLeft: typed < 1 ? `3px solid ${color.fg}` : undefined,
         }}
       />
+      {/* The push-in on the message box, then a key per few letters while the words appear. */}
+      <Sfx sound="whoosh" at={0} volume={0.35} />
+      <Sfx sound="key" at={keyFrames(36, 80)} volume={0.5} />
       <Caption text="A printer goes down." from={18} out={141} />
     </Page>
   );
@@ -73,6 +76,9 @@ export function PlanMoves() {
       ) : (
         <Window still="replan-diff" keys={[{ f: 0, x: moves.x, y: moves.y + 260, z: 1.3 }, { f: 84, x: moves.x, y: moves.y + 340, z: 1.35 }]} />
       )}
+      {/* The cut to the Approve button, then the press. */}
+      <Sfx sound="swish" at={84} volume={0.3} />
+      <Sfx sound="click" at={98} />
       <Caption text="The plan moves. A person approves." from={18} out={141} />
     </Page>
   );

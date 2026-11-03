@@ -1,7 +1,7 @@
 // Chapter 1: opening (storyboard shots 1 to 4).
 import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame } from "remotion";
 
-import { KineticWords } from "../kit";
+import { KineticWords, Sfx } from "../kit";
 import { Caption, easeOut, Page, rise } from "../parts";
 import { color, font, shadow } from "../theme";
 
@@ -52,6 +52,8 @@ export function DataField() {
           );
         })}
       </svg>
+      <Sfx sound="whoosh" at={0} volume={0.4} />
+      <Sfx sound="tick" at={MACHINES.map((_, i) => 30 + i * 4)} volume={0.5} />
       <Caption text="A made-to-order print and CNC shop." from={18} out={141} />
     </Page>
   );
@@ -100,6 +102,7 @@ export function PanelStack() {
           );
         })}
       </AbsoluteFill>
+      <Sfx sound="swish" at={panels.map((p) => p.d)} volume={0.35} />
       <Caption text="Orders, machines, materials, people." from={18} out={141} />
     </Page>
   );
@@ -118,6 +121,7 @@ export function NameCard() {
         </div>
         <div style={{ fontSize: 150, fontWeight: 700, letterSpacing: "-0.035em", opacity: t, translate: `${(1 - t) * -20}px 0` }}>Brimline</div>
       </AbsoluteFill>
+      <Sfx sound="pop" at={0} />
     </Page>
   );
 }

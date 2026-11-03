@@ -14,7 +14,9 @@ footage from them is ever used (CLAUDE.md: do not imitate any real company's pro
 - **Remotion** in a separate `video/` folder (React + TypeScript, like the web app). Ask before
   adding any npm package. Render with the repo's existing ffmpeg (`ffmpeg-static`).
 - **1920 x 1080, 16:9, 30 fps**, about **75 s**. Text-only captions with animated type, no voice.
-- **Music: CC0 only**, its source and licence recorded next to the file.
+- **Music: CC0 only**, its source and licence recorded next to the file. The current video uses
+  **sound effects instead** (the user's choice): made from formulas by `video/scripts/sfx.mjs` and
+  cued with `<Sfx>` inside each shot on the frame its animation starts, so sound moves with it.
 - **Every number on screen is read from the result files at render time** (`eval/results/*`,
   bench outputs), never typed (hard rule 11). A missing file fails the render.
 - The app is shown in its **real, approved look**: screenshots or recordings from the showcase

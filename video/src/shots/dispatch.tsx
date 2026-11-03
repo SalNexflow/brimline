@@ -3,7 +3,7 @@ import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 
 import boxes from "../../public/stills/boxes.json";
 import numbers from "../numbers.generated.json";
-import { NumberCard, project, target, Window } from "../kit";
+import { NumberCard, project, Sfx, target, Window } from "../kit";
 import { Caption, Page, rise } from "../parts";
 import { color, font, shadow } from "../theme";
 
@@ -49,6 +49,9 @@ export function AgentProposes() {
         }}
       />
       <Simulated />
+      {/* The push-in on the proposals, then the press on Proceed. */}
+      <Sfx sound="whoosh" at={0} volume={0.35} />
+      <Sfx sound="click" at={96} />
       <Caption text="An agent proposes. A person says go." from={18} out={141} />
     </Page>
   );
@@ -90,6 +93,9 @@ export function CallChecked() {
           {running ? "▶ Running" : "○ Idle"}
         </div>
       </div>
+      {/* The logged call lights up; the machine flips to Running. */}
+      <Sfx sound="tick" at={10} volume={0.5} />
+      <Sfx sound="confirm" at={54} volume={0.5} />
       <Caption text="Code checks every call." from={18} out={105} />
     </Page>
   );

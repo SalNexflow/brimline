@@ -1,10 +1,10 @@
 # Brimline product video: storyboard (draft for approval)
 
-77.4 s, 1920 x 1080, 30 fps, captions only, CC0 music. Built in Remotion (not yet added: test shot
-and render wait until the design is final). Craft rules: `.claude/skills/motion-video/SKILL.md`.
+77.4 s, 1920 x 1080, 30 fps, captions only, sound effects on the animations (no music). Built in
+Remotion. Craft rules: `.claude/skills/motion-video/SKILL.md`.
 
-- **Beat grid:** cut points assume a 100 BPM track (a beat is 0.6 s, a bar 2.4 s); every shot
-  starts on a beat. If the chosen CC0 track has another tempo, shot lengths scale to its grid.
+- **Beat grid:** cuts sit on a 0.6 s grid (100 BPM: a beat is 0.6 s, a bar 2.4 s); every shot
+  starts on a beat. There is no music, so the grid now only keeps the rhythm of the cuts even.
 - **Reading time:** every caption is on screen for at least `0.5 s + words / 3`; the hold column
   shows that this is met.
 - **Numbers:** each is read from its result file when the video renders (register below), never
@@ -122,9 +122,30 @@ Source lines under the numbers come from the same files: `generated_at`, `model`
   running after Proceed (`dispatch-machine` still); the card shows that change in place.
 - **Camera targets** come from boxes measured during the stills run (`video/public/stills/boxes.json`),
   not from coordinates read off the screen by eye.
-- **Music** is not in this render: it needs a CC0 track chosen and downloaded with your approval.
 
-## Open points for your decision
+## Sound (after the full render)
 
-- **Music:** a CC0 track near 100 BPM with a clear build at about 54 s (dispatch) and a resolve at
-  66 s; I will propose two or three with their licence pages before the test shot.
+You chose sound effects on the animations instead of background music (open point closed). Eleven
+short sounds are made from formulas by `scripts/sfx.mjs` with the repo's ffmpeg (nothing downloaded,
+no licence to track) and each is cued inside its shot on the frame its animation starts:
+
+| Shot | Animation | Sound |
+|---|---|---|
+| 1 | lines sweep in; six machine pills appear | whoosh; six ticks |
+| 2 | "Plan it." "Check it." "Run it." | a low hit per word |
+| 3 | three screens rise | three swishes |
+| 4 | the name card | pop |
+| 5 | zoom to the message, pan to the lines | whoosh, swish |
+| 6 | the boundary line draws; four chips land | swish; four pops |
+| 7, 10, 13, 16, 17a, 17b | each measured number | hit |
+| 8 | zoom to the check badge; "passed" | whoosh; confirm |
+| 9 | the bar slides over; the check fails | swish; error |
+| 11 | push-in; the words are typed | whoosh; keys |
+| 12 | cut to Approve; the press | swish; click |
+| 14 | push-in; the press on Proceed | whoosh; click |
+| 15 | the logged call lights; CNC-1 flips to Running | tick; confirm |
+| 17a | "ours" arrives after the arrow | tick |
+| 18 | the end card types out | keys |
+
+Captions get no sound (one per word would be busy), and the chapter dissolves get none of their own.
+Checked after the render: all 84 cues start on their frame and no sound plays anywhere else.

@@ -2,7 +2,7 @@
 import { AbsoluteFill, interpolate, Sequence, useCurrentFrame } from "remotion";
 
 import numbers from "../numbers.generated.json";
-import { target, Window } from "../kit";
+import { Sfx, target, Window } from "../kit";
 import { Caption, easeOut, Page, rise, Source } from "../parts";
 import { color, font, shadow } from "../theme";
 
@@ -21,6 +21,9 @@ function BoardCheck() {
           { f: 96, x: badge.x, y: badge.y + 60, z: 2.1 },
         ]}
       />
+      {/* The zoom in on the badge, and "passed" as it fills the frame. */}
+      <Sfx sound="whoosh" at={30} volume={0.4} />
+      <Sfx sound="confirm" at={90} volume={0.5} />
       <Caption text="A second program checks every plan." from={18} out={138} />
     </Page>
   );
@@ -98,6 +101,9 @@ function PlantedError() {
           </div>
         ))}
       </div>
+      {/* The bar slides into another's time; the check fails. */}
+      <Sfx sound="swish" at={12} volume={0.3} />
+      <Sfx sound="error" at={48} volume={0.55} />
       <Caption text="It shares no code with the scheduler." from={15} out={102} />
     </Page>
   );
@@ -131,6 +137,7 @@ function MutationsCaught() {
         </div>
       </AbsoluteFill>
       <Source text={`${numbers.checker.kinds} kinds of corruption · ${numbers.checker.source}`} from={30} />
+      <Sfx sound="hit" at={0} />
     </Page>
   );
 }

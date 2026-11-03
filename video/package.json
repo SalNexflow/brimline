@@ -4,7 +4,8 @@
   "description": "Brimline's product video, built with Remotion (storyboard in STORYBOARD.md).",
   "scripts": {
     "numbers": "node scripts/numbers.mjs",
-    "studio": "node scripts/numbers.mjs && remotion studio --no-open",
+    "sfx": "node scripts/sfx.mjs",
+    "studio": "node scripts/numbers.mjs && node scripts/sfx.mjs && remotion studio --no-open",
     "render": "node scripts/render.mjs",
     "typecheck": "tsc --noEmit"
   },
