@@ -27,6 +27,7 @@ from brimline_engine.ai.clients import client_for
 from brimline_engine.ai.config import models_config
 from brimline_engine.checker import check_document
 from brimline_engine.disruption_parse import Event, describe
+from brimline_engine.materials.service import order_changes
 from brimline_engine.permissions import Actor, can
 from brimline_engine.planning.inputs import build_inputs
 from brimline_engine.planning.replan import compute_diff, summarize
@@ -214,6 +215,8 @@ def _execute(
     # The run's own times are real clock times; the plan is made "as of" `now`.
     _update(pool, run_id, status="running", phase="building", started_at=datetime.now(UTC))
     with pool.connection() as conn:
+        # Counted before the inputs are read, so an order recorded meanwhile shows as a change.
+        orders_seen = order_changes(conn)
         inputs = build_inputs(conn, now, cfg, tz)
         requested_by = conn.execute(
             "SELECT requested_by FROM planning_runs WHERE id = %s", (run_id,)
@@ -322,8 +325,8 @@ def _execute(
         row = conn.execute(
             "INSERT INTO schedules (run_id, anchor, document, fingerprint, solver_info,"
             " unplannable, created_by, created_at, previous_id, disruption_ids, effects, diff,"
-            " summary, summary_ai_call_id)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            " summary, summary_ai_call_id, order_changes_seen)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             " RETURNING id, version",
             (
                 run_id,
@@ -340,6 +343,7 @@ def _execute(
                 Jsonb(diff),
                 Jsonb(summary),
                 call_id,
+                orders_seen,
             ),
         ).fetchone()
         assert row is not None

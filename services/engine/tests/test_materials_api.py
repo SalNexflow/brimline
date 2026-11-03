@@ -439,3 +439,27 @@ def test_a_plan_says_when_orders_changed_after_it_was_made(client: TestClient) -
         r = client.post("/purchase-orders", json=body, headers=login(client, "U-STAFF") | key())
     assert r.status_code == 201
     assert materials(client)["plans"][0]["orders_changed"] is True
+
+
+def test_orders_changed_holds_when_the_shop_clock_is_ahead_of_the_real_one(
+    client: TestClient,
+) -> None:
+    """DEFECT_LOG #111. The real time is Mon 26 Oct 10:00 in Berlin; the demo clock says Thu 14:00,
+    three days ahead. A plan made then is "as of" Thursday; an order recorded half an hour later in
+    real time (still Monday) came after the plan all the same."""
+    from brimline_engine.main import app
+    from brimline_engine.settings import get_settings
+
+    pinned = get_settings().model_copy(update={"demo_clock": "Thu 14:00"})
+    app.dependency_overrides[get_settings] = lambda: pinned
+    try:
+        plan_day(client, login(client, "U-PLANNER"))
+        assert materials(client)["plans"][0]["orders_changed"] is False
+        body = {"material_code": "TPU-BLACK", "grams": 500, "supplier": "Quickspool Express",
+                "expected_at": "2026-10-30T09:00:00Z"}  # fmt: skip
+        with clock(FIXED_NOW.replace(minute=30)):
+            r = client.post("/purchase-orders", json=body, headers=login(client, "U-STAFF") | key())
+        assert r.status_code == 201
+        assert materials(client)["plans"][0]["orders_changed"] is True
+    finally:
+        app.dependency_overrides.pop(get_settings, None)

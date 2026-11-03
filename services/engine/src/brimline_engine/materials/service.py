@@ -94,6 +94,17 @@ class PurchaseOrderIn(BaseModel):
     expected_at: AwareDatetime
 
 
+def order_changes(conn: psycopg.Connection) -> int:
+    """How many purchase orders have been recorded, received or cancelled: the audit log is
+    append-only, so this only grows. A plan keeps the count it saw; a higher count now means
+    orders changed after it, whatever the clocks say (DEFECT_LOG #111)."""
+    row = conn.execute(
+        "SELECT count(*) FROM audit_log WHERE action IN"
+        " ('purchase_order.record', 'purchase_order.receive', 'purchase_order.cancel')"
+    ).fetchone()
+    return 0 if row is None else int(row[0])
+
+
 def overview(
     conn: psycopg.Connection,
     actor: Actor,
@@ -143,16 +154,13 @@ def overview(
             " ORDER BY (p.status = 'open') DESC, p.expected_at DESC, p.id DESC LIMIT 30"
         ).fetchall()
     ]
-    changed = conn.execute(
-        "SELECT max(greatest(created_at, received_at, cancelled_at)) FROM purchase_orders"
-    ).fetchone()
-    last_change = None if changed is None else changed[0]
+    changes = order_changes(conn)
     plans = []
-    for sid, status, anchor, doc, made in conn.execute(
-        "(SELECT id, status, anchor, document, created_at FROM schedules"
+    for sid, status, anchor, doc, made, seen in conn.execute(
+        "(SELECT id, status, anchor, document, created_at, order_changes_seen FROM schedules"
         "  WHERE status = 'approved')"
-        " UNION ALL (SELECT id, status, anchor, document, created_at FROM schedules"
-        "  WHERE status = 'draft' ORDER BY id DESC LIMIT 1)"
+        " UNION ALL (SELECT id, status, anchor, document, created_at, order_changes_seen"
+        "  FROM schedules WHERE status = 'draft' ORDER BY id DESC LIMIT 1)"
     ).fetchall():
         plans.append(
             PlanShortages(
@@ -160,7 +168,7 @@ def overview(
                 status=status,
                 made_at=made,
                 material_known="stock" in doc["instance"],
-                orders_changed=last_change is not None and last_change > made,
+                orders_changed=changes > seen,
                 shortages=for_document(doc, anchor, tz, durations, purchasing, now),
             )
         )
