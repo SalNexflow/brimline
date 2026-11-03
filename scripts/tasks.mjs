@@ -274,6 +274,11 @@ const TASKS = {
   "demo-video": () =>
     spawnSync(`node "${join(ROOT, "scripts", "showcase.mjs")}" video ${process.argv.slice(3).join(" ")}`, { cwd: ROOT, env: ENV, shell: true, stdio: "inherit" })
       .status ?? 1,
+  // The motion-design product video (video/STORYBOARD.md): app stills from the showcase run, then
+  // Remotion renders video/out/Brimline.mp4 with every number read from eval/results/.
+  "product-video": () =>
+    spawnSync(`node "${join(ROOT, "scripts", "showcase.mjs")}" stills && node "${join(ROOT, "video", "scripts", "render.mjs")}" Brimline`, { cwd: ROOT, env: ENV, shell: true, stdio: "inherit" })
+      .status ?? 1,
   readme: () => runSteps("readme", [step("write README tables from eval/results", ROOT, "node scripts/readme.mjs")]),
   "gate-selftest": () =>
     spawnSync(`node "${join(ROOT, "scripts", "gate_selftest.mjs")}"`, { cwd: ROOT, env: ENV, shell: true, stdio: "inherit" })

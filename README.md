@@ -164,7 +164,9 @@ The dispatch eval: 36 scenarios written blind from the rules (21 dev, 15 held ou
 Regenerate with `make screenshots`. A 4-minute walkthrough video, with captions, is made by `make demo-video`
 (`docs/video/brimline-demo.mp4`): quote, plan, materials, a dispatch to a simulated machine, a disruption and
 search. It replays model replies from a recorded run and says so, and its opening card says the machines are
-simulated.
+simulated. A 77-second motion-design product video is made by `make product-video` (`video/out/Brimline.mp4`,
+storyboard in `video/STORYBOARD.md`): stills of the real app, with every number read from `eval/results/` when it
+renders.
 
 ## Run it
 
@@ -201,6 +203,7 @@ model evaluations replay saved replies, so they need no key either.
 | `replan-bench` | Re-planning scenarios: lateness versus jobs moved, every re-plan checked |
 | `readme` | Rewrite this README's results and claims from `eval/results/` |
 | `screenshots` / `demo-video` | The README screenshots, and the captioned walkthrough video (`-- --record` records replies once) |
+| `product-video` | The 77-second motion-design product video (Remotion; numbers read from `eval/results/`) |
 | `db-reset` / `api-types` | Reset the dev database; regenerate the web's types from the engine's OpenAPI schema |
 
 The hosted demo at https://brimline-alpha.vercel.app (Vercel + Render + Neon, all free tiers) is described in

@@ -1,7 +1,8 @@
 // Chapter 3 of the storyboard: the independent checker (shots 8, 9 and 10, 12 s).
-import { AbsoluteFill, Img, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, Sequence, useCurrentFrame } from "remotion";
 
 import numbers from "../numbers.generated.json";
+import { target, Window } from "../kit";
 import { Caption, easeOut, Page, rise, Source } from "../parts";
 import { color, font, shadow } from "../theme";
 
@@ -9,42 +10,17 @@ const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 /** Shot 8 (4.8 s): the real board in a floating window; the camera eases in on the check badge. */
 function BoardCheck() {
-  const frame = useCurrentFrame();
-  const W = 1400;
-  const H = 787;
-  // The badge's centre in the still (3840 x 2160), as a share of its width and height.
-  const badge = { x: 0.528 * W, y: 0.173 * H };
-  const zoom = interpolate(frame, [30, 96], [0, 1], { ...clamp, easing: easeOut });
-  const drift = interpolate(frame, [0, 144], [0, 0.03], clamp);
-  const enter = rise(frame, 0, 18);
+  const badge = target("board-check", "badge");
   return (
     <Page>
-      <div
-        style={{
-          position: "absolute",
-          left: (1920 - W) / 2,
-          top: 70,
-          width: W,
-          height: H,
-          borderRadius: 24,
-          overflow: "hidden",
-          boxShadow: shadow,
-          border: "1px solid rgba(255,255,255,0.95)",
-          opacity: enter,
-          translate: `0 ${(1 - enter) * 24}px`,
-        }}
-      >
-        <Img
-          src={staticFile("stills/board-check.png")}
-          style={{
-            width: W,
-            height: H,
-            transformOrigin: `${badge.x}px ${badge.y}px`,
-            scale: String(1 + zoom * 1.1 + drift),
-            translate: `${zoom * (W / 2 - badge.x)}px ${zoom * (H / 2 - badge.y)}px`,
-          }}
-        />
-      </div>
+      <Window
+        still="board-check"
+        keys={[
+          { f: 0, x: 960, y: 540, z: 1 },
+          { f: 30, x: 960, y: 540, z: 1 },
+          { f: 96, x: badge.x, y: badge.y + 60, z: 2.1 },
+        ]}
+      />
       <Caption text="A second program checks every plan." from={18} out={138} />
     </Page>
   );
@@ -160,6 +136,8 @@ function MutationsCaught() {
 }
 
 /** Shots 8 to 10 back to back: hard cuts on the beat (144 and 252 frames). */
+export { BoardCheck, MutationsCaught, PlantedError };
+
 export function CheckerChapter() {
   return (
     <>

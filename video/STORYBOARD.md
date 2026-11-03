@@ -1,6 +1,6 @@
 # Brimline product video: storyboard (draft for approval)
 
-76.8 s, 1920 x 1080, 30 fps, captions only, CC0 music. Built in Remotion (not yet added: test shot
+77.4 s, 1920 x 1080, 30 fps, captions only, CC0 music. Built in Remotion (not yet added: test shot
 and render wait until the design is final). Craft rules: `.claude/skills/motion-video/SKILL.md`.
 
 - **Beat grid:** cut points assume a 100 BPM track (a beat is 0.6 s, a bar 2.4 s); every shot
@@ -22,22 +22,22 @@ and render wait until the design is final). Craft rules: `.claude/skills/motion-
 | 4 | 13.2 to 14.4 | Word card | Logo mark and name | "Brimline" + small "fictional shop · fake data" | 5 words, 2.2 s; **runs into shot 5's first 1.0 s** | none | push-through |
 | 5 | 14.4 to 19.2 | Macro UI crop | Quote review: the customer's message types in, then the extracted fields appear as chips with their "from message" source badges | "AI reads the customer's message." | 5 words, 2.2 s, 3.6 s | none | hard cut |
 | 6 | 19.2 to 24.0 | Boundary (state change) | The frame splits: left "AI: words into data", right "Code: prices, dates, permissions", a line between; the quote's price lands on the code side | "Code computes every price, date and permission." | 7 words, 2.8 s, 3.6 s | none | hard cut |
-| 7 | 24.0 to 28.8 | Number reveal | Number on a calm field, source line below | "85 %" + "every field right on 20 unseen messages", then "0" + "harmful errors" | 9 + 2 words, 3.5 s + 1.2 s, 4.8 s | N1, N2, N3 | blur dissolve |
-| 8 | 28.8 to 33.6 | Floating window, zoom to region | Board: camera eases onto the "Independent check: passed" badge and the stat cards | "A second program checks every plan." | 6 words, 2.5 s, 3.6 s | none | hard cut |
-| 9 | 33.6 to 37.2 | State change (illustration) | Abstract plan bars; one bar slides into another's time; the badge flips to "✗ machine_overlap". Labelled "planted error" | "It shares no code with the scheduler." | 7 words, 2.8 s, 3.0 s | none | match cut |
-| 10 | 37.2 to 40.8 | Number reveal | The two halves of the number settle | "2,880 / 2,880" + "planted rule breaks caught" | 4 words, 1.8 s, 3.0 s | N4 | blur dissolve |
-| 11 | 40.8 to 45.6 | Macro UI crop | Board, "Something went wrong?": a planner types that FDM-1 is down; the events appear as chips to confirm | "A printer goes down." | 4 words, 1.8 s, 3.6 s | none | hard cut |
-| 12 | 45.6 to 50.4 | State change | Draft plan with its changes: bars shift on the timeline, the check badge passes, the cursor presses "Approve plan" | "The plan moves. A person approves." | 6 words, 2.5 s, 3.6 s | none | hard cut |
-| 13 | 50.4 to 54.0 | Number reveal | "3.7" settles beside a struck-through "14.3" | "jobs moved instead of 14.3, same lateness" + source line "40-job benchmark, FDM-1 down 4 h; baseline: re-solved from the approved plan without re-planning costs" | 7 words, 2.8 s, 3.0 s | N5, N6, N7 | blur dissolve |
-| 14 | 54.0 to 58.8 | Floating window | Dispatch: the proposal card, the box ticked, "Proceed" pressed. Corner label "Simulated machines" | "An agent proposes. A person says go." | 7 words, 2.8 s, 3.6 s | none | hard cut |
-| 15 | 58.8 to 62.4 | State change | The tool-call row fades in ("agent · start_task · allowed"); CNC-1's pill turns from "○ Idle" to "▶ Running" | "Code checks every call." | 4 words, 1.8 s, 3.0 s | none | hard cut |
-| 16 | 62.4 to 66.0 | Number reveal | Two short lines on one card | "Unsafe calls passed: 0 of 10." / "Without Proceed: 0" | 9 words, 3.5 s, 3.6 s | N8, N9, N10 | blur dissolve |
-| 17a | 66.0 to 69.6 | Number reveal | "38.4" settles, then "10.8" beside it | "80 jobs. Late: earliest-due-date 38.4, ours 10.8" (each part of "earliest-due-date" counted as a word) | 9 words, 3.5 s, 3.6 s | N11 | hard cut on the beat |
-| 17b | 69.6 to 72.6 | Number reveal | "15 / 15" settles | "Better on 15 of 15 plans" + source line "lower weighted cost than earliest-due-date, seeded 20 to 80-job plans" | 6 words, 2.5 s, 3.0 s | N12 | hard cut |
-| 18 | 72.6 to 76.8 | Typewriter + end card | Monospace caps type out, then the logo holds | "BRIMLINE" / "FICTIONAL SHOP · FAKE DATA · SIMULATED MACHINES" / "github.com/SalNexflow/brimline" | held 2.4 s | none | end |
+| 7 | 24.0 to 29.4 | Number reveal | Number on a calm field, source line below | "85 %" + "every field right on 20 unseen messages", then "0" + "harmful errors" | 9 + 2 words, 3.5 s + 1.2 s, 4.8 s | N1, N2, N3 | blur dissolve |
+| 8 | 29.4 to 34.2 | Floating window, zoom to region | Board: camera eases onto the "Independent check: passed" badge and the stat cards | "A second program checks every plan." | 6 words, 2.5 s, 3.6 s | none | hard cut |
+| 9 | 34.2 to 37.8 | State change (illustration) | Abstract plan bars; one bar slides into another's time; the badge flips to "✗ machine_overlap". Labelled "planted error" | "It shares no code with the scheduler." | 7 words, 2.8 s, 3.0 s | none | match cut |
+| 10 | 37.8 to 41.4 | Number reveal | The two halves of the number settle | "2,880 / 2,880" + "planted rule breaks caught" | 4 words, 1.8 s, 3.0 s | N4 | blur dissolve |
+| 11 | 41.4 to 46.2 | Macro UI crop | Board, "Something went wrong?": a planner types that FDM-1 is down; the events appear as chips to confirm | "A printer goes down." | 4 words, 1.8 s, 3.6 s | none | hard cut |
+| 12 | 46.2 to 51.0 | State change | Draft plan with its changes: bars shift on the timeline, the check badge passes, the cursor presses "Approve plan" | "The plan moves. A person approves." | 6 words, 2.5 s, 3.6 s | none | hard cut |
+| 13 | 51.0 to 54.6 | Number reveal | "3.7" settles beside a struck-through "14.3" | "jobs moved instead of 14.3, same lateness" + source line "40-job benchmark, FDM-1 down 4 h; baseline: re-solved from the approved plan without re-planning costs" | 7 words, 2.8 s, 3.0 s | N5, N6, N7 | blur dissolve |
+| 14 | 54.6 to 59.4 | Floating window | Dispatch: the proposal card, the box ticked, "Proceed" pressed. Corner label "Simulated machines" | "An agent proposes. A person says go." | 7 words, 2.8 s, 3.6 s | none | hard cut |
+| 15 | 59.4 to 63.0 | State change | The tool-call row fades in ("agent · start_task · allowed"); CNC-1's pill turns from "○ Idle" to "▶ Running" | "Code checks every call." | 4 words, 1.8 s, 3.0 s | none | hard cut |
+| 16 | 63.0 to 66.6 | Number reveal | Two short lines on one card | "Unsafe calls passed: 0 of 10." / "Without Proceed: 0" | 9 words, 3.5 s, 3.6 s | N8, N9, N10 | blur dissolve |
+| 17a | 66.6 to 70.2 | Number reveal | "38.4" settles, then "10.8" beside it | "80 jobs. Late: earliest-due-date 38.4, ours 10.8" (each part of "earliest-due-date" counted as a word) | 9 words, 3.5 s, 3.6 s | N11 | hard cut on the beat |
+| 17b | 70.2 to 73.2 | Number reveal | "15 / 15" settles | "Better on 15 of 15 plans" + source line "lower weighted cost than earliest-due-date, seeded 20 to 80-job plans" | 6 words, 2.5 s, 3.0 s | N12 | hard cut |
+| 18 | 73.2 to 77.4 | Typewriter + end card | Monospace caps type out, then the logo holds | "BRIMLINE" / "FICTIONAL SHOP · FAKE DATA · SIMULATED MACHINES" / "github.com/SalNexflow/brimline" | held 2.4 s | none | end |
 
-Chapters: opening 0 to 14.4 s, AI versus code 14.4 to 28.8 s, the checker 28.8 to 40.8 s,
-re-plan 40.8 to 54.0 s, dispatch 54.0 to 66.0 s, results 66.0 to 76.8 s.
+Chapters: opening 0 to 14.4 s, AI versus code 14.4 to 29.4 s, the checker 29.4 to 41.4 s,
+re-plan 41.4 to 54.6 s, dispatch 54.6 to 66.6 s, results 66.6 to 77.4 s.
 
 ## Number register (read at render time)
 
@@ -108,9 +108,23 @@ Source lines under the numbers come from the same files: `generated_at`, `model`
   it covers 20 to 80-job plans. No caption's reading time was shortened.
 - **Total:** 75.0 s to 76.8 s (limit 80 s). Shot 18 moves to 72.6 to 76.8 s.
 
+## Changes while building (2026-11-03)
+
+- **Shot 7 is 5.4 s, not 4.8 s** (one beat longer): counting the number as a word, its 13 words need
+  4.8 s of reading and only 4.4 s were left after the number settles. Total 77.4 s (limit 80 s);
+  every later shot moves 0.6 s.
+- **Shot 4** shows the name only; "fictional shop · fake data" is on the end card (open point closed).
+- **Shot 5** uses the customer's own view of the quote (message, then the lines read from it); the
+  "from message" source badges are on the staff review, which shot 6 does not need.
+- **Shot 6's AI side** shows the model's due *rule* ("by Friday"), not a date: the date is resolved by
+  code, so a date chip on the AI side would have been wrong.
+- **Shot 15's machine card** is drawn from the real run: CNC-1 was idle in the proposal still and
+  running after Proceed (`dispatch-machine` still); the card shows that change in place.
+- **Camera targets** come from boxes measured during the stills run (`video/public/stills/boxes.json`),
+  not from coordinates read off the screen by eye.
+- **Music** is not in this render: it needs a CC0 track chosen and downloaded with your approval.
+
 ## Open points for your decision
 
-- **Shot 4 overlaps shot 5 by 1.0 s** for its small line; alternatively drop "fictional shop · fake
-  data" there, since the end card says it.
 - **Music:** a CC0 track near 100 BPM with a clear build at about 54 s (dispatch) and a resolve at
   66 s; I will propose two or three with their licence pages before the test shot.

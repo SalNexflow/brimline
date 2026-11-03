@@ -25,8 +25,8 @@ const OUT_DIR = join(WEB, "test-results", "showcase");
 const what = process.argv[2];
 const record = process.argv.includes("--record");
 const recordMissing = process.argv.includes("--record-missing");
-if (what !== "screenshots" && what !== "video") {
-  console.error("Usage: node scripts/showcase.mjs <screenshots|video> [--record | --record-missing]");
+if (what !== "screenshots" && what !== "video" && what !== "stills") {
+  console.error("Usage: node scripts/showcase.mjs <screenshots|video|stills> [--record | --record-missing]");
   process.exit(2);
 }
 

@@ -81,7 +81,8 @@ const numbers = {
     lateOurs: lateAt80("cpsat-simple"),
     better: instances.filter((i) => objective(i, "cpsat-simple") < objective(i, "edd")).length, // N12
     instances: instances.length,
-    source: "lower weighted cost than earliest-due-date, seeded 20 to 80-job plans",
+    source: `lower weighted cost than earliest-due-date, seeded ${Math.min(...need(bench.sizes, "bench sizes"))} to ${Math.max(...bench.sizes)}-job plans`,
+    lateSource: `seeded 80-job plans, ${need(bench.seeds, "bench seeds").length} seeds, ${bench.generated_at.slice(0, 10)}`,
   },
 };
 

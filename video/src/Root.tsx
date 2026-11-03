@@ -2,10 +2,14 @@ import { Composition } from "remotion";
 
 import { CheckerChapter } from "./shots/checker";
 import { FPS } from "./theme";
+import { TOTAL_FRAMES, Video } from "./Video";
 
-/** One composition per test shot for now; the full video joins the chapters once each is approved. */
 export function Root() {
   return (
-    <Composition id="TestChecker" component={CheckerChapter} durationInFrames={360} fps={FPS} width={1920} height={1080} />
+    <>
+      <Composition id="Brimline" component={Video} durationInFrames={TOTAL_FRAMES} fps={FPS} width={1920} height={1080} />
+      {/* The approved test shot (storyboard shots 8 to 10), kept for comparison. */}
+      <Composition id="TestChecker" component={CheckerChapter} durationInFrames={360} fps={FPS} width={1920} height={1080} />
+    </>
   );
 }
