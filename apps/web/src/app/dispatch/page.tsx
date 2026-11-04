@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { can, signedInEngine, type DispatchView } from "@/lib/engine";
 
+import { connectionWord } from "../connectivity/view";
 import { Stats } from "../ui";
 import { AskButton, ProceedForm, SimulationForm, type ProposalRow } from "./forms";
 
@@ -85,6 +86,12 @@ async function DispatchContent({ searchParams }: { searchParams: PageProps<"/dis
                 {m.state ? STATE[m.state] ?? m.state : "No answer"}
               </span>
             </h3>
+            <p>
+              <a href={`/connectivity#machine-${m.code}`} data-testid={`connection-link-${m.code}`}>
+                Connection: {connectionWord(m.connection)}
+                <span className="visually-hidden"> for {m.code}</span>, details
+              </a>
+            </p>
             <p>
               {m.protocol}{" "}
               {m.source === "community" ? (

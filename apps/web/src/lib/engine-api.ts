@@ -79,6 +79,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/connectivity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Connectivity */
+        get: operations["get_connectivity_connectivity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/customers": {
         parameters: {
             query?: never;
@@ -395,6 +412,29 @@ export interface paths {
         get: operations["health_health_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/machines/{code}/connection-tests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test Connection
+         * @description One read-only status call, now. Recorded like a poll, audited, and at most once per user and
+         *     machine every `test_every_seconds`. A replay of the same key returns the first answer and calls
+         *     nothing. Two steps: take the rate-limit slot (committed), call the machine with no transaction
+         *     open, then record the answer, the audit row and the stored response together.
+         */
+        post: operations["test_connection_machines__code__connection_tests_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1079,6 +1119,43 @@ export interface components {
             /** Value */
             value: boolean | number | string | string[];
         };
+        /** ConnectionTestOut */
+        ConnectionTestOut: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Error */
+            error: string;
+            /** Machine */
+            machine: string;
+            /** Machine Says */
+            machine_says: string;
+            /** Ok */
+            ok: boolean;
+            /** Response Ms */
+            response_ms: number;
+            /** State */
+            state: string | null;
+        };
+        /** ConnectivityOut */
+        ConnectivityOut: {
+            /** Connected */
+            connected: boolean;
+            /** Machines */
+            machines: components["schemas"]["MachineConnectivityOut"][];
+            /**
+             * Now
+             * Format: date-time
+             */
+            now: string;
+            /** Simulated Notice */
+            simulated_notice: string;
+            thresholds: components["schemas"]["Thresholds"];
+            /** Time Zone */
+            time_zone: string;
+        };
         /** CostReport */
         CostReport: {
             /** Alpha */
@@ -1343,6 +1420,22 @@ export interface components {
             /** Idempotency Key */
             idempotency_key: string | null;
         };
+        /** HistoryOut */
+        HistoryOut: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Ok */
+            ok: boolean;
+            /** Response Ms */
+            response_ms: number;
+            /** Slow */
+            slow: boolean;
+            /** Source */
+            source: string;
+        };
         /** JobLine */
         JobLine: {
             /** Actual Cents */
@@ -1408,10 +1501,46 @@ export interface components {
             /** Total Cents */
             total_cents: number;
         };
+        /** MachineConnectivityOut */
+        MachineConnectivityOut: {
+            /** Answered */
+            answered: number;
+            /** Code */
+            code: string;
+            /** Fault */
+            fault: string;
+            /** History */
+            history: components["schemas"]["HistoryOut"][];
+            /** Last Error */
+            last_error: string;
+            /** Last Error At */
+            last_error_at: string | null;
+            /** Last Ok At */
+            last_ok_at: string | null;
+            /** Last Response Ms */
+            last_response_ms: number | null;
+            /** Machine Says */
+            machine_says: string;
+            /** Protocol */
+            protocol: string;
+            /** Simulated Mode */
+            simulated_mode: string;
+            /** Source */
+            source: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "connected" | "slow" | "unreachable" | "no_data";
+            /** Taken */
+            taken: number;
+        };
         /** MachineInfo */
         MachineInfo: {
             /** Code */
             code: string;
+            /** Connection */
+            connection: string;
             /** Docs */
             docs: string;
             /** Docs Read */
@@ -2345,6 +2474,25 @@ export interface components {
             /** Material Used G */
             material_used_g?: number | null;
         };
+        /** Thresholds */
+        Thresholds: {
+            /** Checked */
+            checked: string;
+            /** Poll Seconds */
+            poll_seconds: number;
+            /** Slow Ms */
+            slow_ms: number;
+            /** Slow Window */
+            slow_window: number;
+            /** Stale Seconds */
+            stale_seconds: number;
+            /** Test Every Seconds */
+            test_every_seconds: number;
+            /** Unreachable After */
+            unreachable_after: number;
+            /** Uptime Minutes */
+            uptime_minutes: number;
+        };
         /** TimeWindow */
         TimeWindow: {
             /**
@@ -2544,6 +2692,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BoardOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_connectivity_connectivity_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectivityOut"];
                 };
             };
             /** @description Validation Error */
@@ -3152,6 +3331,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    test_connection_machines__code__connection_tests_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionTestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -33,6 +33,8 @@ export type FileReport = components["schemas"]["FileOut"];
 export type CostReport = components["schemas"]["CostReport"];
 export type StockOverview = components["schemas"]["MaterialsOut"];
 export type DispatchView = components["schemas"]["DispatchOut"];
+export type ConnectivityView = components["schemas"]["ConnectivityOut"];
+export type ConnectionTest = components["schemas"]["ConnectionTestOut"];
 
 function baseUrl(): string {
   const url = process.env.ENGINE_URL;

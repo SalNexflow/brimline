@@ -88,13 +88,14 @@ export function DecisionForm({
   );
 }
 
-/** While a plan is being made, re-render the board every two seconds to show progress. */
-export function AutoRefresh({ active }: { active: boolean }) {
+/** While a plan is being made, re-render the board every two seconds to show progress (the
+    Connectivity tab uses it too, every five). */
+export function AutoRefresh({ active, everyMs = 2000 }: { active: boolean; everyMs?: number }) {
   const router = useRouter();
   useEffect(() => {
     if (!active) return;
-    const timer = setInterval(() => router.refresh(), 2000);
+    const timer = setInterval(() => router.refresh(), everyMs);
     return () => clearInterval(timer);
-  }, [active, router]);
+  }, [active, everyMs, router]);
   return null;
 }

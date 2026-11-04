@@ -55,11 +55,20 @@ export function ProceedForm({ runId, proposals, idempotencyKey }: { runId: numbe
   );
 }
 
-export function SimulationForm({ code, idempotencyKey }: { code: string; idempotencyKey: string }) {
+export function SimulationForm({
+  code,
+  idempotencyKey,
+  returnTo = "/dispatch",
+}: {
+  code: string;
+  idempotencyKey: string;
+  returnTo?: "/dispatch" | "/connectivity";
+}) {
   const [state, action, pending] = useActionState(setSimulation, INITIAL);
   return (
     <form action={action} className="stack" aria-label={`Simulation of ${code}`}>
       <input type="hidden" name="code" value={code} />
+      <input type="hidden" name="return_to" value={returnTo} />
       <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <Problem state={state} />
       <label>

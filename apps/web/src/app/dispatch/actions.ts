@@ -47,5 +47,7 @@ export async function setSimulation(_previous: DispatchState, formData: FormData
   });
   if (response.status === 401) redirect("/login");
   if (!data) return { error: errorMessage(response.status, error, "The simulation could not be changed.") };
-  redirect("/dispatch?simulated=" + encodeURIComponent(code));
+  // Back to the page the form was on: only these two, never a path taken from the form as is.
+  const back = formData.get("return_to") === "/connectivity" ? "/connectivity" : "/dispatch";
+  redirect(`${back}?simulated=${encodeURIComponent(code)}`);
 }

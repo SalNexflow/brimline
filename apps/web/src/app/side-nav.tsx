@@ -56,6 +56,14 @@ const ICONS: Record<string, ReactNode> = {
       <path d="M11.5 13.5 20 4" />
     </>
   ),
+  connectivity: (
+    <>
+      <path d="M12 19h.01" />
+      <path d="M8.5 15.5a5 5 0 0 1 7 0" />
+      <path d="M5.5 12.5a9 9 0 0 1 13 0" />
+      <path d="M2.5 9.5a13.5 13.5 0 0 1 19 0" />
+    </>
+  ),
   reports: (
     <>
       <path d="M4 20h16" />
@@ -73,6 +81,7 @@ const LINKS: { href: string; label: string; icon: string }[] = [
   { href: "/search", label: "Search", icon: "search" },
   { href: "/materials", label: "Materials", icon: "materials" },
   { href: "/dispatch", label: "Dispatch", icon: "dispatch" },
+  { href: "/connectivity", label: "Connectivity", icon: "connectivity" },
   { href: "/reports", label: "Reports", icon: "reports" },
 ];
 

@@ -1645,6 +1645,78 @@ section.check {
   text-decoration: none;
 }
 
+/* --- Connectivity (M12b) ------------------------------------------------------------------ */
+
+.state-warn {
+  background: var(--color-warn-bg);
+  color: var(--color-warn-fg);
+}
+
+.state-neutral {
+  background: var(--color-surface);
+  color: var(--color-fg);
+}
+
+.conn-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0;
+}
+
+.conn-facts dt {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.conn-facts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.fault {
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius);
+  background: var(--color-error-bg);
+  color: var(--color-error-fg);
+}
+
+/* The recent polls: one cell each, oldest on the left. A cross or a part-filled circle marks the
+   ones that failed or were slow, so the strip does not rely on colour. */
+.poll-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 0.6rem 0;
+}
+
+.poll {
+  display: inline-grid;
+  place-items: center;
+  width: 0.8rem;
+  height: 1.3rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  line-height: 1;
+  background: var(--color-ok-bg);
+  color: var(--color-ok-fg);
+  border: 1px solid var(--color-border);
+}
+
+.poll-slow {
+  background: var(--color-warn-bg);
+  color: var(--color-warn-fg);
+}
+
+.poll-fail {
+  background: var(--color-error-bg);
+  color: var(--color-error-fg);
+}
+
+.connectivity-card .inline-form {
+  margin-top: 0.4rem;
+}
+
 /* Status tones (StatusPill): the symbol and word carry the meaning; the tone only supports it. */
 .state-ok {
   background: var(--color-ok-bg);
