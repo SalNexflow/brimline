@@ -1,0 +1,27 @@
+# The Connectivity tab (M12b): how code judges each machine's connection from recorded polls (hard rule 8).
+# Every value is a shop setting chosen for six simulated machines, said plainly; change them here.
+checked = 2026-11-04
+
+# How often the engine asks every machine for its status (one read-only call each, all at once).
+poll_seconds = 15
+# The hosted demo polls less often. Neon's Free plan (neon.com/pricing, read 2026-11-04; the page says it
+# was updated 2026-10-31): 100 CU-hours of compute a month per project, 1 GB of storage per project, 5 GB
+# of data transfer a month, and compute suspends after 5 minutes without queries. Any interval under five
+# minutes keeps the database awake while the engine is awake, and the dispatch watcher already queries it
+# every 2 s, so a longer interval saves no compute hours; it halves the rows written and the transfer.
+demo_poll_seconds = 30
+
+# The connection state, derived by code (machines/connectivity.py):
+#   no data yet  no poll in the last `stale_seconds` (the engine has just woken, or polling has stopped)
+#   unreachable  the last `unreachable_after` polls all got no usable answer
+#   slow         the median answer time of the last `slow_window` answered polls is `slow_ms` or more
+#   connected    otherwise
+slow_ms = 800
+slow_window = 3
+unreachable_after = 2
+stale_seconds = 120
+
+uptime_minutes = 60     # uptime: answered polls / polls taken in this window
+history_polls = 30      # the strip of recent results on each card
+keep_minutes = 120      # older polls are deleted every round (they are telemetry, not the audit log)
+test_every_seconds = 10 # Test connection: at most once per user and machine in this time

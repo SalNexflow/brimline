@@ -116,7 +116,8 @@ def test_0015_takes_plans_made_before_it_as_up_to_date_with_orders(settings: Set
                     " VALUES (%s, 'purchase_order', 'PO-0001')",
                     (action,),
                 )
-        assert migrate(owner, app) == ["0015_plan_order_changes"]
+        through_0015 = [m for m in load_migrations() if m.version < "0016"]
+        assert migrate(owner, app, through_0015) == ["0015_plan_order_changes"]
         with psycopg.connect(owner) as conn:
             assert conn.execute("SELECT order_changes_seen FROM schedules").fetchall() == [(2,)]
     finally:

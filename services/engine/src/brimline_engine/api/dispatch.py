@@ -12,12 +12,20 @@ from brimline_engine import audit, idempotency
 from brimline_engine.ai.clients import client_for
 from brimline_engine.ai.config import models_config
 from brimline_engine.ai.guard import VISITOR, demo_config, over_limit, spend
-from brimline_engine.api.deps import Conn, CurrentSettings, CurrentUser, IdempotencyKey, ShopNow
+from brimline_engine.api.deps import (
+    Conn,
+    CurrentSettings,
+    CurrentUser,
+    IdempotencyKey,
+    Now,
+    ShopNow,
+)
 from brimline_engine.api.planning import Tz
 from brimline_engine.demo import check_storage
 from brimline_engine.dispatch import service
 from brimline_engine.dispatch.runtime import Floor, sources
 from brimline_engine.idempotency import IdempotencyConflictError
+from brimline_engine.machines import connectivity
 from brimline_engine.machines.config import machines_config
 from brimline_engine.permissions import can
 from brimline_engine.settings import Settings
@@ -59,6 +67,7 @@ def budget_reason(conn: psycopg.Connection, settings: Settings) -> str | None:
 class MachineInfo(service.MachineOut):
     docs: str
     docs_read: str
+    connection: str  # the Connectivity tab's state for this machine (M12b), from recorded polls
 
 
 class ProposalView(BaseModel):
@@ -103,7 +112,7 @@ class DispatchOut(BaseModel):
 
 
 @router.get("/dispatch")
-def get_dispatch(conn: Conn, user: CurrentUser, request: Request) -> DispatchOut:
+def get_dispatch(conn: Conn, user: CurrentUser, request: Request, now: Now) -> DispatchOut:
     """The machines as they report themselves now, and the latest dispatches with every proposal,
     approval, tool call and guard verdict."""
     if not can(user.actor, "dispatch.read"):
@@ -112,10 +121,19 @@ def get_dispatch(conn: Conn, user: CurrentUser, request: Request) -> DispatchOut
     cfg = machines_config().by_code()
     machines = []
     if floor is not None:
-        for m in service.machine_states(floor.shop, sources()):
+        states = service.machine_states(floor.shop, sources())
+        links = connectivity.summarize(
+            conn, [m.code for m in states], now, connectivity.connectivity_config()
+        )
+        for m in states:
             c = cfg[m.code]
             machines.append(
-                MachineInfo(**m.model_dump(), docs=c.docs, docs_read=c.read.isoformat())
+                MachineInfo(
+                    **m.model_dump(),
+                    docs=c.docs,
+                    docs_read=c.read.isoformat(),
+                    connection=links[m.code].state,
+                )
             )
     runs = []
     for rid, sid, by, note, at in conn.execute(

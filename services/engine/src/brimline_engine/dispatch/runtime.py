@@ -1,15 +1,19 @@
-"""Running the simulated shop floor inside the engine (M12): the six mock servers, their adapters, and a
-watcher thread that records dispatched work the machines finish or fail."""
+"""Running the simulated shop floor inside the engine (M12): the six mock servers, their adapters, a
+watcher thread that records dispatched work the machines finish or fail, and a connectivity thread that
+polls every machine's status (M12b). Two threads, so a machine that stops answering never delays the
+watcher."""
 
 import logging
 import threading
-from dataclasses import dataclass
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
 from psycopg_pool import ConnectionPool
 
 from brimline_engine.demo_clock import shop_time
 from brimline_engine.dispatch.service import Shop, poll_once
+from brimline_engine.machines import connectivity
 from brimline_engine.machines.config import MachinesConfig, machines_config
 from brimline_engine.machines.fleet import Fleet, start_fleet
 from brimline_engine.settings import get_settings
@@ -24,11 +28,15 @@ class Floor:
     shop: Shop
     stop: threading.Event
     watcher: threading.Thread | None
+    poller: threading.Thread | None = None
+    probes: ThreadPoolExecutor = field(default_factory=lambda: ThreadPoolExecutor(max_workers=8))
 
     def close(self) -> None:
         self.stop.set()
-        if self.watcher is not None:
-            self.watcher.join(timeout=10)
+        for t in (self.watcher, self.poller):
+            if t is not None:
+                t.join(timeout=10)
+        self.probes.shutdown(wait=False, cancel_futures=True)
         self.fleet.stop()
 
 
@@ -75,4 +83,23 @@ def open_floor(
 
         watcher = threading.Thread(target=loop, name="dispatch-watcher", daemon=True)
         watcher.start()
-    return Floor(fleet, shop, stop, watcher)
+    floor = Floor(fleet, shop, stop, watcher)
+    if watch and pool is not None:
+        conn_cfg = connectivity.connectivity_config()
+        interval = conn_cfg.demo_poll_seconds if settings.demo_mode else conn_cfg.poll_seconds
+
+        def poll_round() -> None:
+            # Real time: a poll is a record, not part of the plan (the demo clock is not used).
+            with pool.connection() as conn:
+                connectivity.poll_round(
+                    conn, shop.adapters, datetime.now(UTC), conn_cfg, floor.probes
+                )
+
+        floor.poller = threading.Thread(
+            target=connectivity.run_loop,
+            args=(stop, interval, poll_round),
+            name="connectivity-poller",
+            daemon=True,
+        )
+        floor.poller.start()
+    return floor

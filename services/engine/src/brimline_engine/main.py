@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from brimline_engine.ai.guard import REPLAYED, VISITOR, visitor_hash
 from brimline_engine.api import (
     auth,
+    connectivity,
     dispatch,
     disruptions,
     files,
@@ -80,6 +81,7 @@ app.include_router(search.router)
 app.include_router(reports.router)
 app.include_router(materials.router)
 app.include_router(dispatch.router)
+app.include_router(connectivity.router)
 
 CallNext = Callable[[Request], Awaitable[Response]]
 WRITES = {"POST", "PUT", "PATCH", "DELETE"}

@@ -26,6 +26,7 @@ from brimline_engine.machines.model import Adapter, AdapterError
 from brimline_engine.permissions import Actor, can
 from brimline_engine.planning.inputs import job_key
 from brimline_engine.planning.queues import TaskAction, TaskMark, apply_action
+from brimline_engine.text import plain_text
 
 log = logging.getLogger(__name__)
 PROPOSE_SCHEMA: dict[str, Any] = anthropic.transform_schema(agent.Proposals)
@@ -550,12 +551,6 @@ def _machine_seconds(conn: psycopg.Connection, task_id: int) -> int:
 # --- Watch -------------------------------------------------------------------------------------
 
 
-def _plain(text: str) -> str:
-    """Machine text made safe to store as a note: no control characters (a NUL would fail the
-    database's text check and stop the watcher), at most 400 characters. Still untrusted data."""
-    return "".join(ch for ch in text if ch.isprintable())[:400]
-
-
 def poll_once(conn: psycopg.Connection, shop: Shop, now: datetime) -> list[tuple[int, str]]:
     """Check every running task that dispatch started and record the ones the machine has finished
     or failed; adopt a start a machine accepted after its answer timed out. Returns (task id, new
@@ -618,7 +613,7 @@ def _poll_task(
         # A machine that names its jobs but no longer shows ours was restarted or cleared: we
         # cannot say it finished, so it is recorded as failed, saying why.
         if s.message:
-            note = f"Machine reported: {_plain(s.message)}"
+            note = f"Machine reported: {plain_text(s.message)}"
         elif s.state == "idle":
             note = "The machine no longer reports this job (restarted or cleared)."
         else:

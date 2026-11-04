@@ -17,6 +17,14 @@ def _no_nul(value: str) -> str:
 
 SafeText = Annotated[str, AfterValidator(_no_nul)]
 
+
+def plain_text(text: str, limit: int = 400) -> str:
+    """Text a machine sent, made safe to store: no control characters (a NUL would fail the
+    database's text check and stop a loop that records it), at most `limit` characters. It is
+    still untrusted data: shown labelled, never obeyed."""
+    return "".join(ch for ch in text if ch.isprintable())[:limit]
+
+
 # Order numbers look like BL-0001. Anything else cannot be an order, so it never reaches SQL.
 ORDER_NUMBER_PATTERN = r"^BL-[0-9]{4,10}$"
 
