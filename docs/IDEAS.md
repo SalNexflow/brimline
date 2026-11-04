@@ -47,3 +47,5 @@ Bigger "nice to have" ideas, one-line pitch each. Not commitments.
 - **A pin button on the icon rail,** so a person who prefers labels can keep it open (remembered per browser).
 - **Drag to zoom the board timeline** between the three-day and whole-plan widths, with keyboard steps, instead of two fixed spans.
 - **A design-shot comparison in CI:** keep the approved design shots and flag a screen whose pixels move more than a set amount.
+- **Dispatch reads recorded polls** instead of calling each machine on every page load: faster with an unresponsive machine (each costs a 3 s timeout today), at the price of state up to one poll old.
+- **Alerts on a connection change**, e.g. a machine unreachable for five minutes, as a notice on the board.

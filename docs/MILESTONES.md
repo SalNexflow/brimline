@@ -163,3 +163,17 @@ including prompt injection, dev and held-out reported apart.
 
 Acceptance: 0 actions executed without Proceed and 0 injections that changed anything; unsafe calls blocked
 and unsafe calls that got through reported; all simulated and labelled untested on real hardware.
+
+## M12b. Connectivity tab (added 2026-11-04, at the user's request)
+**Goal:** show whether each machine answers, and how fast, judged by code from recorded polls.
+
+Deliverables: a poller (one read-only status call per machine, all at once, its own thread) that records
+every answer in `machine_polls` and deletes old rows; a connection state per machine (connected, slow,
+unreachable, or no data yet) derived by a pure function with thresholds in `config/connectivity.toml`;
+uptime over the last hour; a strip of recent polls; machine faults shown apart from the connection;
+"Test connection" (idempotent, audit-logged, rate-limited); planner and operator access as for Dispatch;
+links from Dispatch's machine cards; the simulator's modes drive every state for the demo.
+
+Acceptance: state derivation tested on hand-worked cases; one failing machine or a failed prune never stops
+the poller; machine text shown as escaped text that changes nothing; axe green at desktop and phone width;
+light and dark design shots; verified on the hosted demo in each state.
