@@ -226,10 +226,55 @@ a {
 
 .topbar {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.75rem;
   max-width: var(--content-width);
   margin: 0 auto;
   padding: 1rem var(--space-page) 0;
+}
+
+/* The theme switch: three radio buttons drawn as one glass pill; the chosen one is the dark pill,
+   as the current page is in the icon rail. Keyboard focus shows on the whole option. */
+.theme-switch {
+  display: inline-flex;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0.3rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+}
+
+.theme-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  color: var(--color-fg);
+  cursor: pointer;
+}
+
+.theme-option:hover {
+  background: var(--color-surface);
+}
+
+/* The highlighted option follows the theme actually applied (data-theme on <html>), not the radio
+   button, which the server always renders as "System". */
+:root:not([data-theme]) .theme-option[data-value="system"],
+:root[data-theme="light"] .theme-option[data-value="light"],
+:root[data-theme="dark"] .theme-option[data-value="dark"] {
+  background: var(--color-pill-active-bg);
+  color: var(--color-pill-active-fg);
+}
+
+.theme-option:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .account {

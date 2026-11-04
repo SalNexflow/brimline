@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { THEME_SCRIPT } from "@/lib/theme";
+
 import { AccountBar } from "./account-bar";
 import { DemoGate } from "./demo-gate";
 import { SideNav, SideNavLinks } from "./side-nav";
+import { ThemeSwitch } from "./theme-switch";
 import "./theme.css";
 import "./globals.css";
 
@@ -14,7 +17,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en">
+    // The script in <head> may set data-theme before React loads; that attribute is expected.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* The saved theme, applied before the first paint (lib/theme.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         {/* The current page is only known per request, so the marked nav streams in. */}
         <Suspense fallback={<SideNavLinks path="" />}>
@@ -22,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </Suspense>
         <div className="shell">
           <header className="topbar">
+            <ThemeSwitch />
             {/* Reads the session cookie, so it streams in behind its own boundary. */}
             <Suspense fallback={<span className="muted">…</span>}>
               <AccountBar />

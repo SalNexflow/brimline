@@ -1,60 +1,81 @@
 /* The look of Brimline, in one file: colours, type and sizes as CSS custom properties.
-   Components use only these tokens, so a new visual direction means editing this file. */
+   Components use only these tokens, so a new visual direction means editing this file.
+
+   Light and dark: each colour is written once, as light-dark(light value, dark value). The page's
+   color-scheme picks which: the system's setting by default, or the person's choice from the theme
+   switch (data-theme on <html>, set before the page is drawn; D199). Native controls follow too. */
+:root {
+  color-scheme: light dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 :root {
   /* "Soft glass" (redesign): a cool off-white page, frosted panels, ink text, one indigo accent and
      pastel washes used only as decoration. Every text colour is at least 4.5:1 on the page, on a
      glass panel, and on the strongest pastel wash with no glass at all (measured by a script; the axe
      checks in the browser tests hold it). */
-  --color-bg: #f3f4fa;
-  --color-fg: #1b1d2a;
-  --color-muted: #545a6b;
+  --color-bg: light-dark(#f3f4fa, #0e1120);
+  --color-fg: light-dark(#1b1d2a, #e9eaf4);
+  --color-muted: light-dark(#545a6b, #a9afc4);
   --font-sans: "Inter", "Segoe UI Variable", "Segoe UI", system-ui, Roboto, sans-serif;
   --space-page: clamp(1rem, 4vw, 3rem);
-  --color-border: #dcdfeb;
-  --color-accent: #4a3fc0;
-  --color-on-accent: #ffffff;
-  --color-error-bg: #fbe6e3;
-  --color-error-fg: #8a1c11;
-  --color-surface: #eef0f8;
-  --color-field: #ffffff;
-  --color-header: rgb(255 255 255 / 74%);
-  --shadow-card: 0 1px 1px rgb(40 44 90 / 4%), 0 6px 18px rgb(60 64 120 / 7%), 0 22px 44px rgb(60 64 120 / 6%);
+  --color-border: light-dark(#dcdfeb, #2b3048);
+  --color-accent: light-dark(#4a3fc0, #aea8ff);
+  --color-on-accent: light-dark(#ffffff, #14162a);
+  --color-error-bg: light-dark(#fbe6e3, #3b1714);
+  --color-error-fg: light-dark(#8a1c11, #ffb4a9);
+  --color-surface: light-dark(#eef0f8, #171b2e);
+  --color-field: light-dark(#ffffff, #12162a);
+  --color-header: light-dark(rgb(255 255 255 / 74%), rgb(28 32 52 / 78%));
+  /* Light: three soft layers; dark: two deeper ones (as before). A layer that belongs to the other
+     mode is transparent, so each mode keeps its exact shadow. */
+  --shadow-card: 0 1px 1px light-dark(rgb(40 44 90 / 4%), rgb(0 0 0 / 30%)),
+    0 6px 18px light-dark(rgb(60 64 120 / 7%), transparent),
+    0 22px 44px light-dark(rgb(60 64 120 / 6%), transparent),
+    0 10px 30px light-dark(transparent, rgb(0 0 0 / 35%));
 
   /* Glass: opaque enough that text contrast never depends on what is behind the panel. */
-  --glass-bg: rgb(255 255 255 / 74%);
-  --glass-strong: rgb(255 255 255 / 90%);
-  --glass-border: rgb(255 255 255 / 95%);
-  --glass-edge: rgb(70 76 130 / 12%);
+  --glass-bg: light-dark(rgb(255 255 255 / 74%), rgb(28 32 52 / 78%));
+  --glass-strong: light-dark(rgb(255 255 255 / 90%), rgb(28 32 52 / 92%));
+  --glass-border: light-dark(rgb(255 255 255 / 95%), rgb(255 255 255 / 8%));
+  --glass-edge: light-dark(rgb(70 76 130 / 12%), rgb(0 0 0 / 30%));
   --glass-blur: 18px;
 
   /* Pastel accents: decoration only, never behind text. */
-  --wash-peach: #fde3d3;
-  --wash-pink: #f9dbe8;
-  --wash-lilac: #e6defb;
-  --wash-blue: #d9e6fb;
-  --wash-teal: #d3f0ec;
+  --wash-peach: light-dark(#fde3d3, #2a1c22);
+  --wash-pink: light-dark(#f9dbe8, #2a1a2b);
+  --wash-lilac: light-dark(#e6defb, #1c1835);
+  --wash-blue: light-dark(#d9e6fb, #14203a);
+  --wash-teal: light-dark(#d3f0ec, #112a2b);
   --grad-primary: linear-gradient(135deg, #3b3ab5 0%, #5a3cc4 55%, #7a3db8 100%);
   --color-on-primary: #ffffff;
-  --color-pill-active-bg: #1b1d2a;
-  --color-pill-active-fg: #ffffff;
+  --color-pill-active-bg: light-dark(#1b1d2a, #e9eaf4);
+  --color-pill-active-fg: light-dark(#ffffff, #14162a);
 
   /* Board and badges */
-  --color-ok-bg: #e3f4e8;
-  --color-ok-fg: #1d5e2c;
-  --color-warn-bg: #fff1d1;
-  --color-warn-fg: #6b4b00;
-  --color-focus: #1a5fb4;
-  --color-now: #c01c28;
-  --color-shift: rgb(236 238 248 / 80%);
-  --color-late: #a51d2d;
-  --bar-1: #2a5f9e;
-  --bar-2: #1f6e47;
-  --bar-3: #6f45a8;
-  --bar-4: #9a4f08;
-  --bar-5: #1d6b77;
-  --bar-6: #94285f;
-  --bar-fg: #ffffff;
-  --bar-manual: #5c5c5c;
+  --color-ok-bg: light-dark(#e3f4e8, #16321e);
+  --color-ok-fg: light-dark(#1d5e2c, #9be3ad);
+  --color-warn-bg: light-dark(#fff1d1, #3a2e0a);
+  --color-warn-fg: light-dark(#6b4b00, #f5d77a);
+  --color-focus: light-dark(#1a5fb4, #78aeed);
+  --color-now: light-dark(#c01c28, #ff6b6b);
+  --color-shift: light-dark(rgb(236 238 248 / 80%), rgb(38 43 66 / 70%));
+  --color-late: light-dark(#a51d2d, #ff8a8a);
+  --bar-1: light-dark(#2a5f9e, #4f8fdb);
+  --bar-2: light-dark(#1f6e47, #3fae78);
+  --bar-3: light-dark(#6f45a8, #a882e0);
+  --bar-4: light-dark(#9a4f08, #e08a2e);
+  --bar-5: light-dark(#1d6b77, #3eb0c2);
+  --bar-6: light-dark(#94285f, #d4569a);
+  --bar-fg: light-dark(#ffffff, #0b0b0b);
+  --bar-manual: light-dark(#5c5c5c, #a0a0a0);
 
   /* Sizes */
   /* A day is wide enough that an hour is about 27 px, so most bar labels can be read. The whole-plan
@@ -80,6 +101,53 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+@supports not (color: light-dark(#000, #fff)) {
+  /* Browsers without light-dark() (before Chrome 123, Firefox 120, Safari 17.5) keep the light
+     theme, as they did before the switch; the switch has no effect there. lib/theme.test.ts checks this
+     list against the light values above. */
+  :root {
+    --color-bg: #f3f4fa;
+    --color-fg: #1b1d2a;
+    --color-muted: #545a6b;
+    --color-border: #dcdfeb;
+    --color-accent: #4a3fc0;
+    --color-on-accent: #ffffff;
+    --color-error-bg: #fbe6e3;
+    --color-error-fg: #8a1c11;
+    --color-surface: #eef0f8;
+    --color-field: #ffffff;
+    --color-header: rgb(255 255 255 / 74%);
+    --glass-bg: rgb(255 255 255 / 74%);
+    --glass-strong: rgb(255 255 255 / 90%);
+    --glass-border: rgb(255 255 255 / 95%);
+    --glass-edge: rgb(70 76 130 / 12%);
+    --wash-peach: #fde3d3;
+    --wash-pink: #f9dbe8;
+    --wash-lilac: #e6defb;
+    --wash-blue: #d9e6fb;
+    --wash-teal: #d3f0ec;
+    --color-pill-active-bg: #1b1d2a;
+    --color-pill-active-fg: #ffffff;
+    --color-ok-bg: #e3f4e8;
+    --color-ok-fg: #1d5e2c;
+    --color-warn-bg: #fff1d1;
+    --color-warn-fg: #6b4b00;
+    --color-focus: #1a5fb4;
+    --color-now: #c01c28;
+    --color-shift: rgb(236 238 248 / 80%);
+    --color-late: #a51d2d;
+    --bar-1: #2a5f9e;
+    --bar-2: #1f6e47;
+    --bar-3: #6f45a8;
+    --bar-4: #9a4f08;
+    --bar-5: #1d6b77;
+    --bar-6: #94285f;
+    --bar-fg: #ffffff;
+    --bar-manual: #5c5c5c;
+    --shadow-card: 0 1px 1px rgb(40 44 90 / 4%), 0 6px 18px rgb(60 64 120 / 7%), 0 22px 44px rgb(60 64 120 / 6%);
+  }
+}
+
 /* Reduced motion: every duration is zero, and globals.css turns animations off outright. */
 @media (prefers-reduced-motion: reduce) {
   :root {
@@ -87,53 +155,6 @@
     --motion-base: 0ms;
     --motion-slow: 0ms;
     --motion-stagger: 0ms;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0e1120;
-    --color-fg: #e9eaf4;
-    --color-muted: #a9afc4;
-    --color-border: #2b3048;
-    --color-accent: #aea8ff;
-    --color-on-accent: #14162a;
-    --color-error-bg: #3b1714;
-    --color-error-fg: #ffb4a9;
-    --color-surface: #171b2e;
-    --color-field: #12162a;
-    --color-header: rgb(28 32 52 / 78%);
-    --shadow-card: 0 1px 1px rgb(0 0 0 / 30%), 0 10px 30px rgb(0 0 0 / 35%);
-
-    --glass-bg: rgb(28 32 52 / 78%);
-    --glass-strong: rgb(28 32 52 / 92%);
-    --glass-border: rgb(255 255 255 / 8%);
-    --glass-edge: rgb(0 0 0 / 30%);
-
-    --wash-peach: #2a1c22;
-    --wash-pink: #2a1a2b;
-    --wash-lilac: #1c1835;
-    --wash-blue: #14203a;
-    --wash-teal: #112a2b;
-    --color-pill-active-bg: #e9eaf4;
-    --color-pill-active-fg: #14162a;
-
-    --color-ok-bg: #16321e;
-    --color-ok-fg: #9be3ad;
-    --color-warn-bg: #3a2e0a;
-    --color-warn-fg: #f5d77a;
-    --color-focus: #78aeed;
-    --color-now: #ff6b6b;
-    --color-shift: rgb(38 43 66 / 70%);
-    --color-late: #ff8a8a;
-    --bar-1: #4f8fdb;
-    --bar-2: #3fae78;
-    --bar-3: #a882e0;
-    --bar-4: #e08a2e;
-    --bar-5: #3eb0c2;
-    --bar-6: #d4569a;
-    --bar-fg: #0b0b0b;
-    --bar-manual: #a0a0a0;
   }
 }
 
