@@ -14,7 +14,9 @@ async function openConnectivity(page: Page): Promise<() => number> {
   await expect(page.getByTestId("connectivity-FDM-1")).toBeVisible();
   let refreshes = 0;
   page.on("request", (r) => {
-    if (r.headers()["rsc"] === "1" && new URL(r.url()).pathname === "/connectivity") refreshes += 1;
+    // A refresh, not Next.js prefetching a link to this page (the nav rail does; found on the live demo).
+    const h = r.headers();
+    if (h["rsc"] === "1" && !h["next-router-prefetch"] && new URL(r.url()).pathname === "/connectivity") refreshes += 1;
   });
   return () => refreshes;
 }
