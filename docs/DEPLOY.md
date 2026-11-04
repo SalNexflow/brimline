@@ -41,3 +41,25 @@ about a minute while Render starts the engine.
   board), 4 MB uploads, and writes refused before the database nears 1 GB.
 - `ENGINE_WEB_KEY` makes the engine answer only the web app; see docs/SECURITY.md for what is and
   is not hardened.
+
+## Neon compute: what an open demo costs
+
+Neon's Free plan gives 100 CU-hours of compute a month per project (neon.com/pricing, read 2026-11-04;
+the page says it was updated 2026-10-31), and suspends compute after 5 minutes without queries. The
+database is awake whenever the engine is: the dispatch watcher (every 2 s) and the connectivity poller
+(every 30 s hosted) both query it. Render's free engine sleeps after 15 minutes without requests, so
+what keeps Neon awake is **a browser that keeps calling the engine**. A demo tab left open could use
+the allowance; to stop that, pages stop refreshing and the waking check stops while a tab is hidden or
+after 10 minutes without a click, key, wheel or touch (D200), so an unattended demo lets the engine,
+and Neon, sleep.
+
+Checklist, about once a week while the demo is public:
+
+- [ ] **See the compute used** (Neon's docs, read 2026-11-04, page updated 2026-10-09): sign in at
+      console.neon.tech, open **Projects**: the list shows **Compute** used this billing period for each
+      project. For this project alone: open `brimline`, **Overview**, the **Usage** panel, **Compute**.
+      Figures can be about an hour behind.
+- [ ] Compare it with the 100 CU-hours allowance, pro rata for the days gone. Well ahead of pace means
+      something keeps the engine awake: check Render's logs for steady requests.
+- [ ] If the allowance runs out, Neon suspends the compute until the next billing period and the demo
+      shows "waking up" for good; raise `demo_poll_seconds` (config/connectivity.toml) or pause the demo.

@@ -224,6 +224,10 @@ The hosted demo at https://brimline-alpha.vercel.app (Vercel + Render + Neon, al
   therefore all happen at that one moment, so their own durations are zero (machine times come from the
   simulated machines). Between Monday 00:00 and the nightly reset at 03:30 (shop time) the demo clock is
   already on the new week while the data is still on the last one.
+- The hosted demo's database is on Neon's Free plan: 100 CU-hours of compute a month (Neon's pricing page,
+  read 2026-11-04), used whenever the engine is awake. A demo tab left open could use it up, so the board,
+  Dispatch and Connectivity stop refreshing while the tab is hidden or after 10 minutes without activity,
+  and say so (`docs/DEPLOY.md` explains how to see the compute used).
 - Plan day runs on one background thread inside the engine process: fine for one engine, not for several
   (a separate worker would be the next step, `docs/DECISIONS.md` D68).
 - Plan times are wall-clock minutes in the shop's time zone, so an overnight print across a clock change is
