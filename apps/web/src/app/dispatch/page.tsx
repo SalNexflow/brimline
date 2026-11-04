@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { can, signedInEngine, type DispatchView } from "@/lib/engine";
 
+import { AutoRefresh } from "../auto-refresh";
 import { connectionWord } from "../connectivity/view";
 import { Stats } from "../ui";
 import { AskButton, ProceedForm, SimulationForm, type ProposalRow } from "./forms";
@@ -46,6 +47,8 @@ async function DispatchContent({ searchParams }: { searchParams: PageProps<"/dis
   const run = data.runs[0];
   return (
     <>
+      {/* While a machine runs, the page follows it until the job ends (each refresh asks the machines). */}
+      <AutoRefresh active={data.machines.some((m) => m.state === "running")} everyMs={5000} />
       <p role="note" className="notice" data-testid="simulated-notice">
         {data.simulated_notice}
       </p>

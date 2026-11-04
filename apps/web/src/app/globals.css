@@ -1690,6 +1690,13 @@ section.check {
   text-decoration: none;
 }
 
+/* Auto-refresh stopped after a quiet spell: a small notice that is itself the resume button. */
+.refresh-paused {
+  margin: 0 auto 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
 /* --- Connectivity (M12b) ------------------------------------------------------------------ */
 
 .state-warn {

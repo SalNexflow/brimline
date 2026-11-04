@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 
 import { decide, planDay, type ActionState } from "./actions";
 
@@ -86,16 +85,4 @@ export function DecisionForm({
       <ErrorLine state={planState} />
     </div>
   );
-}
-
-/** While a plan is being made, re-render the board every two seconds to show progress (the
-    Connectivity tab uses it too, every five). */
-export function AutoRefresh({ active, everyMs = 2000 }: { active: boolean; everyMs?: number }) {
-  const router = useRouter();
-  useEffect(() => {
-    if (!active) return;
-    const timer = setInterval(() => router.refresh(), everyMs);
-    return () => clearInterval(timer);
-  }, [active, everyMs, router]);
-  return null;
 }

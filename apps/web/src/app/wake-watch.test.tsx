@@ -54,3 +54,18 @@ test("coming back to the tab checks at once, not on the next tick", async () => 
   });
   expect(screen.getByText("The demo is waking up")).toBeDefined();
 });
+
+test("a page nobody has touched for 10 minutes stops checking, so the engine can sleep (D200)", async () => {
+  page();
+  // 5 min: checks (someone loaded the page). 10 and 15 min: nobody has touched it, no more checks.
+  await act(() => vi.advanceTimersByTimeAsync(3 * CHECK_EVERY_MS));
+  expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+  // They come back (a click): it checks at once, and finds the engine asleep meanwhile.
+  engineAwake = false;
+  await act(async () => {
+    window.dispatchEvent(new Event("pointerdown"));
+    await vi.advanceTimersByTimeAsync(0);
+  });
+  expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
+  expect(screen.getByText("The demo is waking up")).toBeDefined();
+});
