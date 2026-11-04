@@ -30,6 +30,8 @@ test("a stale draft offers Plan again beside the reason, and pressing it starts 
   expect(screen.getByText(stale.reason)).toBeTruthy();
   const again = screen.getByRole("button", { name: "Plan again" });
   expect((again as HTMLButtonElement).disabled).toBe(false);
+  // A screen reader hears why, too: the button is described by the reason.
+  expect(document.getElementById(again.getAttribute("aria-describedby") ?? "")?.textContent).toBe(stale.reason);
 
   fireEvent.click(again);
   await waitFor(() => expect(actions.planDay).toHaveBeenCalledTimes(1));

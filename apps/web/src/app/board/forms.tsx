@@ -76,7 +76,7 @@ export function DecisionForm({
       {replan ? (
         <form action={planAction}>
           <input type="hidden" name="idempotency_key" value={replan.idempotencyKey} />
-          <button type="submit" disabled={replan.busy || planning}>
+          <button type="submit" disabled={replan.busy || planning} aria-describedby={reason ? "approve-reason" : undefined}>
             Plan again
           </button>
         </form>

@@ -3,7 +3,16 @@ import dataclasses
 import psycopg
 import pytest
 
-from brimline_engine.db.migrate import MigrationError, load_migrations, migrate
+from brimline_engine.db.migrate import (
+    MigrationError,
+    drop_database,
+    ensure_database,
+    load_migrations,
+    migrate,
+    with_database,
+)
+from brimline_engine.db.seed import seed
+from brimline_engine.settings import Settings
 
 
 def test_all_migrations_are_recorded(owner_conn: psycopg.Connection) -> None:
@@ -72,3 +81,43 @@ def test_the_app_role_cannot_connect_to_the_maintenance_database(app_url: str) -
 
     with pytest.raises(psycopg.OperationalError, match="permission denied"):
         psycopg.connect(with_database(app_url, "postgres")).close()
+
+
+def test_0015_takes_plans_made_before_it_as_up_to_date_with_orders(settings: Settings) -> None:
+    """DEFECT_LOG #112: on a database with purchase-order history (the hosted demo), migration 0015
+    must not make every existing plan say "Plan again". Two order entries exist before it runs, so
+    the plan that exists then has seen two."""
+    assert settings.database_owner_url
+    name = "brimline_test_0015"
+    owner, app = (
+        with_database(u, name) for u in (settings.database_owner_url, settings.database_url)
+    )
+    drop_database(settings.database_owner_url, name)
+    ensure_database(settings.database_owner_url, name)
+    try:
+        before = [m for m in load_migrations() if m.version < "0015"]
+        migrate(owner, app, before)
+        seed(owner)
+        with psycopg.connect(owner) as conn:
+            planner = conn.execute("SELECT id FROM users WHERE code = 'U-PLANNER'").fetchone()
+            assert planner is not None
+            run = conn.execute(
+                "INSERT INTO planning_runs (requested_by) VALUES (%s) RETURNING id", planner
+            ).fetchone()
+            assert run is not None
+            conn.execute(
+                "INSERT INTO schedules (run_id, anchor, document, fingerprint, solver_info,"
+                " created_by) VALUES (%s, now(), '{}', 'fp', '{}', %s)",
+                (run[0], planner[0]),
+            )
+            for action in ("purchase_order.record", "purchase_order.receive", "quote.approve"):
+                conn.execute(
+                    "INSERT INTO audit_log (action, entity_type, entity_id)"
+                    " VALUES (%s, 'purchase_order', 'PO-0001')",
+                    (action,),
+                )
+        assert migrate(owner, app) == ["0015_plan_order_changes"]
+        with psycopg.connect(owner) as conn:
+            assert conn.execute("SELECT order_changes_seen FROM schedules").fetchall() == [(2,)]
+    finally:
+        drop_database(settings.database_owner_url, name)

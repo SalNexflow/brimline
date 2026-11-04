@@ -5,3 +5,10 @@
 -- read its inputs, and orders changed since then exactly when the count is higher now.
 ALTER TABLE schedules
     ADD COLUMN order_changes_seen integer NOT NULL DEFAULT 0 CHECK (order_changes_seen >= 0);
+
+-- Plans that exist already are taken as up to date with today's orders; with 0 every one would say
+-- "Plan again" on a database that has any purchase-order history (review of DEFECT_LOG #111, #112).
+UPDATE schedules SET order_changes_seen = (
+    SELECT count(*) FROM audit_log
+    WHERE action IN ('purchase_order.record', 'purchase_order.receive', 'purchase_order.cancel')
+);

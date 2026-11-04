@@ -53,7 +53,7 @@ async function askDispatcher(page: Page) {
 }
 
 test("a dispatch goes from Proceed to a simulated start, through the guard", async ({ page }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(330_000); // up to 180 s to plan, 90 s for the machine to finish, and the rest
   const proposal = await askDispatcher(page);
   await proposal.check();
   await page.getByRole("button", { name: "Proceed" }).click();
