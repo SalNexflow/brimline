@@ -130,37 +130,14 @@ a {
   padding-left: 0.6rem;
 }
 
-/* The logo: a part resting on its brim line, drawn in CSS. */
+/* The logo: the owner's mark (public/brand/mark.png, built by scripts/brand-icons.mjs) on a dark tile.
+   The tile stays dark in both themes: the mark's bright gradient reads only on dark (D201). */
 .brand-mark {
   flex: 0 0 auto;
-  position: relative;
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 0.55rem;
-  background: var(--color-pill-active-bg);
-}
-
-.brand-mark::before,
-.brand-mark::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  translate: -50% 0;
-  border-radius: 2px;
-}
-
-.brand-mark::before {
-  top: 0.35rem;
-  width: 0.65rem;
-  height: 0.75rem;
-  background: var(--color-pill-active-fg);
-}
-
-.brand-mark::after {
-  bottom: 0.3rem;
-  width: 1.15rem;
-  height: 0.15rem;
-  background: linear-gradient(90deg, var(--wash-peach), #f2a33a);
+  background: var(--color-brand-tile) url("/brand/mark.png") center / 80% auto no-repeat;
 }
 
 .nav-icon {
@@ -1875,17 +1852,7 @@ td .state,
   border-radius: 0.85rem;
 }
 
-.login-mark::before {
-  top: 0.55rem;
-  width: 1rem;
-  height: 1.2rem;
-}
 
-.login-mark::after {
-  bottom: 0.45rem;
-  width: 1.8rem;
-  height: 0.22rem;
-}
 
 .login-card .user-list {
   margin: 1.25rem 0 0;

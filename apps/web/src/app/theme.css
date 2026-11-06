@@ -56,6 +56,8 @@
   --wash-teal: light-dark(#d3f0ec, #112a2b);
   --grad-primary: linear-gradient(135deg, #3b3ab5 0%, #5a3cc4 55%, #7a3db8 100%);
   --color-on-primary: #ffffff;
+  /* The logo's tile: dark in both themes, because the mark's colours read only on dark (D201). */
+  --color-brand-tile: #1b1d2a;
   --color-pill-active-bg: light-dark(#1b1d2a, #e9eaf4);
   --color-pill-active-fg: light-dark(#ffffff, #14162a);
 
