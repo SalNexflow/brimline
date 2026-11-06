@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { engineClient } from "@/lib/engine";
 
-import { signIn } from "../actions";
+import { signIn } from "../../actions";
 import { SignInButton } from "./sign-in-button";
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {

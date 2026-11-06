@@ -7,7 +7,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDuration } from "@/lib/timeline";
 import { FAILURE_REASONS, type FailureReason } from "@/lib/task-mark";
 
-import { Stats } from "../ui";
+import { Stats } from "../../ui";
 
 export const metadata: Metadata = { title: "Reports · Brimline" };
 

@@ -4,7 +4,7 @@
 //
 //   node scripts/readme.mjs           rewrite the generated blocks in README.md
 //   node scripts/readme.mjs --check   fail if README.md differs from what the results say (gate)
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -140,6 +140,53 @@ ${machinesConfig().map((m) => `| ${m.code} | ${PROTOCOL[m.protocol] ?? m.protoco
 
 The dispatch eval: ${both("scenarios")} scenarios written blind from the rules (${dsum.dev.scenarios} dev, ${dsum.heldout.scenarios} held out), model ${dispatchEval.model}, cost $${Number(dispatchEval.cost_usd).toFixed(3)} of a $${dispatchEval.cap_usd} cap (\`make eval\`, \`eval/results/DISPATCH.md\`). Unsafe tool calls (an action no Proceed approved, or one the scenario forbids), by the model + by a scripted misbehaving agent: dev ${dsum.dev.unsafe_by_model} + ${dsum.dev.unsafe_by_script}, held out ${dsum.heldout.unsafe_by_model} + ${dsum.heldout.unsafe_by_script}; blocked ${both("unsafe_blocked")}, got through **${both("unsafe_through")}**. Actions executed without a Proceed: **${both("executed_without_proceed")}**. Prompt-injection scenarios (job names, notes, file names, machine messages) where anything changed (proposals, tool calls or what started, against the same scenario run without the text): **${both("injection_changed")} of ${both("injection_scenarios")}**. Expected starts that did not happen: ${both("scenarios_with_a_missed_start")} scenarios, each refused by the guard's plan check (DISPATCH.md says why).`;
 
+// --- The front page's results strip (D202) -----------------------------------------------------
+// A few headline figures for apps/web (lib/results.generated.json), from the same numbers as the table
+// above, each with its command and the caveat a visitor needs. Written and checked with the README.
+
+const LANDING = join(ROOT, "apps", "web", "src", "lib", "results.generated.json");
+const landing = {
+  note: "Written by scripts/readme.mjs from eval/results; do not edit by hand.",
+  items: [
+    {
+      value: pct(quote.all_correct),
+      label: `of ${quote.items} held-out quote requests read with every field right by the AI`,
+      detail: `${quote.harmful_errors} harmful errors; code computes every price`,
+      command: "make eval",
+    },
+    {
+      value: `${one(late(80, "cpsat-simple"))} vs ${one(late(80, "edd"))}`,
+      label: "late or unscheduled jobs out of 80: CP-SAT against earliest-due-date",
+      detail: "mean over seeded, synthetic instances",
+      command: "make bench",
+    },
+    {
+      value: frac(caught, applied),
+      label: "deliberately corrupted plans caught by the independent checker",
+      detail: `${mutations.length} kinds of error; it shares no code with the scheduler`,
+      command: "make bench",
+    },
+    {
+      value: String(both("executed_without_proceed")),
+      label: "machine actions carried out without a person's Proceed",
+      detail: `${both("scenarios")} dispatch scenarios; the model's own ${both("unsafe_by_model")} unsafe calls were all stopped by the code guard`,
+      command: "make eval",
+    },
+    {
+      value: `${both("injection_changed")} of ${both("injection_scenarios")}`,
+      label: "prompt injections (in job names, notes, files, machine messages) that changed anything",
+      detail: "compared with the same scenario without the injected text; simulated machines",
+      command: "make eval",
+    },
+  ],
+  caveats: [
+    "Every figure is on fictional, synthetic data, written blind by a separate agent where the AI is tested.",
+    `The AI's held-out sets are small (${quote.items} quote requests, ${disruption.items} disruption messages), so one message is several percentage points.`,
+    "The machines are simulated over their real protocols and untested on real hardware.",
+  ],
+};
+const landingJson = `${JSON.stringify(landing, null, 2)}\n`;
+
 // --- Write or check -----------------------------------------------------------------------------
 
 function fill(text, name, body) {
@@ -157,13 +204,16 @@ const next = fill(
   "machines",
   machinesTable,
 );
+const landingNow = existsSync(LANDING) ? readFileSync(LANDING, "utf8") : "";
 if (process.argv.includes("--check")) {
-  if (next !== current) {
-    console.error("✗ README.md does not match eval/results (run `make readme` and commit it)");
+  if (next !== current || landingJson !== landingNow) {
+    const what = next !== current ? "README.md" : "apps/web/src/lib/results.generated.json";
+    console.error(`✗ ${what} does not match eval/results (run \`make readme\` and commit it)`);
     process.exit(1);
   }
-  console.log("README.md matches eval/results");
+  console.log("README.md and the front page's results match eval/results");
 } else {
   writeFileSync(README, next);
-  console.log(next === current ? "README.md already up to date" : "README.md updated from eval/results");
+  writeFileSync(LANDING, landingJson);
+  console.log(next === current && landingJson === landingNow ? "README.md already up to date" : "README.md and the front page's results updated from eval/results");
 }

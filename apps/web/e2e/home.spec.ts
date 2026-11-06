@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-test("home page loads and shows the Brimline heading", async ({ page }) => {
+test("the front page loads before sign-in (D202)", async ({ page }) => {
   const response = await page.goto("/");
 
   expect(response?.status()).toBe(200);
-  await expect(page).toHaveTitle("Brimline");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Brimline");
+  await expect(page).toHaveTitle("Brimline: the system behind a 3D printing shop");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("From a customer's message to a running print");
 });
 
 test("the Brimline mark is the favicon and app icon, in every size (D201)", async ({ page, request }) => {

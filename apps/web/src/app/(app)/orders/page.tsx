@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { can, signedInEngine } from "@/lib/engine";
 
-import { Stats, StatusPill } from "../ui";
+import { Stats, StatusPill } from "../../ui";
 
 export default function OrdersPage() {
   return (

@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { can, signedInEngine, type StockOverview } from "@/lib/engine";
 import { formatShopTime } from "@/lib/timeline";
 
-import { Stats, StatusPill } from "../ui";
+import { Stats, StatusPill } from "../../ui";
 import { CancelButton, PurchaseOrderForm, ReceiveButton } from "./forms";
 
 export const metadata: Metadata = { title: "Materials · Brimline" };

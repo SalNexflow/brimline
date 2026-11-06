@@ -3,9 +3,9 @@ import { Suspense } from "react";
 
 import { can, signedInEngine } from "@/lib/engine";
 
-import { AutoRefresh } from "../auto-refresh";
+import { AutoRefresh } from "../../auto-refresh";
 import { SimulationForm } from "../dispatch/forms";
-import { Stats } from "../ui";
+import { Stats } from "../../ui";
 import { TestConnectionForm } from "./forms";
 import { MachineCard } from "./view";
 

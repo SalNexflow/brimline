@@ -14,7 +14,7 @@ import {
   percentAt,
 } from "@/lib/timeline";
 
-import { Stats } from "../ui";
+import { Stats } from "../../ui";
 
 /** "days": the first few days, readable bars (the default); "all": the whole plan, narrower days. */
 export type Span = "days" | "all";

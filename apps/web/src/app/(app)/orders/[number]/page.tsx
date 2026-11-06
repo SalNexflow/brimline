@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 import { signedInEngine, type HistoryEntry } from "@/lib/engine";
 
-import { StatusPill } from "../../ui";
+import { StatusPill } from "../../../ui";
 
 export default function OrderPage({ params }: PageProps<"/orders/[number]">) {
   return (

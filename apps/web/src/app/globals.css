@@ -2080,3 +2080,255 @@ button:not(:disabled):active,
     animation: none !important;
   }
 }
+
+/* --- The front page (D202) ------------------------------------------------------------------ */
+
+.landing {
+  min-height: 100vh;
+}
+
+.landing-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 1rem var(--space-page) 0;
+}
+
+.landing-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-fg);
+  text-decoration: none;
+}
+
+.landing-main {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 var(--space-page) 3rem;
+  text-align: center;
+}
+
+.landing-main > section {
+  margin-top: 3.5rem;
+}
+
+.landing-main h2 {
+  margin-bottom: 0.4rem;
+}
+
+.landing-hero {
+  margin-top: 3rem;
+}
+
+.landing-eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.landing-title {
+  max-width: 46rem;
+  margin: 0 auto;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.landing-lede {
+  max-width: 42rem;
+  margin: 1.25rem auto 0;
+  font-size: 1.1rem;
+  line-height: 1.55;
+}
+
+.landing-fiction {
+  max-width: 42rem;
+  margin: 1.5rem auto 0;
+}
+
+.try-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.try-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+}
+
+.try-role {
+  font-weight: 700;
+}
+
+.try-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  opacity: 0.92;
+}
+
+.try-what {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.landing-video video {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 1rem auto 0.6rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+  background: var(--color-brand-tile);
+}
+
+.boundary {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.boundary-row {
+  display: grid;
+  grid-template-columns: 10rem 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+}
+
+.boundary-step {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.boundary-side {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.boundary-side p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.side-none p {
+  color: var(--color-muted);
+}
+
+.boundary-arrow {
+  color: var(--color-muted);
+}
+
+.lane {
+  display: inline-block;
+  padding: 0.05rem 0.55rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.lane-ai {
+  background: var(--wash-lilac);
+  color: var(--color-fg);
+}
+
+.lane-code {
+  background: var(--color-ok-bg);
+  color: var(--color-ok-fg);
+}
+
+.result-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-card);
+}
+
+.result-value {
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-detail {
+  font-size: 0.85rem;
+}
+
+.caveats {
+  max-width: 44rem;
+  margin: 1.25rem auto 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.caveats li + li {
+  margin-top: 0.3rem;
+}
+
+.landing-foot {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2rem var(--space-page) 3rem;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.result-command {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+/* On a phone each step stacks: the step, then the AI's part, then code's. */
+@media (max-width: 48rem) {
+  .boundary-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .boundary-arrow {
+    display: none;
+  }
+}

@@ -6,7 +6,7 @@ import { formatShopTime } from "@/lib/timeline";
 
 import { DiffView, DisruptionCard } from "./disruption-view";
 import { EventEditor, ReportForm } from "./disruption-forms";
-import { AutoRefresh } from "../auto-refresh";
+import { AutoRefresh } from "../../auto-refresh";
 import { DecisionForm, PlanDayForm } from "./forms";
 import { ScheduleView, type Span } from "./schedule-view";
 

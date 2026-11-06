@@ -63,8 +63,10 @@ export async function signedInEngine() {
   if (!token) redirect("/login");
   const client = engineClient(token);
   const { data: me, response } = await client.GET("/me");
-  // An expired or unknown token: the engine says 401 and the user signs in again.
-  if (response.status === 401 || !me) redirect("/login");
+  // An expired or unknown token: the engine says 401; the cookie is cleared (a page cannot set
+  // cookies while it renders, so a route does it) and the user signs in again.
+  if (response.status === 401) redirect("/session-expired");
+  if (!me) redirect("/login");
   return { client, me };
 }
 

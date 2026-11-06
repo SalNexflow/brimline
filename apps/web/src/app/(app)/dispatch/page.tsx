@@ -3,9 +3,9 @@ import { Suspense } from "react";
 
 import { can, signedInEngine, type DispatchView } from "@/lib/engine";
 
-import { AutoRefresh } from "../auto-refresh";
+import { AutoRefresh } from "../../auto-refresh";
 import { connectionWord } from "../connectivity/view";
-import { Stats } from "../ui";
+import { Stats } from "../../ui";
 import { AskButton, ProceedForm, SimulationForm, type ProposalRow } from "./forms";
 
 export const metadata: Metadata = { title: "Dispatch · Brimline" };
