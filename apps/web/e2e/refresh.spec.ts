@@ -60,7 +60,11 @@ test("ten minutes without activity stop refreshing, with a notice that resumes i
   await page.waitForTimeout(500);
   expect(refreshes()).toBe(before); // stopped: nothing for another minute
 
-  await notice.getByRole("button", { name: "Resume" }).click();
+  // By keyboard: the faked clock also holds the browser's animation frames, so a page cross-fade can
+  // stay over the page and catch a mouse click (it did in CI, DEFECT_LOG #116); a key press reaches
+  // the focused button whatever is drawn on top.
+  await notice.getByRole("button", { name: "Resume" }).focus();
+  await page.keyboard.press("Enter");
   await expect(notice).toHaveCount(0);
   await expect.poll(refreshes).toBe(before + 1); // refreshed at once on coming back
   await page.clock.runFor(5_000);
