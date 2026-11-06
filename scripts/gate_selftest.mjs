@@ -39,8 +39,8 @@ const MUTATIONS = [
   {
     name: "web behaviour change caught by a unit test",
     file: "apps/web/src/app/page.tsx",
-    find: "All data is\n        synthetic.",
-    replace: "All data is\n        real.",
+    find: "The shop, its customers and all data are fictional",
+    replace: "The shop, its customers and all data are real",
     expect: "web: unit tests",
   },
   {
@@ -92,8 +92,8 @@ const MUTATIONS = [
   },
   {
     name: "page change only a browser test sees (title)",
-    file: "apps/web/src/app/layout.tsx",
-    find: '  title: "Brimline",',
+    file: "apps/web/src/app/page.tsx",
+    find: '  title: "Brimline: the system behind a 3D printing shop",',
     replace: '  title: "Untitled",',
     expect: "web: browser tests",
   },
