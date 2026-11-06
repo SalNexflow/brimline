@@ -115,9 +115,9 @@ export function NameCard() {
   return (
     <Page>
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", flexDirection: "row", gap: 36 }}>
-        <div style={{ width: 120, height: 120, borderRadius: 30, background: color.fg, position: "relative", scale: String(0.8 + t * 0.2), opacity: t }}>
-          <div style={{ position: "absolute", left: 38, top: 22, width: 44, height: 52, borderRadius: 6, background: "#fff" }} />
-          <div style={{ position: "absolute", left: 20, bottom: 20, width: 80, height: 8, borderRadius: 4, background: `linear-gradient(90deg, ${color.washPeach}, #f2a33a)` }} />
+        {/* The owner's mark on the app's dark tile (D201), as in the app's nav rail. */}
+        <div style={{ width: 120, height: 120, borderRadius: 30, background: color.fg, display: "grid", placeItems: "center", scale: String(0.8 + t * 0.2), opacity: t }}>
+          <Img src={staticFile("brand/mark.png")} style={{ width: 96 }} />
         </div>
         <div style={{ fontSize: 150, fontWeight: 700, letterSpacing: "-0.035em", opacity: t, translate: `${(1 - t) * -20}px 0` }}>Brimline</div>
       </AbsoluteFill>
