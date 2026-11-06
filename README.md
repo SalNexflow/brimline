@@ -9,8 +9,9 @@ Production planning for a **fictional** made-to-order 3D-print and CNC shop. One
 **AI reads language and explains; code decides prices, dates, permissions and plans.** Every AI step is
 evaluated blind, and every number below is written by a command, never by hand. All data is fake.
 
-**Live demo: https://brimline-alpha.vercel.app** (sign in as any demo person; no password). It runs on free
-hosting: after a quiet spell the first visit shows "The demo is waking up" for about a minute.
+**Live demo: https://brimline-alpha.vercel.app**: a front page with the story, a walkthrough video and the
+measured results, then "Try it" as a customer, planner or operator (demo accounts, no password). It runs on
+free hosting: after a quiet spell, signing in shows "The demo is waking up" for about a minute.
 
 ![The production board with an approved plan](docs/screenshots/board.png)
 
