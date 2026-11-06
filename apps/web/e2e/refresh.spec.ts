@@ -29,10 +29,21 @@ async function setVisibility(page: Page, state: "hidden" | "visible") {
   }, state);
 }
 
+/** Until the page's refresh timer is running: on a slow machine the page's script may start it only
+    after the test has begun moving the faked clock, and time moved before then is not counted (it
+    failed that way in CI, DEFECT_LOG #116). Each try moves the clock one refresh period on. */
+async function untilRefreshing(page: Page, refreshes: () => number, atLeast = 1) {
+  await expect
+    .poll(async () => {
+      await page.clock.runFor(5_000);
+      return refreshes();
+    })
+    .toBeGreaterThanOrEqual(atLeast);
+}
+
 test("a hidden tab asks nothing, and catches up as soon as it is seen again", async ({ page }) => {
   const refreshes = await openConnectivity(page);
-  await page.clock.runFor(16_000);
-  await expect.poll(refreshes).toBeGreaterThanOrEqual(3); // every 5 s while visible
+  await untilRefreshing(page, refreshes, 3); // every 5 s while visible
 
   await setVisibility(page, "hidden");
   await page.waitForTimeout(500); // a refresh sent just before hiding is counted before we start
@@ -50,6 +61,7 @@ test("a hidden tab asks nothing, and catches up as soon as it is seen again", as
 
 test("ten minutes without activity stop refreshing, with a notice that resumes it", async ({ page }) => {
   const refreshes = await openConnectivity(page);
+  await untilRefreshing(page, refreshes);
   await page.clock.fastForward("10:05"); // nobody touches the page for ten minutes and five seconds
   const notice = page.getByTestId("refresh-paused");
   await expect(notice).toHaveText("Auto-refresh paused after 10 minutes without activity. Resume");
