@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 };
 
 const REPO = "https://github.com/SalNexflow/brimline";
-// The repository is private: a link would show visitors GitHub's 404. Set to true once it is public
-// and the links to the source and the README appear (D202).
-const REPO_PUBLIC = false;
+// The links to the source and the README show only while the repository is public (made public
+// 2026-11-08); a private one would show visitors GitHub's 404 (D202).
+const REPO_PUBLIC = true;
 
 // The AI-versus-code boundary, shortened from the README's table (the same rules, fewer words).
 const BOUNDARY: [string, string, string][] = [

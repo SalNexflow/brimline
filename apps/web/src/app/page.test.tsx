@@ -46,9 +46,13 @@ test("the video has controls, no autoplay, and loads nothing until asked", () =>
   expect(video.getAttribute("poster")).toBe("/media/brimline-demo-poster.jpg");
 });
 
-test("no link to the private repository, no sign-up form, no prices", () => {
+test("links to the public source and README; no sign-up form, no prices", () => {
   const { container } = render(<HomePage />);
-  expect(container.querySelector('a[href*="github.com"]')).toBeNull();
+  const links = [...container.querySelectorAll<HTMLAnchorElement>('a[href*="github.com"]')].map((a) => [a.textContent, a.getAttribute("href")]);
+  expect(links).toEqual([
+    ["The source code", "https://github.com/SalNexflow/brimline"],
+    ["the README", "https://github.com/SalNexflow/brimline#readme"],
+  ]);
   expect(container.querySelector('input[type="email"], input[type="password"]')).toBeNull();
   expect(container.textContent).not.toMatch(/[$€£]\s?\d/);
 });
